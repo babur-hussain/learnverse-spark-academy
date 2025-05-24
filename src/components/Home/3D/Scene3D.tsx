@@ -1,6 +1,6 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Preload } from '@react-three/drei';
 import FloatingComputer from './FloatingComputer';
 import FloatingBooks from './FloatingBooks';
 import ProgrammingLogos from './ProgrammingLogos';
@@ -11,8 +11,22 @@ interface Scene3DProps {
   className?: string;
 }
 
+const LoadingFallback = () => (
+  <mesh>
+    <boxGeometry args={[1, 1, 1]} />
+    <meshStandardMaterial color="#4285f4" />
+  </mesh>
+);
+
 const Scene3D: React.FC<Scene3DProps> = ({ model, className = "" }) => {
   const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Reset error state when model changes
+    setHasError(false);
+    setIsLoading(true);
+  }, [model]);
 
   const renderModel = () => {
     try {
@@ -60,16 +74,19 @@ const Scene3D: React.FC<Scene3DProps> = ({ model, className = "" }) => {
           alpha: true,
           powerPreference: 'high-performance',
           failIfMajorPerformanceCaveat: true,
-          preserveDrawingBuffer: true
+          preserveDrawingBuffer: true,
+          stencil: false,
+          depth: true
         }}
         style={{ background: 'transparent' }}
         onError={(error) => {
           console.error('Canvas error:', error);
           setHasError(true);
         }}
+        onCreated={() => setIsLoading(false)}
       >
-        <Suspense fallback={null}>
-          <ambientLight intensity={0.6} />
+        <Suspense fallback={<LoadingFallback />}>
+          <ambientLight intensity={0.7} />
           <directionalLight position={[10, 10, 5]} intensity={0.8} />
           <pointLight position={[-10, -10, -5]} intensity={0.3} />
           {renderModel()}
@@ -80,9 +97,17 @@ const Scene3D: React.FC<Scene3DProps> = ({ model, className = "" }) => {
             autoRotate={false}
             maxPolarAngle={Math.PI / 2}
             minPolarAngle={Math.PI / 2}
+            dampingFactor={0.05}
+            rotateSpeed={0.5}
           />
+          <Preload all />
         </Suspense>
       </Canvas>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="text-white">Loading 3D Model...</div>
+        </div>
+      )}
     </div>
   );
 };
