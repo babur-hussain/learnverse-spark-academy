@@ -1,0 +1,289 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border transition-colors duration-200;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    @apply bg-background text-foreground font-sans;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Platform-specific styles */
+  .ios {
+    /* iOS-specific adjustments */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+  }
+  
+  .capacitor button, 
+  .capacitor a {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Improved touch feedback */
+  @media (hover: none) {
+    .touch-feedback:active {
+      @apply opacity-70 scale-95;
+    }
+  }
+  
+  /* Optimize button/input sizing for touch */
+  @media (max-width: 768px) {
+    button, 
+    .btn, 
+    input[type="button"], 
+    input[type="submit"] {
+      @apply min-h-10 min-w-10;
+    }
+    
+    input, 
+    select, 
+    textarea {
+      @apply text-base;
+    }
+  }
+}
+
+@layer components {
+  .gradient-primary {
+    @apply bg-gradient-to-r from-learn-purple via-learn-blue to-learn-teal;
+  }
+  
+  .gradient-text {
+    @apply text-transparent bg-clip-text gradient-primary;
+  }
+  
+  .gradient-border {
+    @apply relative before:absolute before:inset-0 before:-z-10 before:padding-[1px] 
+    before:rounded-[inherit] before:gradient-primary before:content-[''];
+  }
+  
+  .live-badge {
+    @apply px-2 py-0.5 text-xs font-semibold rounded-full bg-red-500 text-white
+    animate-pulse-soft;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1 dark:hover:shadow-primary/10;
+  }
+  
+  .search-container {
+    @apply relative flex items-center w-full;
+  }
+  
+  .search-input {
+    @apply w-full py-2 pl-10 pr-4 rounded-full border border-gray-200 dark:border-gray-700
+    focus:outline-none focus:ring-2 focus:ring-learn-purple focus:border-transparent
+    dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-400;
+  }
+  
+  .nav-link {
+    @apply px-4 py-2 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-100 
+    hover:text-learn-purple dark:hover:bg-gray-800 transition-colors duration-200;
+  }
+  
+  .nav-link-active {
+    @apply px-4 py-2 text-learn-purple font-medium dark:text-learn-purple;
+  }
+  
+  /* Responsive grid layouts */
+  .course-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6;
+  }
+  
+  /* Mobile optimized grids */
+  .mobile-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  }
+  
+  /* Touch-friendly buttons */
+  .touch-button {
+    @apply rounded-lg py-3 px-4 flex items-center justify-center touch-feedback;
+  }
+  
+  .bg-grid-pattern {
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .dark .bg-grid-pattern {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  .animate-ping-slow {
+    animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  
+  /* Bottom sheet for mobile */
+  .bottom-sheet {
+    @apply fixed inset-x-0 bottom-0 z-50 rounded-t-2xl bg-white dark:bg-gray-900 
+    border-t border-gray-200 dark:border-gray-800 shadow-lg pb-safe;
+    transform: translateY(0);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .bottom-sheet-hidden {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes pulse-soft {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  0% {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+.animate-pulse-soft {
+  animation: pulse-soft 2s infinite;
+}
+
+.animate-ping-slow {
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+/* Responsive paddings for safe areas */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.py-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Improved Capacitor web view fixes */
+@supports (-webkit-touch-callout: none) {
+  .h-screen {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+}
