@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Plus, Video, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
+import { ComingSoonInline } from '@/components/ErrorPage';
 
 // Mock data for study rooms
 const mockRooms = [
@@ -68,15 +68,17 @@ const StudyRooms = () => {
 
   const createStudyRoom = () => {
     toast({
-      title: 'Coming Soon',
-      description: 'Study room creation feature will be available shortly'
+      title: '',
+      description: <ComingSoonInline message="Study room creation feature will be available shortly." />,
+      duration: 4000
     });
   };
 
   const joinRoom = (roomId) => {
     toast({
-      title: 'Coming Soon',
-      description: 'Room joining feature will be available shortly'
+      title: '',
+      description: <ComingSoonInline message="Room joining feature will be available shortly." />,
+      duration: 4000
     });
   };
 

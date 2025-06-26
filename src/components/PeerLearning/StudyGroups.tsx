@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ComingSoonInline } from '@/components/ErrorPage';
 
 // Mock data for study groups
 const mockStudyGroups = [
@@ -55,8 +55,9 @@ const StudyGroups = () => {
 
   const createStudyGroup = () => {
     toast({
-      title: 'Coming Soon',
-      description: 'Study group creation feature will be available shortly'
+      title: '',
+      description: <ComingSoonInline message="Study group creation feature will be available shortly." />,
+      duration: 4000
     });
   };
 

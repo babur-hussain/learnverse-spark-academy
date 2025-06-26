@@ -5,7 +5,7 @@ import Auth from '@/pages/Auth';
 import Profile from '@/pages/Profile';
 import Notes from '@/pages/Notes';
 import PaidNotes from '@/pages/PaidNotes';
-import NotFound from './pages/NotFound';
+import ComingSoon from './pages/NotFound';
 import Admin from './pages/Admin';
 import GuardianDashboard from './pages/GuardianDashboard';
 import Explore from './pages/Explore';
@@ -109,6 +109,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <NotFound />,
+    element: <ComingSoon />,
   },
 ]);

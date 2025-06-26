@@ -8,6 +8,7 @@ import { Card } from '@/components/UI/card';
 import { EducationalLoader } from '@/components/UI/educational-loader';
 import useIsMobile from '@/hooks/use-mobile';
 import { BookOpen, Video, FileText, Users } from 'lucide-react';
+import { ComingSoonInline } from '@/components/ErrorPage';
 
 const Explore = () => {
   const [searchParams] = useSearchParams();
@@ -248,13 +249,13 @@ const Explore = () => {
 
         <TabsContent value="tests">
           <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Tests coming soon for this category.</p>
+            <ComingSoonInline message="Tests coming soon for this category." />
           </Card>
         </TabsContent>
 
         <TabsContent value="live">
           <Card className="p-8 text-center">
-            <p className="text-muted-foreground">Live classes coming soon for this category.</p>
+            <ComingSoonInline message="Live classes coming soon for this category." />
           </Card>
         </TabsContent>
       </Tabs>

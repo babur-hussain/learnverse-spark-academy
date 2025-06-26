@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Plus, FileText, FileImage, File } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ComingSoonInline } from '@/components/ErrorPage';
 
 // Mock data for shared resources
 const mockResources = [
@@ -58,8 +58,9 @@ const SharedResources = () => {
 
   const uploadResource = () => {
     toast({
-      title: 'Coming Soon',
-      description: 'Resource upload feature will be available shortly'
+      title: '',
+      description: <ComingSoonInline message="Resource upload feature will be available shortly." />,
+      duration: 4000
     });
   };
 
