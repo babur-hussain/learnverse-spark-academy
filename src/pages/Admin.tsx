@@ -225,15 +225,15 @@ const AdminPage = () => {
                   <Card key={index} className="relative overflow-hidden">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                        {tool.icon}
+                          {tool.icon}
                         {tool.title}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <p className="text-gray-600 dark:text-gray-400 mb-4">{tool.description}</p>
-                      <Link to={tool.link}>
+                        <Link to={tool.link}>
                         <Button className={`${tool.color} text-white w-full`}>Manage {tool.title.split(' ')[0]}</Button>
-                      </Link>
+                        </Link>
                     </CardContent>
                   </Card>
                 ))}

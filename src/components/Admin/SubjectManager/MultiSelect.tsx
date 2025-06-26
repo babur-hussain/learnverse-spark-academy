@@ -107,27 +107,27 @@ export function MultiSelect({
             {Array.isArray(safeOptions) && safeOptions.length > 0 ? (
               safeOptions.map((option) => {
                 const isSelected = safeSelected.includes(option.value);
-                return (
-                  <CommandItem
-                    key={option.value}
-                    value={option.label}
-                    onSelect={() => handleSelect(option.value)}
-                  >
-                    <div className="flex items-center gap-2 w-full">
-                      <div
-                        className={cn(
-                          "border mr-2 flex h-4 w-4 shrink-0 items-center justify-center rounded",
-                          isSelected
-                            ? "bg-primary border-primary"
-                            : "border-primary opacity-50"
-                        )}
-                      >
-                        {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-                      </div>
-                      <span>{option.label}</span>
+              return (
+                <CommandItem
+                  key={option.value}
+                  value={option.label}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <div className="flex items-center gap-2 w-full">
+                    <div
+                      className={cn(
+                        "border mr-2 flex h-4 w-4 shrink-0 items-center justify-center rounded",
+                        isSelected
+                          ? "bg-primary border-primary"
+                          : "border-primary opacity-50"
+                      )}
+                    >
+                      {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
                     </div>
-                  </CommandItem>
-                );
+                    <span>{option.label}</span>
+                  </div>
+                </CommandItem>
+              );
               })
             ) : (
               <div className="p-4 text-center text-muted-foreground text-sm">No options available</div>

@@ -539,15 +539,15 @@ export function SubjectDialog({
             <div>
               <FormLabel>Categories</FormLabel>
               {Array.isArray(categories) ? (
-                <MultiSelect
+              <MultiSelect
                   options={arraySafe(categories).map(category => ({
-                    value: category.id,
-                    label: category.name
-                  }))}
+                  value: category.id,
+                  label: category.name
+                }))}
                   selected={arraySafe(selectedCategoryIds)}
-                  onChange={handleCategoryChange}
-                  placeholder="Select categories"
-                />
+                onChange={handleCategoryChange}
+                placeholder="Select categories"
+              />
               ) : (
                 <div className="p-2 text-center text-muted-foreground text-sm">Loading categories...</div>
               )}
