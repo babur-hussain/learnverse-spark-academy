@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import React, { useState, useRef } from 'react';
 import { Search, File, Mic, ArrowUp, Paperclip, X, Loader2 } from 'lucide-react';
+=======
+
+import React, { useState, useRef } from 'react';
+import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle } from 'lucide-react';
+>>>>>>> main
 import { Button } from '@/components/UI/button';
 import { Card } from '@/components/UI/card';
 import { Tooltip } from '@/components/UI/tooltip';
@@ -48,8 +54,16 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     setIsLoading(true);
     setIsExpanded(true);
     setError(null);
+<<<<<<< HEAD
     
     try {
+=======
+    setResult(null);
+    
+    try {
+      console.log("Starting AI search with query:", query);
+      
+>>>>>>> main
       const newConversation = [...conversation];
       
       newConversation.push({
@@ -59,7 +73,11 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
 
       const response = await supabase.functions.invoke('deepseek-ai', {
         body: {
+<<<<<<< HEAD
           query,
+=======
+          query: query.trim(),
+>>>>>>> main
           fileData: fileContent,
           mode,
           followUp: conversation.length > 0 ? conversation : null,
@@ -67,6 +85,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         },
       });
 
+<<<<<<< HEAD
       if (response.error) {
         throw new Error(response.error.message || 'Error processing your request');
       }
@@ -77,6 +96,30 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
 
       const data = response.data as SearchResult;
       
+=======
+      console.log("Supabase function response:", response);
+
+      if (response.error) {
+        console.error("Supabase function error:", response.error);
+        throw new Error(response.error.message || 'Error connecting to AI service');
+      }
+
+      if (response.data && response.data.error) {
+        console.error("AI service error:", response.data.error);
+        throw new Error(response.data.error);
+      }
+
+      if (!response.data) {
+        throw new Error('No response received from AI service');
+      }
+
+      const data = response.data as SearchResult;
+      
+      if (!data.answer) {
+        throw new Error('Invalid response format from AI service');
+      }
+      
+>>>>>>> main
       newConversation.push({
         role: 'assistant',
         content: data.answer,
@@ -88,12 +131,27 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       setUploadedFile(null);
       setFileContent(null);
       
+<<<<<<< HEAD
     } catch (error) {
       console.error('Error in AI search:', error);
       setError(error instanceof Error ? error.message : "Something went wrong");
       toast({
         title: "Search failed",
         description: error instanceof Error ? error.message : "Something went wrong",
+=======
+      toast({
+        title: "Search completed",
+        description: "Your question has been processed successfully",
+      });
+      
+    } catch (error) {
+      console.error('Error in AI search:', error);
+      const errorMessage = error instanceof Error ? error.message : "Something went wrong";
+      setError(errorMessage);
+      toast({
+        title: "Search failed",
+        description: errorMessage,
+>>>>>>> main
         variant: "destructive",
       });
     } finally {
@@ -127,15 +185,22 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'image/jpeg', 
       'image/png',
+<<<<<<< HEAD
       'audio/mp3',
       'audio/mpeg',
+=======
+>>>>>>> main
       'text/plain'
     ];
     
     if (!allowedTypes.includes(file.type)) {
       toast({
         title: "Unsupported file type",
+<<<<<<< HEAD
         description: "Please upload a PDF, Word document, image, or audio file",
+=======
+        description: "Please upload a PDF, Word document, image, or text file",
+>>>>>>> main
         variant: "destructive",
       });
       return;
@@ -180,6 +245,15 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     });
   };
 
+<<<<<<< HEAD
+=======
+  const handleRetry = () => {
+    if (query.trim() || fileContent) {
+      handleSearch();
+    }
+  };
+
+>>>>>>> main
   return (
     <div className={cn("w-full max-w-4xl mx-auto px-4", className)}>
       <div className="relative">
@@ -188,7 +262,11 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
+<<<<<<< HEAD
               className="h-12 w-full rounded-full border border-input bg-background pl-10 pr-24 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder-gray-400"
+=======
+              className="h-12 w-full rounded-full border border-input bg-background pl-10 pr-24 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+>>>>>>> main
               placeholder="Ask any educational question..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
@@ -202,6 +280,10 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
                   size="icon"
                   className="h-6 w-6"
                   onClick={handleClearFile}
+<<<<<<< HEAD
+=======
+                  disabled={isLoading}
+>>>>>>> main
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -220,13 +302,21 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
                 ref={fileInputRef}
                 className="hidden"
                 onChange={handleFileUpload}
+<<<<<<< HEAD
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp3,.txt"
+=======
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+>>>>>>> main
               />
             </div>
           </div>
           <Button
             onClick={handleSearch}
+<<<<<<< HEAD
             disabled={isLoading}
+=======
+            disabled={isLoading || (!query.trim() && !fileContent)}
+>>>>>>> main
             className="h-12 px-4 rounded-full bg-primary hover:bg-primary/90"
           >
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
@@ -241,42 +331,74 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         )}
         
         <div className="absolute right-16 -top-8 flex gap-2">
+<<<<<<< HEAD
           <Tooltip content="Normal mode">
+=======
+          <Tooltip content="Normal mode - balanced responses">
+>>>>>>> main
             <Button
               variant={mode === 'normal' ? "default" : "outline"}
               size="sm"
               onClick={() => handleModeChange('normal')}
               className="h-6 text-xs px-2 rounded-full"
+<<<<<<< HEAD
+=======
+              disabled={isLoading}
+>>>>>>> main
             >
               Normal
             </Button>
           </Tooltip>
+<<<<<<< HEAD
           <Tooltip content="Explain like I'm 5">
+=======
+          <Tooltip content="Simple explanations for easy understanding">
+>>>>>>> main
             <Button
               variant={mode === 'explain' ? "default" : "outline"}
               size="sm"
               onClick={() => handleModeChange('explain')}
               className="h-6 text-xs px-2 rounded-full"
+<<<<<<< HEAD
+=======
+              disabled={isLoading}
+>>>>>>> main
             >
               Simple
             </Button>
           </Tooltip>
+<<<<<<< HEAD
           <Tooltip content="Detailed academic explanation">
+=======
+          <Tooltip content="Comprehensive detailed explanations">
+>>>>>>> main
             <Button
               variant={mode === 'detailed' ? "default" : "outline"}
               size="sm"
               onClick={() => handleModeChange('detailed')}
               className="h-6 text-xs px-2 rounded-full"
+<<<<<<< HEAD
+=======
+              disabled={isLoading}
+>>>>>>> main
             >
               Detailed
             </Button>
           </Tooltip>
+<<<<<<< HEAD
           <Tooltip content="Analyze documents or problems">
+=======
+          <Tooltip content="Analyze and extract key insights">
+>>>>>>> main
             <Button
               variant={mode === 'analyze' ? "default" : "outline"}
               size="sm"
               onClick={() => handleModeChange('analyze')}
               className="h-6 text-xs px-2 rounded-full"
+<<<<<<< HEAD
+=======
+              disabled={isLoading}
+>>>>>>> main
             >
               Analyze
             </Button>
@@ -285,6 +407,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       </div>
 
       {isExpanded && (
+<<<<<<< HEAD
         <Card className="mt-4 p-5 animate-fade-in dark:bg-card dark:border-border">
           {error ? (
             <div className="text-center p-6">
@@ -293,6 +416,19 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
               <p className="text-sm">
                 The DeepSeek AI API is currently experiencing an issue. Please try again later or contact support.
               </p>
+=======
+        <Card className="mt-4 p-5 animate-fade-in">
+          {error ? (
+            <div className="text-center p-6">
+              <div className="flex items-center justify-center gap-2 text-destructive font-medium mb-2">
+                <AlertCircle className="h-5 w-5" />
+                Error Processing Request
+              </div>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button onClick={handleRetry} variant="outline" size="sm">
+                Try Again
+              </Button>
+>>>>>>> main
             </div>
           ) : result ? (
             <div>
@@ -300,26 +436,45 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
                 {result.categories.map((category, i) => (
                   <span 
                     key={i} 
+<<<<<<< HEAD
                     className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary"
+=======
+                    className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+>>>>>>> main
                   >
                     {category}
                   </span>
                 ))}
               </div>
+<<<<<<< HEAD
               <div className="text-sm whitespace-pre-line text-foreground">
                 {result.answer}
               </div>
               {result.followUpSuggestions && (
                 <div className="mt-4">
                   <p className="text-sm font-medium mb-2">Follow-up questions:</p>
+=======
+              <div className="text-sm whitespace-pre-line text-foreground leading-relaxed">
+                {result.answer}
+              </div>
+              {result.followUpSuggestions && result.followUpSuggestions.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">Follow-up questions:</p>
+>>>>>>> main
                   <div className="flex flex-wrap gap-2">
                     {result.followUpSuggestions.map((suggestion, i) => (
                       <Button
                         key={i}
                         variant="outline"
                         size="sm"
+<<<<<<< HEAD
                         className="text-xs h-8"
                         onClick={() => handleFollowUpClick(suggestion)}
+=======
+                        className="text-xs h-8 hover:bg-primary/10"
+                        onClick={() => handleFollowUpClick(suggestion)}
+                        disabled={isLoading}
+>>>>>>> main
                       >
                         {suggestion}
                       </Button>
@@ -331,12 +486,21 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
           ) : isLoading ? (
             <div className="flex flex-col items-center justify-center p-6">
               <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+<<<<<<< HEAD
               <p className="text-sm text-muted-foreground">Processing your question...</p>
+=======
+              <p className="text-sm text-muted-foreground">Processing your question with AI...</p>
+              <p className="text-xs text-muted-foreground mt-1">This may take a few moments</p>
+>>>>>>> main
             </div>
           ) : (
             <div className="text-center p-6">
               <p className="text-sm text-muted-foreground">
+<<<<<<< HEAD
                 Ask a question to get started
+=======
+                Ask a question to get started with AI-powered learning assistance
+>>>>>>> main
               </p>
             </div>
           )}

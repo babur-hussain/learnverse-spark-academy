@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -54,6 +57,13 @@ interface ChaptersManagerProps {
   onSelectChapter: (chapterId: string | null) => void;
 }
 
+<<<<<<< HEAD
+=======
+function arraySafe<T>(arr: T[] | undefined | null): T[] {
+  return Array.isArray(arr) ? arr : [];
+}
+
+>>>>>>> main
 const ChaptersManager: React.FC<ChaptersManagerProps> = ({ 
   selectedSubject, 
   onSelectSubject,
@@ -457,7 +467,11 @@ const ChaptersManager: React.FC<ChaptersManagerProps> = ({
         <div className="flex justify-center py-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-learn-purple"></div>
         </div>
+<<<<<<< HEAD
       ) : filteredChapters.length === 0 ? (
+=======
+      ) : arraySafe(filteredChapters).length === 0 ? (
+>>>>>>> main
         <div className="text-center py-8">
           {searchQuery ? (
             <p className="text-muted-foreground">No chapters matching your search</p>
@@ -480,7 +494,11 @@ const ChaptersManager: React.FC<ChaptersManagerProps> = ({
             </TableRow>
           </TableHeader>
           <TableBody>
+<<<<<<< HEAD
             {filteredChapters.map((chapter) => (
+=======
+            {arraySafe(filteredChapters).map((chapter) => (
+>>>>>>> main
               <TableRow key={chapter.id} onClick={() => onSelectChapter(chapter.id)} className="cursor-pointer">
                 <TableCell className="font-medium">{chapter.title}</TableCell>
                 {!selectedSubject && (

@@ -35,8 +35,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       <Input
         type="text"
         placeholder={placeholder}
+<<<<<<< HEAD
         className={`pl-9 pr-4 w-full bg-white dark:bg-gray-800 placeholder:text-gray-400 
           ${isMobile ? 'h-12 text-base rounded-xl' : 'h-10 rounded-md'}`}
+=======
+        className={`pl-10 pr-4 w-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm placeholder:text-gray-400 border-gray-200 dark:border-gray-700 focus:border-learn-purple dark:focus:border-purple-400 focus:ring-2 focus:ring-learn-purple/20 dark:focus:ring-purple-400/20 transition-all duration-300 
+          ${isMobile ? 'h-12 text-base rounded-xl shadow-sm' : 'h-10 rounded-lg'}`}
+>>>>>>> main
         value={query}
         onChange={handleInputChange}
         autoFocus={autoFocus && !isMobile} // Don't autofocus on mobile as it brings up keyboard

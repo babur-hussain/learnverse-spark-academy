@@ -1,12 +1,21 @@
 
 import React from 'react';
 import SmartSearchbar from '../Search/SmartSearchbar';
+<<<<<<< HEAD
 import { Brain, AlertCircle } from 'lucide-react';
 import { TooltipProvider } from '@/components/UI/tooltip';
 import { Alert, AlertDescription, AlertTitle } from '@/components/UI/alert';
 
 const AIHero: React.FC = () => {
   return <TooltipProvider>
+=======
+import { Brain } from 'lucide-react';
+import { TooltipProvider } from '@/components/UI/tooltip';
+
+const AIHero: React.FC = () => {
+  return (
+    <TooltipProvider>
+>>>>>>> main
       <section className="relative bg-gradient-to-b from-background to-background/80 pt-12 pb-16">
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05] pointer-events-none" />
         
@@ -16,11 +25,18 @@ const AIHero: React.FC = () => {
               <Brain className="h-6 w-6" />
               <span className="text-lg font-medium">AI-Powered Learning Assistant</span>
             </div>
+<<<<<<< HEAD
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 gradient-text">Learn Smarter with LearnVerse AI</h1>
+=======
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 gradient-text">
+              Learn Smarter with LearnVerse AI
+            </h1>
+>>>>>>> main
             <p className="text-muted-foreground max-w-2xl mb-6">
               Ask any question, upload documents, or get help with concepts.
               Our AI-powered learning assistant provides instant, accurate answers to help you excel in your studies.
             </p>
+<<<<<<< HEAD
             
             <Alert variant="default" className="mb-6 max-w-2xl bg-muted/50 border-muted dark:bg-gray-800/50 dark:border-gray-700">
               <AlertCircle className="h-4 w-4" />
@@ -30,6 +46,8 @@ const AIHero: React.FC = () => {
                 Some features may not work as expected.
               </AlertDescription>
             </Alert>
+=======
+>>>>>>> main
           </div>
           
           <SmartSearchbar />
@@ -41,7 +59,12 @@ const AIHero: React.FC = () => {
           </div>
         </div>
       </section>
+<<<<<<< HEAD
     </TooltipProvider>;
+=======
+    </TooltipProvider>
+  );
+>>>>>>> main
 };
 
 export default AIHero;

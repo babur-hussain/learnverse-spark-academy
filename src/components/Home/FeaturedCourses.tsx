@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 import React from 'react';
 import { Card, CardContent, CardFooter, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
@@ -21,6 +24,7 @@ interface Course {
 const FeaturedCourses = () => {
   const navigate = useNavigate();
   
+<<<<<<< HEAD
   const { data: featuredCourses, isLoading } = useQuery({
     queryKey: ['featured-courses'],
     queryFn: async () => {
@@ -44,6 +48,41 @@ const FeaturedCourses = () => {
         promotional_text: item.promotional_text,
         cta_text: item.cta_text || 'Learn More'
       })) as Course[];
+=======
+  const { data: featuredCourses, isLoading, error } = useQuery({
+    queryKey: ['featured-courses'],
+    queryFn: async () => {
+      try {
+        const { data: featuredData, error: featuredError } = await supabase
+          .from('featured_courses')
+          .select(`
+            course_id,
+            is_active,
+            order_index,
+            promotional_text,
+            cta_text,
+            courses:course_id (*)
+          `)
+          .eq('is_active', true)
+          .order('order_index');
+
+        if (featuredError) throw featuredError;
+        
+        // Validate and filter data
+        const validCourses = featuredData
+          ?.filter(item => item && item.courses && item.courses.title)
+          ?.map((item: any) => ({
+            ...item.courses,
+            promotional_text: item.promotional_text,
+            cta_text: item.cta_text || 'Learn More'
+          })) || [];
+        
+        return validCourses as Course[];
+      } catch (err) {
+        console.error('Error fetching featured courses:', err);
+        throw err;
+      }
+>>>>>>> main
     },
   });
 
@@ -64,7 +103,13 @@ const FeaturedCourses = () => {
       // Count subjects per course
       const counts: Record<string, number> = {};
       data?.forEach(item => {
+<<<<<<< HEAD
         counts[item.course_id] = (counts[item.course_id] || 0) + 1;
+=======
+        if (item && item.course_id) {
+          counts[item.course_id] = (counts[item.course_id] || 0) + 1;
+        }
+>>>>>>> main
       });
       
       return counts;
@@ -72,6 +117,24 @@ const FeaturedCourses = () => {
     enabled: !!featuredCourses?.length
   });
 
+<<<<<<< HEAD
+=======
+  if (error) {
+    console.error('Featured courses error:', error);
+    return (
+      <section className="w-full py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-gray-500 dark:text-gray-400">
+              Unable to load featured courses at this time.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+>>>>>>> main
   if (isLoading) {
     return (
       <section className="w-full py-16 bg-gray-50 dark:bg-gray-900">
@@ -123,6 +186,7 @@ const FeaturedCourses = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<<<<<<< HEAD
           {featuredCourses.map((course) => (
             <Card key={course.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-indigo-500 rounded-lg">
               <div className="aspect-[16/9] w-full bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 dark:from-indigo-500/20 dark:to-indigo-500/10 relative">
@@ -203,6 +267,98 @@ const FeaturedCourses = () => {
               </CardFooter>
             </Card>
           ))}
+=======
+          {featuredCourses.map((course) => {
+            // Additional safety check
+            if (!course || !course.title) {
+              return null;
+            }
+
+            return (
+              <Card key={course.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-indigo-500 rounded-lg">
+                <div className="aspect-[16/9] w-full bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 dark:from-indigo-500/20 dark:to-indigo-500/10 relative">
+                  {course.thumbnail_url ? (
+                    <img 
+                      src={course.thumbnail_url} 
+                      alt={course.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <BookOpen size={48} className="text-indigo-500 opacity-80" />
+                    </div>
+                  )}
+                  
+                  {course.price !== null && course.price > 0 && (
+                    <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">
+                      ₹{course.price}
+                    </div>
+                  )}
+                  
+                  {course.price === 0 && (
+                    <div className="absolute top-3 right-3 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">
+                      Free
+                    </div>
+                  )}
+                  
+                  {subjects && subjects[course.id] && (
+                    <div className="absolute bottom-3 left-3 bg-white/80 dark:bg-gray-800/80 rounded-full py-1 px-3 flex items-center gap-1 backdrop-blur-sm">
+                      <BookOpen className="h-4 w-4 text-indigo-500" />
+                      <span className="text-xs font-medium">
+                        {subjects[course.id]} {subjects[course.id] === 1 ? 'Subject' : 'Subjects'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <CardTitle className="text-xl font-bold">{course.title}</CardTitle>
+                    <div className="flex items-center">
+                      <Star className="h-4 w-4 fill-amber-500 text-amber-500 mr-1" />
+                      <span className="text-sm font-medium">4.8</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+                    {course.promotional_text || course.description || 'No description available'}
+                  </p>
+                  
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 space-x-4 mt-4">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 mr-1" />
+                      <span>8 weeks</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-1" />
+                      <span>1.2k students</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 mb-2">
+                    <div className="flex justify-between items-center mb-1 text-xs font-medium">
+                      <span>Popularity</span>
+                      <span className="text-indigo-500">65%</span>
+                    </div>
+                    <Progress value={65} indicatorColor="bg-indigo-500" className="h-2" />
+                  </div>
+                </CardContent>
+                
+                <CardFooter className="p-6 pt-0">
+                  <Button 
+                    className="w-full bg-indigo-500 hover:bg-indigo-600 text-white"
+                    onClick={() => navigate(`/catalog/course/${course.id}`)}
+                  >
+                    {course.cta_text || 'Learn More'}
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+>>>>>>> main
         </div>
         
         <div className="mt-10 text-center">

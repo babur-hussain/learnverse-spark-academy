@@ -1,22 +1,51 @@
+<<<<<<< HEAD
 
 import React, { useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+>>>>>>> main
 import { Input } from '@/components/UI/input';
 import { Button } from '@/components/UI/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent } from '@/components/UI/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/UI/input-otp';
 import { useToast } from '@/hooks/use-toast';
+<<<<<<< HEAD
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const SignupHero = () => {
+=======
+import { Loader2, Gift } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { Badge } from '@/components/UI/badge';
+
+const SignupHero = () => {
+  const [searchParams] = useSearchParams();
+>>>>>>> main
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showOTPDialog, setShowOTPDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [otp, setOtp] = useState('');
+<<<<<<< HEAD
   const { user } = useAuth();
   const { toast } = useToast();
 
+=======
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  // Get referral code from URL params
+  useEffect(() => {
+    const refCode = searchParams.get('ref');
+    if (refCode) {
+      setReferralCode(refCode);
+    }
+  }, [searchParams]);
+
+>>>>>>> main
   // If user is logged in, don't show the signup section
   if (user) return null;
 
@@ -39,6 +68,34 @@ const SignupHero = () => {
     return '+91' + number;
   };
 
+<<<<<<< HEAD
+=======
+  const processReferralSignup = async (newUserId: string) => {
+    if (!referralCode) return;
+
+    try {
+      const { data, error } = await supabase.rpc('process_referral_signup', {
+        referral_code_input: referralCode,
+        new_user_id: newUserId
+      });
+
+      if (error) {
+        console.error('Error processing referral:', error);
+        return;
+      }
+
+      if (data) {
+        toast({
+          title: "Referral Success!",
+          description: "You've received a ₹50 discount coupon for your first purchase!",
+        });
+      }
+    } catch (error) {
+      console.error('Error processing referral:', error);
+    }
+  };
+
+>>>>>>> main
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -71,7 +128,11 @@ const SignupHero = () => {
     setIsLoading(true);
     try {
       const formattedPhone = formatPhoneNumber(phoneNumber);
+<<<<<<< HEAD
       const { error } = await supabase.auth.verifyOtp({
+=======
+      const { data, error } = await supabase.auth.verifyOtp({
+>>>>>>> main
         phone: formattedPhone,
         token: otp,
         type: 'sms'
@@ -79,6 +140,14 @@ const SignupHero = () => {
 
       if (error) throw error;
 
+<<<<<<< HEAD
+=======
+      // Process referral if code was provided and user was created
+      if (referralCode && data.user?.id) {
+        await processReferralSignup(data.user.id);
+      }
+
+>>>>>>> main
       toast({
         title: "Success!",
         description: "Phone number verified successfully.",
@@ -109,6 +178,28 @@ const SignupHero = () => {
             Over <span className="text-green-500 font-semibold">10 crore</span> learners trust us for their preparation
           </p>
           
+<<<<<<< HEAD
+=======
+          {referralCode && (
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="flex items-center gap-2 mb-2">
+                <Gift className="h-5 w-5 text-green-600" />
+                <span className="font-medium text-green-800 dark:text-green-300">
+                  Referral Code Applied!
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-green-700 border-green-300">
+                  {referralCode}
+                </Badge>
+                <span className="text-sm text-green-700 dark:text-green-400">
+                  Get ₹50 off your first purchase
+                </span>
+              </div>
+            </div>
+          )}
+          
+>>>>>>> main
           <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
@@ -130,6 +221,14 @@ const SignupHero = () => {
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               We'll send an OTP for verification
+<<<<<<< HEAD
+=======
+              {referralCode && (
+                <span className="block text-green-600 dark:text-green-400 mt-1">
+                  🎉 Referral bonus will be applied after signup
+                </span>
+              )}
+>>>>>>> main
             </p>
             <Button 
               type="submit" 

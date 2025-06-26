@@ -8,13 +8,21 @@ import { GuardianProvider } from './contexts/GuardianContext';
 import { Toaster } from '@/components/UI/toaster';
 import { EducationalLoader } from './components/UI/educational-loader';
 import { ToastProvider } from '@/hooks/use-toast';
+<<<<<<< HEAD
 import ErrorBoundary from './components/ErrorBoundary';
+=======
+import SafeErrorBoundary from './components/Layout/SafeErrorBoundary';
+>>>>>>> main
 
 function App() {
   console.log('App component rendering...');
   
   return (
+<<<<<<< HEAD
     <ErrorBoundary>
+=======
+    <SafeErrorBoundary>
+>>>>>>> main
       <ToastProvider>
         <AuthProvider>
           <GuardianProvider>
@@ -29,7 +37,11 @@ function App() {
           </GuardianProvider>
         </AuthProvider>
       </ToastProvider>
+<<<<<<< HEAD
     </ErrorBoundary>
+=======
+    </SafeErrorBoundary>
+>>>>>>> main
   );
 }
 

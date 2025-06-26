@@ -21,7 +21,15 @@ serve(async (req) => {
   }
 
   try {
+<<<<<<< HEAD
     const { courseId, amount } = await req.json()
+=======
+    const { itemType, itemId, amount } = await req.json()
+
+    if (!itemType || !itemId || !amount) {
+      throw new Error('Missing required parameters')
+    }
+>>>>>>> main
 
     // Create Razorpay order
     const response = await fetch('https://api.razorpay.com/v1/orders', {
@@ -31,12 +39,31 @@ serve(async (req) => {
         'Authorization': 'Basic ' + btoa(Deno.env.get('RAZORPAY_KEY_ID') + ':' + Deno.env.get('RAZORPAY_KEY_SECRET')),
       },
       body: JSON.stringify({
+<<<<<<< HEAD
         amount: amount * 100, // Convert to paise
         currency: 'INR',
         receipt: `course_${courseId}`,
       }),
     })
 
+=======
+        amount: amount, // Amount already in paise
+        currency: 'INR',
+        receipt: `${itemType}_${itemId}_${Date.now()}`,
+        notes: {
+          item_type: itemType,
+          item_id: itemId
+        }
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.text()
+      console.error('Razorpay API Error:', errorData)
+      throw new Error('Failed to create Razorpay order')
+    }
+
+>>>>>>> main
     const order = await response.json()
 
     return new Response(JSON.stringify(order), {
@@ -44,6 +71,10 @@ serve(async (req) => {
       status: 200,
     })
   } catch (error) {
+<<<<<<< HEAD
+=======
+    console.error('Error in create-razorpay-order:', error)
+>>>>>>> main
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,

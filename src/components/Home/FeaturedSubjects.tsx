@@ -16,6 +16,13 @@ interface Subject {
   icon: string | null;
 }
 
+<<<<<<< HEAD
+=======
+function arraySafe<T>(arr: T[] | undefined | null): T[] {
+  return Array.isArray(arr) ? arr : [];
+}
+
+>>>>>>> main
 const FeaturedSubjects = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,7 +42,19 @@ const FeaturedSubjects = () => {
           throw error;
         }
         
+<<<<<<< HEAD
         return data as Subject[];
+=======
+        // Validate data structure
+        const validData = (data || []).filter(item => 
+          item && 
+          typeof item.id === 'string' && 
+          typeof item.title === 'string' &&
+          item.title.trim() !== ''
+        );
+        
+        return validData as Subject[];
+>>>>>>> main
       } catch (err) {
         console.error('Error fetching featured subjects:', err);
         throw err;
@@ -61,7 +80,13 @@ const FeaturedSubjects = () => {
       // Count chapters per subject
       const counts: Record<string, number> = {};
       data?.forEach(item => {
+<<<<<<< HEAD
         counts[item.subject_id] = (counts[item.subject_id] || 0) + 1;
+=======
+        if (item && item.subject_id) {
+          counts[item.subject_id] = (counts[item.subject_id] || 0) + 1;
+        }
+>>>>>>> main
       });
       
       return counts;
@@ -72,11 +97,25 @@ const FeaturedSubjects = () => {
   // Handle error state
   if (error) {
     console.error('Featured subjects error:', error);
+<<<<<<< HEAD
     toast({
       title: "Error loading featured subjects",
       description: "Failed to load featured content. Please refresh the page.",
       variant: "destructive"
     });
+=======
+    return (
+      <section className="w-full py-12 bg-white dark:bg-gray-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-gray-500 dark:text-gray-400">
+              Unable to load featured subjects at this time.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+>>>>>>> main
   }
 
   // Skeleton loader while loading
@@ -132,7 +171,16 @@ const FeaturedSubjects = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<<<<<<< HEAD
           {featuredSubjects.map((subject) => {
+=======
+          {arraySafe(featuredSubjects).map((subject) => {
+            // Additional safety check
+            if (!subject || !subject.title) {
+              return null;
+            }
+
+>>>>>>> main
             return (
               <Card key={subject.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-primary rounded-lg">
                 <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative">
@@ -141,6 +189,12 @@ const FeaturedSubjects = () => {
                       src={subject.thumbnail_url} 
                       alt={subject.title}
                       className="w-full h-full object-cover"
+<<<<<<< HEAD
+=======
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+>>>>>>> main
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -165,7 +219,11 @@ const FeaturedSubjects = () => {
                 <CardContent className="p-6">
                   <CardTitle className="mb-3 text-xl font-bold">{subject.title}</CardTitle>
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
+<<<<<<< HEAD
                     {subject.description}
+=======
+                    {subject.description || 'No description available'}
+>>>>>>> main
                   </p>
                   
                   {chapters && chapters[subject.id] && (

@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -132,23 +135,33 @@ const SubjectContent = () => {
 
         // Combine both sources
         const combinedFiles = (resources || []).map(resource => {
+<<<<<<< HEAD
           // Find matching storage file
+=======
+          // Find matching storage file for URL if needed, but do not add extra files
+>>>>>>> main
           const storageFile = storageFiles?.find(file => 
             file.name === resource.file_name || 
             file.name === resource.title
           );
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
           const fileUrl = storageFile ? 
             publicSupabase.storage
               .from('subject-content')
               .getPublicUrl(`${subjectId}/${storageFile.name}`).data.publicUrl 
             : resource.file_url || '';
+<<<<<<< HEAD
 
           console.log('Generated URL for file:', {
             name: resource.file_name || resource.title,
             url: fileUrl
           });
 
+=======
+>>>>>>> main
           return {
             id: resource.id,
             file_name: resource.file_name || resource.title,
@@ -159,6 +172,7 @@ const SubjectContent = () => {
             file_url: fileUrl
           };
         });
+<<<<<<< HEAD
 
         // Add any storage files that aren't in resources
         const existingNames = new Set(combinedFiles.map(f => f.file_name));
@@ -186,6 +200,9 @@ const SubjectContent = () => {
         });
 
         console.log('Final combined files:', combinedFiles);
+=======
+        console.log('Final files (table only):', combinedFiles);
+>>>>>>> main
         return combinedFiles;
       } catch (err) {
         console.error('Detailed files fetch error:', err);
@@ -364,6 +381,29 @@ const SubjectContent = () => {
     );
   }
 
+<<<<<<< HEAD
+=======
+  // If subject is loading
+  if (isSubjectLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-learn-purple"></div>
+      </div>
+    );
+  }
+
+  // If subject fetch failed or not found
+  if (subjectError || !subject) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen">
+        <h2 className="text-2xl font-bold mb-4 text-destructive">Subject Not Found</h2>
+        <p className="text-muted-foreground mb-4">{subjectError?.message || 'The subject you are looking for does not exist or could not be loaded.'}</p>
+        <Button variant="outline" onClick={() => navigate('/subject-management')}>Back to Subject Management</Button>
+      </div>
+    );
+  }
+
+>>>>>>> main
   // If user is admin, show admin view
   if (isAdmin) {
     return (

@@ -34,6 +34,13 @@ interface SubjectsListProps {
   selectedSubjectId?: string | null;
 }
 
+<<<<<<< HEAD
+=======
+function arraySafe<T>(arr: T[] | undefined | null): T[] {
+  return Array.isArray(arr) ? arr : [];
+}
+
+>>>>>>> main
 const SubjectsList: React.FC<SubjectsListProps> = ({ onSelectSubject, selectedSubjectId }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
@@ -219,7 +226,11 @@ const SubjectsList: React.FC<SubjectsListProps> = ({ onSelectSubject, selectedSu
             </TableRow>
           </TableHeader>
           <TableBody>
+<<<<<<< HEAD
             {filteredSubjects?.map((subject) => (
+=======
+            {arraySafe(filteredSubjects).map((subject) => (
+>>>>>>> main
               <TableRow 
                 key={subject.id} 
                 onClick={() => onSelectSubject(subject.id)} 

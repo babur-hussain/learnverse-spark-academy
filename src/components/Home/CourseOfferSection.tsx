@@ -15,8 +15,13 @@ const CourseOfferSection = () => {
       reviews: 23,
       duration: "26 hr 56 mins",
       lectures: 23,
+<<<<<<< HEAD
       price: 385,
       originalPrice: 449,
+=======
+      price: 2850,
+      originalPrice: 3320,
+>>>>>>> main
       image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=300&h=200"
     },
     {
@@ -28,7 +33,11 @@ const CourseOfferSection = () => {
       reviews: 29,
       duration: "26 hr 56 mins",
       lectures: 23,
+<<<<<<< HEAD
       price: 420,
+=======
+      price: 3100,
+>>>>>>> main
       originalPrice: null,
       image: "https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?auto=format&fit=crop&q=80&w=300&h=200"
     },
@@ -41,8 +50,13 @@ const CourseOfferSection = () => {
       reviews: 25,
       duration: "09 hr 56 mins",
       lectures: 25,
+<<<<<<< HEAD
       price: 295,
       originalPrice: 340,
+=======
+      price: 2180,
+      originalPrice: 2520,
+>>>>>>> main
       image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=300&h=200"
     }
   ];
@@ -124,9 +138,15 @@ const CourseOfferSection = () => {
                   
                   <div className="flex items-center justify-between pt-4 border-t">
                     <div className="flex items-center gap-2">
+<<<<<<< HEAD
                       <span className="text-2xl font-bold text-green-600">${course.price}.00</span>
                       {course.originalPrice && (
                         <span className="text-lg text-gray-400 line-through">${course.originalPrice}.00</span>
+=======
+                      <span className="text-2xl font-bold text-green-600">₹{course.price}</span>
+                      {course.originalPrice && (
+                        <span className="text-lg text-gray-400 line-through">₹{course.originalPrice}</span>
+>>>>>>> main
                       )}
                     </div>
                     <div className="flex items-center gap-1">

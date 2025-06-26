@@ -4,8 +4,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/UI/table';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
+<<<<<<< HEAD
 import { Plus, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+=======
+import { Plus, Pencil, Trash2, ArrowUp, ArrowDown, FileText, FolderOpen } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+>>>>>>> main
 import { useToast } from '@/hooks/use-toast';
 import { ChapterDialog } from './ChapterDialog';
 import { 
@@ -20,7 +25,11 @@ import {
   AlertDialogAction 
 } from '@/components/UI/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
+<<<<<<< HEAD
 import { useLocation } from 'react-router-dom';
+=======
+import { useLocation, useNavigate } from 'react-router-dom';
+>>>>>>> main
 import { BreadcrumbNav } from '@/components/BreadcrumbNav';
 
 interface Chapter {
@@ -38,6 +47,7 @@ interface Subject {
   title: string;
 }
 
+<<<<<<< HEAD
 // Add the interface for the component props
 interface ChaptersListProps {
   subjectId: string | null;
@@ -46,10 +56,25 @@ interface ChaptersListProps {
 const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+=======
+interface ChaptersListProps {
+  subjectId: string | null;
+  onSelectChapter?: (chapterId: string | null) => void;
+}
+
+const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId, onSelectChapter }) => {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+>>>>>>> main
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<Chapter | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState<string | null>(subjectId);
+<<<<<<< HEAD
+=======
+  const [highlightedChapterId, setHighlightedChapterId] = useState<string | null>(null);
+>>>>>>> main
   const location = useLocation();
   
   // Update selectedSubject when subjectId prop changes
@@ -221,6 +246,20 @@ const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId }) => {
     reorderMutation.mutate({ id, direction });
   };
 
+<<<<<<< HEAD
+=======
+  const handleSelectChapter = (chapterId: string) => {
+    setHighlightedChapterId(chapterId);
+    if (onSelectChapter) {
+      onSelectChapter(chapterId);
+    }
+  };
+
+  const handleManageContent = (chapterId: string) => {
+    navigate(`/subject-management/subject/${selectedSubject}/chapter/${chapterId}`);
+  };
+
+>>>>>>> main
   const filteredChapters = chapters?.filter(chapter => 
     chapter.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     chapter.description?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -295,7 +334,17 @@ const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId }) => {
           </TableHeader>
           <TableBody>
             {filteredChapters?.map((chapter) => (
+<<<<<<< HEAD
               <TableRow key={chapter.id}>
+=======
+              <TableRow 
+                key={chapter.id}
+                className={`cursor-pointer hover:bg-muted/50 ${
+                  highlightedChapterId === chapter.id ? 'bg-primary/10 border-primary' : ''
+                }`}
+                onClick={() => handleSelectChapter(chapter.id)}
+              >
+>>>>>>> main
                 <TableCell>
                   <div className="flex items-center space-x-2">
                     <span>{chapter.order_index}</span>
@@ -304,7 +353,14 @@ const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId }) => {
                         variant="ghost" 
                         size="sm" 
                         disabled={chapter.order_index === 0}
+<<<<<<< HEAD
                         onClick={() => handleMoveChapter(chapter.id, 'up')}
+=======
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveChapter(chapter.id, 'up');
+                        }}
+>>>>>>> main
                       >
                         <ArrowUp className="h-3 w-3" />
                       </Button>
@@ -312,27 +368,73 @@ const ChaptersList: React.FC<ChaptersListProps> = ({ subjectId }) => {
                         variant="ghost" 
                         size="sm"
                         disabled={chapter.order_index === (chapters?.length || 0) - 1}
+<<<<<<< HEAD
                         onClick={() => handleMoveChapter(chapter.id, 'down')}
+=======
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleMoveChapter(chapter.id, 'down');
+                        }}
+>>>>>>> main
                       >
                         <ArrowDown className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
                 </TableCell>
+<<<<<<< HEAD
                 <TableCell className="font-medium">{chapter.title}</TableCell>
+=======
+                <TableCell className="font-medium">
+                  <div className="flex items-center space-x-2">
+                    <span>{chapter.title}</span>
+                    {highlightedChapterId === chapter.id && (
+                      <FileText className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                </TableCell>
+>>>>>>> main
                 <TableCell className="max-w-md truncate">{chapter.description}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end items-center space-x-2">
                     <Button 
+<<<<<<< HEAD
                       variant="ghost" 
                       size="sm" 
                       onClick={() => handleEdit(chapter)}
+=======
+                      variant="outline" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleManageContent(chapter.id);
+                      }}
+                      title="Manage Content"
+                    >
+                      <FolderOpen className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(chapter);
+                      }}
+>>>>>>> main
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
+<<<<<<< HEAD
                         <Button variant="ghost" size="sm">
+=======
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+>>>>>>> main
                           <Trash2 className="h-4 w-4 text-red-500" />
                         </Button>
                       </AlertDialogTrigger>

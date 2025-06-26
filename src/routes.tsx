@@ -1,14 +1,33 @@
 import React, { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
+<<<<<<< HEAD
 import Index from './pages/Index';
 import Auth from './pages/Auth';
+=======
+import Index from '@/pages/Index';
+import Auth from '@/pages/Auth';
+import Profile from '@/pages/Profile';
+import Notes from '@/pages/Notes';
+import PaidNotes from '@/pages/PaidNotes';
+>>>>>>> main
 import NotFound from './pages/NotFound';
 import Admin from './pages/Admin';
 import GuardianDashboard from './pages/GuardianDashboard';
 import Explore from './pages/Explore';
 import SubjectManagement from './pages/SubjectManagement';
 import SubjectContent from './pages/SubjectContent';
+<<<<<<< HEAD
 import Catalog from './pages/Catalog';
+=======
+import SubjectDetails from './pages/SubjectDetails';
+import Catalog from './pages/Catalog';
+import ChapterContentManagement from './pages/ChapterContentManagement';
+import CourseManagement from './pages/CourseManagement';
+import VideoManagement from './pages/VideoManagement';
+import TestManagement from './pages/TestManagement';
+import StudyClass from './pages/StudyClass';
+import AdminClassesPage from './pages/AdminClasses';
+>>>>>>> main
 
 // Lazy load SimpleContent page
 const SimpleContent = lazy(() => import('./pages/SimpleContent'));
@@ -38,6 +57,26 @@ export const router = createBrowserRouter([
     path: '/subject-management',
     element: <SubjectManagement />,
   },
+<<<<<<< HEAD
+=======
+  {
+    path: '/course-management',
+    element: <CourseManagement />,
+  },
+  {
+    path: '/video-management',
+    element: <VideoManagement />,
+  },
+  {
+    path: '/test-management',
+    element: <TestManagement />,
+  },
+  // Chapter content management route
+  {
+    path: '/subject-management/subject/:subjectId/chapter/:chapterId',
+    element: <ChapterContentManagement />,
+  },
+>>>>>>> main
   // Fix the route for subject content page
   {
     path: '/subject-management/subjects/:subjectId',
@@ -48,10 +87,17 @@ export const router = createBrowserRouter([
     path: '/subject/:subjectId',
     element: <SubjectContent />,
   },
+<<<<<<< HEAD
   // Add route for catalog/subject pattern
   {
     path: '/catalog/subject/:subjectId',
     element: <SubjectContent />,
+=======
+  // Use SubjectDetails for catalog subject pattern
+  {
+    path: '/catalog/subject/:subjectId',
+    element: <SubjectDetails />,
+>>>>>>> main
   },
   // Add the Explore route
   {
@@ -63,6 +109,26 @@ export const router = createBrowserRouter([
     path: '/catalog',
     element: <Catalog />,
   },
+<<<<<<< HEAD
+=======
+  // Add the Profile route
+  {
+    path: '/profile',
+    element: <Profile />,
+  },
+  {
+    path: '/study/:classSlugOrId',
+    element: <StudyClass />,
+  },
+  {
+    path: '/study/:classSlugOrId/:subjectId',
+    element: <SubjectContent />,
+  },
+  {
+    path: '/admin/classes',
+    element: <AdminClassesPage />,
+  },
+>>>>>>> main
   {
     path: '*',
     element: <NotFound />,

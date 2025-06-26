@@ -1,5 +1,9 @@
 
+<<<<<<< HEAD
 import React, { useEffect, useState } from 'react';
+=======
+import React, { useState } from 'react';
+>>>>>>> main
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Dialog, 
@@ -23,7 +27,11 @@ import {
 } from '@/components/UI/table';
 import { Input } from '@/components/UI/input';
 import { Checkbox } from '@/components/UI/checkbox';
+<<<<<<< HEAD
 import { Plus, Minus, ArrowUp, ArrowDown } from 'lucide-react';
+=======
+import { Plus, Minus } from 'lucide-react';
+>>>>>>> main
 
 interface Subject {
   id: string;
@@ -109,6 +117,7 @@ export function CourseSubjectsDialog({
 
   const addSubjectsMutation = useMutation({
     mutationFn: async (subjectIds: string[]) => {
+<<<<<<< HEAD
       // Get the highest current order_index
       let nextOrderIndex = 0;
       
@@ -121,6 +130,12 @@ export function CourseSubjectsDialog({
         course_id: courseId,
         subject_id: subjectId,
         order_index: nextOrderIndex + index
+=======
+      const newCourseSubjects = subjectIds.map((subjectId, index) => ({
+        course_id: courseId,
+        subject_id: subjectId,
+        order_index: (courseSubjects?.length || 0) + index,
+>>>>>>> main
       }));
       
       const { error } = await supabase
@@ -132,6 +147,10 @@ export function CourseSubjectsDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-subjects', courseId] });
       queryClient.invalidateQueries({ queryKey: ['available-subjects', courseId] });
+<<<<<<< HEAD
+=======
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+>>>>>>> main
       setSelectedSubjectIds([]);
       toast({
         title: 'Subjects added',
@@ -159,6 +178,10 @@ export function CourseSubjectsDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['course-subjects', courseId] });
       queryClient.invalidateQueries({ queryKey: ['available-subjects', courseId] });
+<<<<<<< HEAD
+=======
+      queryClient.invalidateQueries({ queryKey: ['admin-courses'] });
+>>>>>>> main
       toast({
         title: 'Subject removed',
         description: 'The subject has been removed from the course.',
@@ -173,6 +196,7 @@ export function CourseSubjectsDialog({
     }
   });
 
+<<<<<<< HEAD
   const reorderSubjectMutation = useMutation({
     mutationFn: async ({ id, direction }: { id: string, direction: 'up' | 'down' }) => {
       const currentItem = courseSubjects?.find(cs => cs.id === id);
@@ -215,6 +239,8 @@ export function CourseSubjectsDialog({
     }
   });
 
+=======
+>>>>>>> main
   const handleSubjectSelect = (subjectId: string) => {
     setSelectedSubjectIds(prev => {
       if (prev.includes(subjectId)) {
@@ -234,10 +260,13 @@ export function CourseSubjectsDialog({
   const handleRemoveSubject = (id: string) => {
     removeSubjectMutation.mutate(id);
   };
+<<<<<<< HEAD
   
   const handleReorderSubject = (id: string, direction: 'up' | 'down') => {
     reorderSubjectMutation.mutate({ id, direction });
   };
+=======
+>>>>>>> main
 
   const filteredSubjects = availableSubjects?.filter(subject =>
     subject.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -275,14 +304,20 @@ export function CourseSubjectsDialog({
               <Table>
                 <TableHeader>
                   <TableRow>
+<<<<<<< HEAD
                     <TableHead>Order</TableHead>
                     <TableHead>Subject</TableHead>
+=======
+                    <TableHead>Subject</TableHead>
+                    <TableHead>Order</TableHead>
+>>>>>>> main
                     <TableHead className="w-24">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {courseSubjects?.map((item) => (
                     <TableRow key={item.id}>
+<<<<<<< HEAD
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <span>{item.order_index + 1}</span>
@@ -307,6 +342,10 @@ export function CourseSubjectsDialog({
                         </div>
                       </TableCell>
                       <TableCell>{item.subject_title}</TableCell>
+=======
+                      <TableCell>{item.subject_title}</TableCell>
+                      <TableCell>{item.order_index + 1}</TableCell>
+>>>>>>> main
                       <TableCell>
                         <Button 
                           variant="ghost" 

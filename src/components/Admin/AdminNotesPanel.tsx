@@ -10,6 +10,10 @@ import GoalsManager from './GoalsManager';
 import { BookOpen, FileText, FolderTree, Tag, Users, Target, Video, Grid3X3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CategoryManager } from './CategoryManager';
+<<<<<<< HEAD
+=======
+import ClassesManager from './ClassesManager';
+>>>>>>> main
 
 const AdminNotesPanel = () => {
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
@@ -21,7 +25,11 @@ const AdminNotesPanel = () => {
       
       <Card className="p-6">
         <Tabs defaultValue="subjects">
+<<<<<<< HEAD
           <TabsList className="mb-6 grid grid-cols-8 w-full max-w-4xl">
+=======
+          <TabsList className="mb-6 grid grid-cols-9 w-full max-w-5xl">
+>>>>>>> main
             <TabsTrigger value="subjects" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
               <span>Subjects</span>
@@ -54,6 +62,13 @@ const AdminNotesPanel = () => {
               <Grid3X3 className="h-4 w-4" />
               <span>Categories</span>
             </TabsTrigger>
+<<<<<<< HEAD
+=======
+            <TabsTrigger value="classes" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span>Classes</span>
+            </TabsTrigger>
+>>>>>>> main
           </TabsList>
 
           <TabsContent value="subjects">
@@ -104,6 +119,13 @@ const AdminNotesPanel = () => {
           <TabsContent value="categories">
             <CategoryManager />
           </TabsContent>
+<<<<<<< HEAD
+=======
+
+          <TabsContent value="classes">
+            <ClassesManager />
+          </TabsContent>
+>>>>>>> main
         </Tabs>
       </Card>
     </div>

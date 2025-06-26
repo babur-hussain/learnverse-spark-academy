@@ -56,6 +56,14 @@ const formSchema = z.object({
   categoryIds: z.array(z.string()).optional(),
 });
 
+<<<<<<< HEAD
+=======
+// Utility to safely map over possibly undefined/null arrays
+function arraySafe<T>(arr: T[] | undefined | null): T[] {
+  return Array.isArray(arr) ? arr : [];
+}
+
+>>>>>>> main
 export function SubjectDialog({ 
   open, 
   onOpenChange, 
@@ -69,6 +77,11 @@ export function SubjectDialog({
   const [iconPreview, setIconPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const isEditing = !!subject?.id;
+<<<<<<< HEAD
+=======
+  const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  const [selectedClassId, setSelectedClassId] = useState<string>('');
+>>>>>>> main
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,6 +97,10 @@ export function SubjectDialog({
   useEffect(() => {
     if (open) {
       fetchCategories();
+<<<<<<< HEAD
+=======
+      fetchClasses();
+>>>>>>> main
       if (subject) {
         form.reset({
           title: subject.title || '',
@@ -95,6 +112,10 @@ export function SubjectDialog({
           setIconPreview(subject.icon);
         }
         fetchSubjectCategories(subject.id);
+<<<<<<< HEAD
+=======
+        fetchSubjectClass(subject.id);
+>>>>>>> main
       } else {
         form.reset({
           title: '',
@@ -104,6 +125,10 @@ export function SubjectDialog({
           categoryIds: [],
         });
         setSelectedCategoryIds([]);
+<<<<<<< HEAD
+=======
+        setSelectedClassId('');
+>>>>>>> main
         setIconPreview(null);
         setIconFile(null);
       }
@@ -129,6 +154,27 @@ export function SubjectDialog({
     }
   };
 
+<<<<<<< HEAD
+=======
+  const fetchClasses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('order_index');
+      if (error) throw error;
+      setClasses(data || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: 'Failed to load classes',
+        variant: 'destructive',
+      });
+    }
+  };
+
+>>>>>>> main
   const fetchSubjectCategories = async (subjectId: string) => {
     try {
       const { data, error } = await supabase
@@ -147,6 +193,23 @@ export function SubjectDialog({
     }
   };
 
+<<<<<<< HEAD
+=======
+  const fetchSubjectClass = async (subjectId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('class_subjects')
+        .select('class_id')
+        .eq('subject_id', subjectId)
+        .single();
+      if (error && error.code !== 'PGRST116') throw error;
+      setSelectedClassId(data?.class_id || '');
+    } catch (error: any) {
+      console.error('Error fetching subject class:', error);
+    }
+  };
+
+>>>>>>> main
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -289,6 +352,21 @@ export function SubjectDialog({
           }
         }
 
+<<<<<<< HEAD
+=======
+        // Update class mapping (single class)
+        await supabase
+          .from('class_subjects')
+          .delete()
+          .eq('subject_id', subject.id);
+        if (selectedClassId) {
+          await supabase.from('class_subjects').insert({
+            class_id: selectedClassId,
+            subject_id: subject.id
+          });
+        }
+
+>>>>>>> main
         toast({
           title: 'Subject updated',
           description: 'The subject has been successfully updated.',
@@ -334,6 +412,28 @@ export function SubjectDialog({
           }
         }
 
+<<<<<<< HEAD
+=======
+        // Add class mapping (single class)
+        if (selectedClassId && data && data.length > 0) {
+          const newSubjectId = data[0].id;
+          const { error: classMapError } = await supabase.from('class_subjects').insert({
+            class_id: selectedClassId,
+            subject_id: newSubjectId
+          });
+          if (classMapError) {
+            console.error('Error creating class-subject mapping:', classMapError);
+            toast({
+              title: 'Error',
+              description: 'Failed to assign class to subject: ' + (classMapError.message || classMapError.details),
+              variant: 'destructive',
+            });
+          } else {
+            console.log('Class-subject mapping created:', { class_id: selectedClassId, subject_id: newSubjectId });
+          }
+        }
+
+>>>>>>> main
         toast({
           title: 'Subject created',
           description: 'The subject has been successfully created.',
@@ -359,6 +459,13 @@ export function SubjectDialog({
     form.setValue('categoryIds', selected);
   };
 
+<<<<<<< HEAD
+=======
+  const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSelectedClassId(e.target.value);
+  };
+
+>>>>>>> main
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
@@ -461,6 +568,7 @@ export function SubjectDialog({
 
             <div>
               <FormLabel>Categories</FormLabel>
+<<<<<<< HEAD
               <MultiSelect
                 options={categories.map(category => ({
                   value: category.id,
@@ -470,6 +578,40 @@ export function SubjectDialog({
                 onChange={handleCategoryChange}
                 placeholder="Select categories"
               />
+=======
+              {Array.isArray(categories) ? (
+                <MultiSelect
+                  options={arraySafe(categories).map(category => ({
+                    value: category.id,
+                    label: category.name
+                  }))}
+                  selected={arraySafe(selectedCategoryIds)}
+                  onChange={handleCategoryChange}
+                  placeholder="Select categories"
+                />
+              ) : (
+                <div className="p-2 text-center text-muted-foreground text-sm">Loading categories...</div>
+              )}
+            </div>
+
+            <div>
+              <FormLabel>Classes</FormLabel>
+              {Array.isArray(classes) ? (
+                <select
+                  className="w-full border rounded-md px-3 py-2 text-sm"
+                  value={selectedClassId}
+                  onChange={handleClassChange}
+                  required
+                >
+                  <option value="">Select a class</option>
+                  {classes.map(cls => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <div className="p-2 text-center text-muted-foreground text-sm">Loading classes...</div>
+              )}
+>>>>>>> main
             </div>
 
             <DialogFooter>

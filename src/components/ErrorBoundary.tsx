@@ -26,6 +26,14 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
+<<<<<<< HEAD
+=======
+    
+    // Log additional context for debugging
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('Error stack:', error.stack);
+    
+>>>>>>> main
     this.setState({
       error,
       errorInfo
@@ -41,6 +49,14 @@ class ErrorBoundary extends React.Component<
     }, 100);
   };
 
+<<<<<<< HEAD
+=======
+  handleRetry = () => {
+    // Just clear the error state to retry rendering
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+  };
+
+>>>>>>> main
   render() {
     if (this.state.hasError) {
       return (
@@ -49,16 +65,32 @@ class ErrorBoundary extends React.Component<
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Something went wrong</AlertTitle>
             <AlertDescription className="mt-2 space-y-2">
+<<<<<<< HEAD
               <p>An unexpected error occurred. Please try refreshing the page.</p>
               {this.state.error && (
                 <details className="mt-2 text-xs text-gray-600 dark:text-gray-400">
                   <summary className="cursor-pointer">Error details</summary>
                   <pre className="mt-1 whitespace-pre-wrap break-all">
                     {this.state.error.message}
+=======
+              <p>An unexpected error occurred. This might be due to missing data or a temporary issue.</p>
+              {this.state.error && (
+                <details className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                  <summary className="cursor-pointer">Error details</summary>
+                  <pre className="mt-1 whitespace-pre-wrap break-all text-xs max-h-32 overflow-y-auto">
+                    {this.state.error.message}
+                    {this.state.error.stack && (
+                      <>
+                        {'\n\nStack trace:\n'}
+                        {this.state.error.stack}
+                      </>
+                    )}
+>>>>>>> main
                   </pre>
                 </details>
               )}
             </AlertDescription>
+<<<<<<< HEAD
             <Button
               onClick={this.handleRefresh}
               className="mt-4"
@@ -67,6 +99,24 @@ class ErrorBoundary extends React.Component<
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh Page
             </Button>
+=======
+            <div className="flex gap-2 mt-4">
+              <Button
+                onClick={this.handleRetry}
+                variant="outline"
+                size="sm"
+              >
+                Try Again
+              </Button>
+              <Button
+                onClick={this.handleRefresh}
+                size="sm"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Page
+              </Button>
+            </div>
+>>>>>>> main
           </Alert>
         </div>
       );
