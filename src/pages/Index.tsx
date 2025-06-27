@@ -26,16 +26,43 @@ import useIsMobile from '@/hooks/use-mobile';
 import MainLayout from '@/components/Layout/MainLayout';
 import ClassSubjectsGrid from '@/components/Home/ClassSubjectsGrid';
 import Navbar from '@/components/Layout/Navbar';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Home = () => {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [selectedClass, setSelectedClass] = useState(() => localStorage.getItem('selectedClass') || '');
 
+  // On mount or user change, load class from profile if logged in
+  useEffect(() => {
+    if (user?.id) {
+      supabase
+        .from('profiles')
+        .select('class_id')
+        .eq('id', user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.class_id) {
+            setSelectedClass(data.class_id);
+            localStorage.setItem('selectedClass', data.class_id);
+          }
+        });
+    }
+  }, [user]);
+
+  // On class change, update profile if logged in, else just localStorage
   useEffect(() => {
     if (selectedClass) {
       localStorage.setItem('selectedClass', selectedClass);
+      if (user?.id) {
+        supabase
+          .from('profiles')
+          .update({ class_id: selectedClass })
+          .eq('id', user.id);
+      }
     }
-  }, [selectedClass]);
+  }, [selectedClass, user]);
 
   return (
     <MainLayout>
