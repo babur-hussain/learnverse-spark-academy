@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import AIHero from '@/components/Home/AIHero';
 import Hero from '@/components/Home/Hero';
 import Enhanced3DHero from '@/components/Home/Enhanced3DHero';
@@ -24,14 +24,25 @@ import TestimonialsSection from '@/components/Home/TestimonialsSection';
 import NewsletterSection from '@/components/Home/NewsletterSection';
 import useIsMobile from '@/hooks/use-mobile';
 import MainLayout from '@/components/Layout/MainLayout';
+import ClassSubjectsGrid from '@/components/Home/ClassSubjectsGrid';
+import Navbar from '@/components/Layout/Navbar';
 
 const Home = () => {
   const isMobile = useIsMobile();
+  const [selectedClass, setSelectedClass] = useState(() => localStorage.getItem('selectedClass') || '');
+
+  useEffect(() => {
+    if (selectedClass) {
+      localStorage.setItem('selectedClass', selectedClass);
+    }
+  }, [selectedClass]);
 
   return (
     <MainLayout>
+      <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} />
       <div className="min-h-screen flex flex-col">
         <AIHero />
+        <ClassSubjectsGrid selectedClass={selectedClass} />
         <Hero />
         
         {/* New 3D Enhanced Hero Section */}

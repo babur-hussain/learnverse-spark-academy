@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/use-user-role';
@@ -18,13 +18,13 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const Navbar = () => {
+const Navbar = ({ selectedClass, setSelectedClass }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
 
-  // Fetch active classes for Study dropdown
+  // Fetch active classes for Class dropdown
   const { data: classes = [], isLoading: isLoadingClasses } = useQuery({
     queryKey: ['active-classes'],
     queryFn: async () => {
@@ -37,6 +37,12 @@ const Navbar = () => {
       return data;
     },
   });
+
+  const selectedClassObj = classes.find(cls => cls.id === selectedClass);
+
+  const handleClassSelect = (classObj) => {
+    setSelectedClass(classObj.id);
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 h-14 md:h-16 border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 z-50 shadow-sm">
@@ -51,55 +57,25 @@ const Navbar = () => {
             <NavigationMenu>
               <NavigationMenuList>
                 <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm">Learning</NavigationMenuTrigger>
+                  <NavigationMenuTrigger className="text-sm">
+                    {selectedClassObj ? (selectedClassObj.board ? `${selectedClassObj.board} > ${selectedClassObj.name}` : selectedClassObj.name) : 'Class'}
+                  </NavigationMenuTrigger>
                   <NavigationMenuContent>
-                    <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 bg-white dark:bg-gray-900 backdrop-blur-md">
-                      <li className="row-span-3">
-                        <Link 
-                          to="/catalog"
-                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/50 to-muted p-6 no-underline outline-none focus:shadow-md transition-all duration-300 hover:bg-gradient-to-b hover:from-muted/70 hover:to-muted"
-                        >
-                          <Book className="h-6 w-6" />
-                          <div className="mb-2 mt-4 text-lg font-medium">
-                            Course Catalog
-                          </div>
-                          <p className="text-sm leading-tight text-muted-foreground">
-                            Explore our comprehensive collection of courses and learning materials.
-                          </p>
-                        </Link>
-                      </li>
-                      <li>
-                        <NavigationMenuLink asChild>
-                          <Link
-                            to="/videos"
-                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="text-sm font-medium leading-none flex items-center gap-2">
-                              <Video className="h-4 w-4" />
-                              Video Library
-                            </div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Access educational videos and lectures
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
-                      <li>
-                        <NavigationMenuLink asChild>
-                          <Link
-                            to="/live"
-                            className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          >
-                            <div className="text-sm font-medium leading-none flex items-center gap-2">
-                              <Users className="h-4 w-4" />
-                              Live Classes
-                            </div>
-                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                              Join interactive live learning sessions
-                            </p>
-                          </Link>
-                        </NavigationMenuLink>
-                      </li>
+                    <ul className="w-56 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+                      {isLoadingClasses ? (
+                        <li className="p-2 text-center text-muted-foreground">Loading...</li>
+                      ) : (
+                        classes.map((cls) => (
+                          <li key={cls.id}>
+                            <button
+                              className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
+                              onClick={() => handleClassSelect(cls)}
+                            >
+                              {cls.board ? `${cls.board} > ${cls.name}` : cls.name}
+                            </button>
+                          </li>
+                        ))
+                      )}
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
@@ -199,36 +175,29 @@ const Navbar = () => {
                     </ul>
                   </NavigationMenuContent>
                 </NavigationMenuItem>
-
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-sm">Study</NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <ul className="grid w-[300px] gap-2 p-4 bg-white dark:bg-gray-900 backdrop-blur-md">
-                      {isLoadingClasses ? (
-                        <li className="text-muted-foreground text-center py-2">Loading...</li>
-                      ) : classes.length === 0 ? (
-                        <li className="text-muted-foreground text-center py-2">No classes available</li>
-                      ) : (
-                        classes.map((cls: any) => (
-                          <li key={cls.id}>
-                            <Link
-                              to={`/study/${cls.slug}`}
-                              className="block select-none rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-sm font-medium"
-                            >
-                              {cls.name}
-                            </Link>
-                          </li>
-                        ))
-                      )}
-                    </ul>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
           </div>
         )}
 
         <div className="flex items-center space-x-2 md:space-x-4">
+          {isMobile && (
+            <select
+              className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2"
+              value={selectedClass || ''}
+              onChange={e => {
+                const cls = classes.find(c => c.id === e.target.value);
+                if (cls) setSelectedClass(cls.id);
+              }}
+            >
+              <option value="">Class</option>
+              {classes.map(cls => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.board ? `${cls.board} > ${cls.name}` : cls.name}
+                </option>
+              ))}
+            </select>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -242,7 +211,6 @@ const Navbar = () => {
             )}
             <span className="sr-only">Toggle theme</span>
           </Button>
-          
           <UserMenu />
         </div>
       </div>
