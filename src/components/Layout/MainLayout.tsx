@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
 import MobileFooter from './MobileFooter';
@@ -59,8 +58,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, isLoading = false }) 
         <Navbar />
         <main className={`flex-grow transition-all duration-300 ${
           isMobile 
-            ? 'pt-14 pb-20 min-h-screen-safe' 
-            : 'pt-16 pb-8'
+            ? 'pt-16 pb-20 min-h-screen-safe' 
+            : 'pt-24 pb-8'
         }`}>
           <div className={`w-full ${isMobile ? 'px-4 py-2' : 'container mx-auto px-4 py-safe'}`}>
             {children}

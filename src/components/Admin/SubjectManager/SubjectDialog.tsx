@@ -52,7 +52,12 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   icon: z.string().optional(),
-  thumbnail_url: z.string().optional(),
+  thumbnail_url: z.string().optional().refine(
+    (val) => !val || val.startsWith('http://') || val.startsWith('https://'),
+    {
+      message: 'Thumbnail URL must start with http:// or https://',
+    }
+  ),
   categoryIds: z.array(z.string()).optional(),
 });
 

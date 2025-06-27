@@ -23,6 +23,113 @@ function arraySafe<T>(arr: T[] | undefined | null): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
+const isUrl = (str?: string | null) => {
+  return !!str && (str.startsWith('http://') || str.startsWith('https://'));
+};
+
+function getImageUrl(url: string | null): string | null {
+  if (!url) return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('pfw.supabase.co')) return `https://${url}`;
+  return url;
+}
+
+function SubjectCard({ subject, chapterCount, viewMode }: { subject: Subject, chapterCount: number, viewMode: 'grid' | 'list' }) {
+  const [imageError, setImageError] = React.useState(false);
+  const imageUrl = getImageUrl(subject.thumbnail_url);
+  const showImage = !!imageUrl && !imageError;
+  if (viewMode === 'grid') {
+    return (
+      <Card key={subject.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+        <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative flex items-center justify-center">
+          {showImage ? (
+            <img 
+              src={imageUrl!} 
+              alt={subject.title}
+              className="w-full h-full object-cover rounded-lg"
+              style={{ objectFit: 'cover', width: '100%', height: '100%' }}
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center absolute top-0 left-0">
+              {subject.icon ? (
+                <span className="text-4xl text-primary opacity-80">{subject.icon}</span>
+              ) : (
+                <BookOpen size={40} className="text-primary opacity-80" />
+              )}
+            </div>
+          )}
+        </div>
+        <CardHeader>
+          <CardTitle className="line-clamp-2">{subject.title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground mb-4 line-clamp-3">
+            {subject.description || 'No description available'}
+          </p>
+          <div className="flex items-center justify-between mb-4">
+            <Badge variant="secondary">
+              {chapterCount} {chapterCount === 1 ? 'Chapter' : 'Chapters'}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Updated {new Date(subject.updated_at || subject.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <Link to={`/catalog/subject/${subject.id}`}>
+            <Button className="w-full">
+              Explore Subject
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
+  } else {
+    return (
+      <Card key={subject.id} className="hover:shadow-md transition-shadow">
+        <CardContent className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              {subject.thumbnail_url && !imageError ? (
+                <img 
+                  src={subject.thumbnail_url} 
+                  alt={subject.title}
+                  className="w-full h-full object-cover rounded-lg"
+                  onError={() => setImageError(true)}
+                />
+              ) : subject.icon ? (
+                <span className="text-2xl text-primary opacity-80">{subject.icon}</span>
+              ) : (
+                <BookOpen size={24} className="text-primary opacity-80" />
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-2">{subject.title}</h3>
+              <p className="text-muted-foreground mb-3 line-clamp-2">
+                {subject.description || 'No description available'}
+              </p>
+              <div className="flex items-center gap-4 mb-4">
+                <Badge variant="secondary">
+                  {chapterCount} {chapterCount === 1 ? 'Chapter' : 'Chapters'}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  Updated {new Date(subject.updated_at || subject.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+            <div className="flex-shrink-0">
+              <Link to={`/catalog/subject/${subject.id}`}>
+                <Button>
+                  Explore
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+}
+
 const SubjectCatalog = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -189,111 +296,9 @@ const SubjectCatalog = () => {
             : "space-y-4"
           }>
             {arraySafe(subjects).map((subject) => {
-              // Additional safety check
-              if (!subject || !subject.title) {
-                return null;
-              }
-
+              if (!subject || !subject.title) return null;
               const chapterCount = chapterCounts[subject.id] || 0;
-
-              return viewMode === 'grid' ? (
-                <Card key={subject.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative">
-                    {subject.thumbnail_url ? (
-                      <img 
-                        src={subject.thumbnail_url} 
-                        alt={subject.title}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error('Subject thumbnail load error');
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        {subject.icon ? (
-                          <span className="text-4xl text-primary opacity-80">{subject.icon}</span>
-                        ) : (
-                          <BookOpen size={40} className="text-primary opacity-80" />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <CardHeader>
-                    <CardTitle className="line-clamp-2">{subject.title}</CardTitle>
-                  </CardHeader>
-                  
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4 line-clamp-3">
-                      {subject.description || 'No description available'}
-                    </p>
-                    
-                    <div className="flex items-center justify-between mb-4">
-                      <Badge variant="secondary">
-                        {chapterCount} {chapterCount === 1 ? 'Chapter' : 'Chapters'}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        Updated {new Date(subject.updated_at || subject.created_at).toLocaleDateString()}
-                      </span>
-                    </div>
-                    
-                    <Link to={`/catalog/subject/${subject.id}`}>
-                      <Button className="w-full">
-                        Explore Subject
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card key={subject.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="w-16 h-16 bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        {subject.thumbnail_url ? (
-                          <img 
-                            src={subject.thumbnail_url} 
-                            alt={subject.title}
-                            className="w-full h-full object-cover rounded-lg"
-                            onError={(e) => {
-                              console.error('Subject thumbnail load error');
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : subject.icon ? (
-                          <span className="text-2xl text-primary opacity-80">{subject.icon}</span>
-                        ) : (
-                          <BookOpen size={24} className="text-primary opacity-80" />
-                        )}
-                      </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold mb-2">{subject.title}</h3>
-                        <p className="text-muted-foreground mb-3 line-clamp-2">
-                          {subject.description || 'No description available'}
-                        </p>
-                        
-                        <div className="flex items-center gap-4 mb-4">
-                          <Badge variant="secondary">
-                            {chapterCount} {chapterCount === 1 ? 'Chapter' : 'Chapters'}
-                          </Badge>
-                          <span className="text-xs text-muted-foreground">
-                            Updated {new Date(subject.updated_at || subject.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex-shrink-0">
-                        <Link to={`/catalog/subject/${subject.id}`}>
-                          <Button>
-                            Explore
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
+              return <SubjectCard key={subject.id} subject={subject} chapterCount={chapterCount} viewMode={viewMode} />;
             })}
           </div>
         </>

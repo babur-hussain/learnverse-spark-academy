@@ -164,12 +164,12 @@ const FeaturedSubjects = () => {
                 className="flex flex-col items-center cursor-pointer group"
                 onClick={() => navigate(`/subject/${subject.id}`)}
               >
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center mb-3 border-2 border-primary group-hover:scale-105 transition-transform overflow-hidden">
+                <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/30 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center mb-3">
                   {subject.thumbnail_url ? (
                     <img
                       src={subject.thumbnail_url}
                       alt={subject.title}
-                      className="w-full h-full object-cover rounded-full bg-gray-100 dark:bg-gray-800"
+                      className="w-full h-full object-cover"
                       onError={e => (e.currentTarget.style.display = 'none')}
                     />
                   ) : subject.icon ? (
@@ -177,7 +177,7 @@ const FeaturedSubjects = () => {
                       <img
                         src={subject.icon}
                         alt={subject.title}
-                        className="w-full h-full object-cover rounded-full bg-gray-100 dark:bg-gray-800"
+                        className="w-full h-full object-cover"
                         onError={e => (e.currentTarget.style.display = 'none')}
                       />
                     ) : (

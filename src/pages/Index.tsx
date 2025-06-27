@@ -72,9 +72,6 @@ const Home = () => {
         <ClassSubjectsGrid selectedClass={selectedClass} />
         <Hero />
         
-        {/* New 3D Enhanced Hero Section */}
-        <Enhanced3DHero />
-        
         <FeaturedCategories />
         
         {/* Interactive 3D Learning Section */}
@@ -96,6 +93,7 @@ const Home = () => {
         
         {/* College-focused sections */}
         <CollegeStudentSection />
+        <Enhanced3DHero />
         <SkillBasedLearningSection />
         
         <PersonalizedLearningPromo />
