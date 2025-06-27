@@ -20,6 +20,10 @@ function arraySafe<T>(arr: T[] | undefined | null): T[] {
   return Array.isArray(arr) ? arr : [];
 }
 
+const isUrl = (str?: string | null) => {
+  return !!str && (str.startsWith('http://') || str.startsWith('https://'));
+};
+
 const FeaturedSubjects = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -150,36 +154,76 @@ const FeaturedSubjects = () => {
             Expand your knowledge with our most comprehensive learning subjects
           </p>
         </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Responsive grid: circular for mobile/tablet, card for desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:hidden gap-6">
           {arraySafe(featuredSubjects).map((subject) => {
-            // Additional safety check
-            if (!subject || !subject.title) {
-              return null;
-            }
-
+            if (!subject || !subject.title) return null;
+            return (
+              <div
+                key={subject.id}
+                className="flex flex-col items-center cursor-pointer group"
+                onClick={() => navigate(`/subject/${subject.id}`)}
+              >
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/10 to-primary/30 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center mb-3 border-2 border-primary group-hover:scale-105 transition-transform overflow-hidden">
+                  {subject.thumbnail_url ? (
+                    <img
+                      src={subject.thumbnail_url}
+                      alt={subject.title}
+                      className="w-full h-full object-cover rounded-full bg-gray-100 dark:bg-gray-800"
+                      onError={e => (e.currentTarget.style.display = 'none')}
+                    />
+                  ) : subject.icon ? (
+                    isUrl(subject.icon) ? (
+                      <img
+                        src={subject.icon}
+                        alt={subject.title}
+                        className="w-full h-full object-cover rounded-full bg-gray-100 dark:bg-gray-800"
+                        onError={e => (e.currentTarget.style.display = 'none')}
+                      />
+                    ) : (
+                      <span className="text-3xl text-primary opacity-80">{subject.icon}</span>
+                    )
+                  ) : (
+                    <BookOpen size={32} className="text-primary opacity-80" />
+                  )}
+                </div>
+                <div className="text-center text-base font-medium text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                  {subject.title}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* Desktop card grid */}
+        <div className="hidden lg:grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {arraySafe(featuredSubjects).map((subject) => {
+            if (!subject || !subject.title) return null;
             return (
               <Card key={subject.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-primary rounded-lg">
-                <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative">
+                <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative flex items-center justify-center">
                   {subject.thumbnail_url ? (
                     <img 
                       src={subject.thumbnail_url} 
                       alt={subject.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover bg-gray-100 dark:bg-gray-800"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none';
                       }}
                     />
+                  ) : subject.icon ? (
+                    isUrl(subject.icon) ? (
+                      <img
+                        src={subject.icon}
+                        alt={subject.title}
+                        className="w-full h-full object-cover bg-gray-100 dark:bg-gray-800"
+                        onError={e => (e.currentTarget.style.display = 'none')}
+                      />
+                    ) : (
+                      <span className="text-5xl text-primary opacity-80">{subject.icon}</span>
+                    )
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      {subject.icon ? (
-                        <span className="text-5xl text-primary opacity-80">{subject.icon}</span>
-                      ) : (
-                        <BookOpen size={48} className="text-primary opacity-80" />
-                      )}
-                    </div>
+                    <BookOpen size={48} className="text-primary opacity-80" />
                   )}
-                  
                   {chapters && chapters[subject.id] && (
                     <div className="absolute top-3 right-3 bg-white/80 dark:bg-gray-800/80 rounded-full py-1 px-3 flex items-center gap-1 backdrop-blur-sm">
                       <Award className="h-4 w-4 text-primary" />
@@ -189,48 +233,23 @@ const FeaturedSubjects = () => {
                     </div>
                   )}
                 </div>
-                
                 <CardContent className="p-6">
                   <CardTitle className="mb-3 text-xl font-bold">{subject.title}</CardTitle>
                   <p className="text-gray-600 dark:text-gray-300 mb-4 line-clamp-3">
                     {subject.description || 'No description available'}
                   </p>
-                  
                   {chapters && chapters[subject.id] && (
                     <div className="mt-4 mb-2">
-                      <div className="flex justify-between items-center mb-1 text-xs font-medium">
-                        <span>Progress</span>
-                        <span className="text-primary">30%</span>
-                      </div>
-                      <Progress value={30} className="h-2 bg-gray-100 dark:bg-gray-700">
-                        <div className="h-full bg-primary rounded-full" style={{ width: '30%' }}></div>
-                      </Progress>
+                      <Progress value={100} className="h-2" />
                     </div>
                   )}
-                </CardContent>
-                
-                <CardFooter className="p-6 pt-0">
-                  <Button 
-                    className="w-full bg-primary hover:bg-primary/90 text-white"
-                    onClick={() => navigate(`/catalog/subject/${subject.id}`)}
-                  >
+                  <Button className="w-full mt-4" onClick={() => navigate(`/subject/${subject.id}`)}>
                     Learn More
                   </Button>
-                </CardFooter>
+                </CardContent>
               </Card>
             );
           })}
-        </div>
-        
-        <div className="mt-10 text-center">
-          <Button 
-            variant="outline"
-            size="lg"
-            onClick={() => navigate('/catalog')}
-            className="border-primary text-primary hover:bg-primary hover:text-white"
-          >
-            View All Subjects
-          </Button>
         </div>
       </div>
     </section>
