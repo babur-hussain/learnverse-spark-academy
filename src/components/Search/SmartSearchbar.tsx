@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -207,8 +206,54 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
   };
 
   return (
-    <div className={cn("w-full max-w-4xl mx-auto px-4", className)}>
+    <div className={cn("w-full max-w-4xl mx-auto px-2 sm:px-4", className)}>
       <div className="relative">
+        <div className="flex flex-wrap gap-2 justify-center mb-4 sm:mb-2 sm:justify-start">
+          <Tooltip content="Normal mode - balanced responses">
+            <Button
+              variant={mode === 'normal' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('normal')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Normal
+            </Button>
+          </Tooltip>
+          <Tooltip content="Simple explanations for easy understanding">
+            <Button
+              variant={mode === 'explain' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('explain')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Simple
+            </Button>
+          </Tooltip>
+          <Tooltip content="Comprehensive detailed explanations">
+            <Button
+              variant={mode === 'detailed' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('detailed')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Detailed
+            </Button>
+          </Tooltip>
+          <Tooltip content="Analyze and extract key insights">
+            <Button
+              variant={mode === 'analyze' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('analyze')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Analyze
+            </Button>
+          </Tooltip>
+        </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -266,53 +311,6 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
             <span>{uploadedFile.name}</span>
           </div>
         )}
-        
-        <div className="absolute right-16 -top-8 flex gap-2">
-          <Tooltip content="Normal mode - balanced responses">
-            <Button
-              variant={mode === 'normal' ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleModeChange('normal')}
-              className="h-6 text-xs px-2 rounded-full"
-              disabled={isLoading}
-            >
-              Normal
-            </Button>
-          </Tooltip>
-          <Tooltip content="Simple explanations for easy understanding">
-            <Button
-              variant={mode === 'explain' ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleModeChange('explain')}
-              className="h-6 text-xs px-2 rounded-full"
-              disabled={isLoading}
-            >
-              Simple
-            </Button>
-          </Tooltip>
-          <Tooltip content="Comprehensive detailed explanations">
-            <Button
-              variant={mode === 'detailed' ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleModeChange('detailed')}
-              className="h-6 text-xs px-2 rounded-full"
-              disabled={isLoading}
-            >
-              Detailed
-            </Button>
-          </Tooltip>
-          <Tooltip content="Analyze and extract key insights">
-            <Button
-              variant={mode === 'analyze' ? "default" : "outline"}
-              size="sm"
-              onClick={() => handleModeChange('analyze')}
-              className="h-6 text-xs px-2 rounded-full"
-              disabled={isLoading}
-            >
-              Analyze
-            </Button>
-          </Tooltip>
-        </div>
       </div>
 
       {isExpanded && (

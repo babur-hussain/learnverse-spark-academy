@@ -56,10 +56,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, isLoading = false }) 
     <SafeErrorBoundary>
       <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
         <Navbar />
-        <main className={`flex-grow transition-all duration-300 ${
+        <main style={{ marginTop: 'calc(56px + env(safe-area-inset-top, 32px))' }} className={`flex-grow transition-all duration-300 ${
           isMobile 
-            ? 'pt-16 pb-20 min-h-screen-safe' 
-            : 'pt-24 pb-8'
+            ? 'pb-20 min-h-screen-safe' 
+            : 'pb-8'
         }`}>
           <div className={`w-full ${isMobile ? 'px-4 py-2' : 'container mx-auto px-4 py-safe'}`}>
             {children}

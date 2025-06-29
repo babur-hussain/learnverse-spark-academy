@@ -1,2 +1,0 @@
-#!/bin/bash
-./gradlew clean && find . -name "build.gradle" -type f -exec sed -i "" "s/sourceCompatibility JavaVersion.VERSION_21/sourceCompatibility JavaVersion.VERSION_17/g" {} \; && find . -name "build.gradle" -type f -exec sed -i "" "s/targetCompatibility JavaVersion.VERSION_21/targetCompatibility JavaVersion.VERSION_17/g" {} \; && ./gradlew assembleDebug && echo "APK location:" && find . -name "*.apk" | grep debug

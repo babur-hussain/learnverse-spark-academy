@@ -1,4 +1,3 @@
-
 import React from 'react';
 import SmartSearchbar from '../Search/SmartSearchbar';
 import { Brain } from 'lucide-react';
@@ -7,7 +6,7 @@ import { TooltipProvider } from '@/components/UI/tooltip';
 const AIHero: React.FC = () => {
   return (
     <TooltipProvider>
-      <section className="relative bg-gradient-to-b from-background to-background/80 pt-12 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-background/80 pt-6 pb-8 md:pt-12 md:pb-16">
         <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05] pointer-events-none" />
         
         <div className="container mx-auto px-4">

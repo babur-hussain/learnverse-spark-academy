@@ -19,6 +19,7 @@ import VideoManagement from './pages/VideoManagement';
 import TestManagement from './pages/TestManagement';
 import StudyClass from './pages/StudyClass';
 import AdminClassesPage from './pages/AdminClasses';
+import FindYourSchool from './pages/FindYourSchool';
 
 // Lazy load SimpleContent page
 const SimpleContent = lazy(() => import('./pages/SimpleContent'));
@@ -106,6 +107,10 @@ export const router = createBrowserRouter([
   {
     path: '/admin/classes',
     element: <AdminClassesPage />,
+  },
+  {
+    path: '/find-your-school',
+    element: <FindYourSchool />,
   },
   {
     path: '*',

@@ -1,4 +1,4 @@
-package com.example.app;
+package com.learnverse.sparkacademy;
 
 import com.getcapacitor.BridgeActivity;
 

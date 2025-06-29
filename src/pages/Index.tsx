@@ -28,6 +28,7 @@ import ClassSubjectsGrid from '@/components/Home/ClassSubjectsGrid';
 import Navbar from '@/components/Layout/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import FindSchoolSection from '@/components/Home/FindSchoolSection';
 
 const Home = () => {
   const isMobile = useIsMobile();
@@ -71,7 +72,7 @@ const Home = () => {
         <AIHero />
         <ClassSubjectsGrid selectedClass={selectedClass} />
         <Hero />
-        
+        <FindSchoolSection />
         <FeaturedCategories />
         
         {/* Interactive 3D Learning Section */}
