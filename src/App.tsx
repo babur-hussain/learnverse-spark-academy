@@ -1,5 +1,4 @@
-
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import './App.css';
 import { router } from './routes';
@@ -9,10 +8,25 @@ import { Toaster } from '@/components/UI/toaster';
 import { EducationalLoader } from './components/UI/educational-loader';
 import { ToastProvider } from '@/hooks/use-toast';
 import SafeErrorBoundary from './components/Layout/SafeErrorBoundary';
+import { App as CapApp } from '@capacitor/app';
 
 function App() {
   console.log('App component rendering...');
   
+  // Android back button handler
+  useEffect(() => {
+    const handler = CapApp.addListener('backButton', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        CapApp.exitApp();
+      }
+    });
+    return () => {
+      handler.remove();
+    };
+  }, []);
+
   return (
     <SafeErrorBoundary>
       <ToastProvider>
