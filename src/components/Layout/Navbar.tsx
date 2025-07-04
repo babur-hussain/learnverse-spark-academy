@@ -6,7 +6,7 @@ import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
-import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu } from 'lucide-react';
+import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -175,6 +175,23 @@ const Navbar = ({ selectedClass, setSelectedClass }) => {
                         </li>
                       </ul>
                     </NavigationMenuContent>
+                  </NavigationMenuItem>
+
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                        <ShoppingBag size={18} />
+                        <span>Stationary</span>
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                        <Coffee size={18} />
+                        <span>Cafes</span>
+                      </Link>
+                    </NavigationMenuLink>
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>

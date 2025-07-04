@@ -23,6 +23,13 @@ import FindYourSchool from './pages/FindYourSchool';
 
 // Lazy load SimpleContent page
 const SimpleContent = lazy(() => import('./pages/SimpleContent'));
+const Stationary = React.lazy(() => import('./pages/Stationary'));
+const Cafes = React.lazy(() => import('./pages/Cafes'));
+const Product = React.lazy(() => import('./pages/Product'));
+const Cart = React.lazy(() => import('./pages/Cart'));
+const Wishlist = React.lazy(() => import('./pages/Wishlist'));
+const Checkout = React.lazy(() => import('./pages/Checkout'));
+const Order = React.lazy(() => import('./pages/Order'));
 
 export const router = createBrowserRouter([
   {
@@ -111,6 +118,34 @@ export const router = createBrowserRouter([
   {
     path: '/find-your-school',
     element: <FindYourSchool />,
+  },
+  {
+    path: '/stationary',
+    element: <Stationary />,
+  },
+  {
+    path: '/cafes',
+    element: <Cafes />,
+  },
+  {
+    path: '/product/:id',
+    element: <Product />,
+  },
+  {
+    path: '/cart',
+    element: <Cart />,
+  },
+  {
+    path: '/wishlist',
+    element: <Wishlist />,
+  },
+  {
+    path: '/checkout',
+    element: <Checkout />,
+  },
+  {
+    path: '/order/:id',
+    element: <Order />,
   },
   {
     path: '*',
