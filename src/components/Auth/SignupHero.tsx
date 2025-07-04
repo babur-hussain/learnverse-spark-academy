@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
@@ -5,7 +6,6 @@ import { FormLabel } from '@/components/UI/form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Eye, EyeOff, Mail, Lock, User, Phone, BookOpen, Users, Sparkles, GraduationCap } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
 import { ReferralInput } from './ReferralInput';
 
 export const SignupHero = () => {
@@ -37,10 +37,9 @@ export const SignupHero = () => {
         }
       );
       
-      // Simple referral handling without database operations
+      // Simple referral handling
       if (referralCode) {
         console.log('Referral code applied:', referralCode);
-        // You can implement referral logic here later
       }
       
     } catch (error) {
@@ -193,3 +192,5 @@ export const SignupHero = () => {
     </div>
   );
 };
+
+export default SignupHero;

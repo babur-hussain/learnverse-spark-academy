@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/UI/button';
@@ -5,9 +6,7 @@ import { Input } from '@/components/UI/input';
 import { FormLabel } from '@/components/UI/form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
-import { Eye, EyeOff, Mail, Lock, User, Phone, BookOpen, Users, Sparkles } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
 import { ReferralInput } from './ReferralInput';
 
 interface AuthDialogProps {
@@ -65,10 +64,9 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose, default
         }
       );
       
-      // Simple referral handling without database operations
+      // Simple referral handling
       if (referralCode) {
         console.log('Referral code applied:', referralCode);
-        // You can implement referral logic here later
       }
       
       onClose();
@@ -224,3 +222,5 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({ isOpen, onClose, default
     </Dialog>
   );
 };
+
+export default AuthDialog;
