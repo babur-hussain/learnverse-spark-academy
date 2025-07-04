@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,10 +12,13 @@ import useIsMobile from '@/hooks/use-mobile';
 
 interface Subject {
   id: string;
-  title: string;
+  name: string;
   description?: string;
   icon?: string;
   thumbnail_url?: string;
+  total_chapters?: number;
+  total_notes?: number;
+  total_videos?: number;
 }
 
 interface ClassData {
@@ -27,20 +31,6 @@ interface ClassData {
   order_index: number;
   created_at: string;
   updated_at: string;
-}
-
-// Simple interface for raw subject data from Supabase
-interface RawSubjectData {
-  id: string;
-  title: string;
-  description: string | null;
-  icon: string | null;
-  thumbnail_url: string | null;
-}
-
-interface ClassSubjectData {
-  subject_id: string;
-  order_index: number | null;
 }
 
 const StudyClass = () => {
@@ -75,83 +65,26 @@ const StudyClass = () => {
 
   const fetchSubjects = async () => {
     try {
-      // First get the class ID
-      const classResult = await supabase
+      const { data: classData } = await supabase
         .from('classes')
         .select('id')
         .eq('slug', classSlug)
         .single();
 
-      if (!classResult.data) {
-        setSubjects([]);
-        setIsLoading(false);
-        return;
-      }
+      if (!classData) return;
 
-      const classId = classResult.data.id;
-
-      // Get class_subjects mapping
-      const classSubjectsResult = await supabase
-        .from('class_subjects')
-        .select('subject_id, order_index')
-        .eq('class_id', classId)
-        .order('order_index');
-
-      if (classSubjectsResult.error) throw classSubjectsResult.error;
-
-      const classSubjectsData: ClassSubjectData[] = classSubjectsResult.data || [];
-      
-      if (classSubjectsData.length === 0) {
-        setSubjects([]);
-        setIsLoading(false);
-        return;
-      }
-
-      // Extract subject IDs
-      const subjectIds: string[] = [];
-      for (const item of classSubjectsData) {
-        subjectIds.push(item.subject_id);
-      }
-
-      // Get subjects data with explicit typing
-      const subjectsResult = await supabase
+      const { data, error } = await supabase
         .from('subjects')
-        .select('id, title, description, icon, thumbnail_url')
-        .in('id', subjectIds)
-        .eq('is_active', true);
-
-      if (subjectsResult.error) throw subjectsResult.error;
-
-      const subjectsRawData: RawSubjectData[] = subjectsResult.data || [];
-
-      // Create order lookup map
-      const orderMap: Record<string, number> = {};
-      for (const cs of classSubjectsData) {
-        orderMap[cs.subject_id] = cs.order_index || 0;
-      }
-
-      // Process subjects with explicit type handling
-      const orderedSubjects: Subject[] = [];
+        .select(`
+          *,
+          class_subjects!inner(class_id, order_index)
+        `)
+        .eq('class_subjects.class_id', classData.id)
+        .eq('is_active', true)
+        .order('class_subjects.order_index');
       
-      for (const rawSubject of subjectsRawData) {
-        const processedSubject: Subject = {
-          id: rawSubject.id,
-          title: rawSubject.title,
-          description: rawSubject.description || undefined,
-          icon: rawSubject.icon || undefined,
-          thumbnail_url: rawSubject.thumbnail_url || undefined
-        };
-        orderedSubjects.push(processedSubject);
-      }
-
-      // Sort by order index
-      orderedSubjects.sort((a, b) => {
-        const orderA = orderMap[a.id] || 0;
-        const orderB = orderMap[b.id] || 0;
-        return orderA - orderB;
-      });
-      
-      setSubjects(orderedSubjects);
+      if (error) throw error;
+      setSubjects(data || []);
     } catch (error) {
       console.error('Error fetching subjects:', error);
     } finally {
@@ -222,7 +155,7 @@ const StudyClass = () => {
                       {subject.thumbnail_url ? (
                         <img 
                           src={subject.thumbnail_url} 
-                          alt={subject.title}
+                          alt={subject.name}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -245,10 +178,10 @@ const StudyClass = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                          {subject.title}
+                          {subject.name}
                         </h3>
                         <p className="text-gray-600 text-sm line-clamp-2">
-                          {subject.description || `Complete ${subject.title} course with comprehensive materials`}
+                          {subject.description || `Complete ${subject.name} course with comprehensive materials`}
                         </p>
                       </div>
                       <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 ml-2" />
@@ -256,15 +189,15 @@ const StudyClass = () => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">12</div>
+                        <div className="text-lg font-bold text-blue-600">{subject.total_chapters || 12}</div>
                         <div className="text-xs text-gray-500">Chapters</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">45</div>
+                        <div className="text-lg font-bold text-green-600">{subject.total_notes || 45}</div>
                         <div className="text-xs text-gray-500">Notes</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-600">28</div>
+                        <div className="text-lg font-bold text-purple-600">{subject.total_videos || 28}</div>
                         <div className="text-xs text-gray-500">Videos</div>
                       </div>
                     </div>
