@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Star, Heart, ShoppingCart, MapPin, Bell, SlidersHorizontal, Grid, List } from 'lucide-react';
+import { Search, Filter, Grid, List, Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, ChevronDown, Menu, SlidersHorizontal, MapPin, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
@@ -12,12 +12,14 @@ import MobileFooter from '@/components/Layout/MobileFooter';
 import { useAuth } from '@/contexts/AuthContext';
 
 const categories = [
-  { id: 1, name: 'Notebooks', emoji: '📒', color: 'from-blue-400 to-blue-600', count: 45 },
-  { id: 2, name: 'Pens', emoji: '🖊️', color: 'from-purple-400 to-purple-600', count: 89 },
-  { id: 3, name: 'Calculators', emoji: '🧮', color: 'from-green-400 to-green-600', count: 23 },
-  { id: 4, name: 'Art & Craft', emoji: '🎨', color: 'from-pink-400 to-pink-600', count: 67 },
-  { id: 5, name: 'Office Supplies', emoji: '📎', color: 'from-amber-400 to-amber-600', count: 156 },
-  { id: 6, name: 'School Bags', emoji: '🎒', color: 'from-red-400 to-red-600', count: 34 },
+  { id: 1, name: 'Electronic', icon: '📱', color: 'bg-blue-500', count: 45 },
+  { id: 2, name: 'Food & Drink', icon: '🍔', color: 'bg-orange-500', count: 89 },
+  { id: 3, name: 'Accessories', icon: '👜', color: 'bg-purple-500', count: 23 },
+  { id: 4, name: 'Beauty', icon: '💄', color: 'bg-pink-500', count: 67 },
+  { id: 5, name: 'Furniture', icon: '🪑', color: 'bg-amber-500', count: 156 },
+  { id: 6, name: 'Fashion', icon: '👕', color: 'bg-green-500', count: 234 },
+  { id: 7, name: 'Health', icon: '🏥', color: 'bg-red-500', count: 45 },
+  { id: 8, name: 'Stationery', icon: '✏️', color: 'bg-indigo-500', count: 198 },
 ];
 
 const products = [
@@ -49,7 +51,7 @@ const products = [
     discount: 18,
     category: 'Calculators',
     features: ['417 functions', 'Natural display', 'Dual power'],
-    badge: 'Top Choice',
+    badge: 'Amazon\'s Choice',
     freeShipping: true,
     colors: ['Black']
   },
@@ -124,11 +126,11 @@ const Stationary = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedBrand, setSelectedBrand] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   useEffect(() => {
     let filtered = products.filter(product => {
@@ -165,7 +167,7 @@ const Stationary = () => {
   };
 
   const ProductCard = ({ product }: { product: typeof products[0] }) => (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white rounded-3xl">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white rounded-2xl">
       <CardContent className="p-0">
         <div className="relative">
           <Link to={`/product/${product.id}`}>
@@ -177,15 +179,8 @@ const Stationary = () => {
               />
               {product.discount > 0 && (
                 <div className="absolute top-3 left-3">
-                  <Badge className="bg-red-500 text-white px-3 py-1 text-xs font-bold rounded-full">
-                    -{product.discount}%
-                  </Badge>
-                </div>
-              )}
-              {product.badge && (
-                <div className="absolute top-3 right-12">
-                  <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 text-xs font-semibold rounded-full">
-                    {product.badge}
+                  <Badge className="bg-red-500 text-white px-2 py-1 text-xs font-semibold rounded-full">
+                    {product.discount}% off
                   </Badge>
                 </div>
               )}
@@ -195,31 +190,31 @@ const Stationary = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-3 right-3 h-10 w-10 rounded-full bg-white/90 hover:bg-white shadow-lg backdrop-blur-sm"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 hover:bg-white shadow-sm"
             onClick={() => toggleWishlist(product.id)}
           >
             <Heart 
-              className={`h-5 w-5 ${wishlist.includes(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+              className={`h-4 w-4 ${wishlist.includes(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
             />
           </Button>
         </div>
 
-        <div className="p-5 space-y-3">
+        <div className="p-4 space-y-3">
           <div>
-            <p className="text-sm text-blue-600 font-semibold uppercase tracking-wide">{product.brand}</p>
+            <p className="text-sm text-blue-600 font-medium">{product.brand}</p>
             <Link to={`/product/${product.id}`}>
-              <h3 className="font-bold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2 leading-tight mt-1 text-lg">
+              <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2 leading-tight mt-1">
                 {product.name}
               </h3>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
                 <Star
                   key={i}
-                  className={`h-4 w-4 ${
+                  className={`h-3 w-3 ${
                     i < Math.floor(product.rating)
                       ? 'fill-yellow-400 text-yellow-400'
                       : i < product.rating
@@ -229,25 +224,23 @@ const Stationary = () => {
                 />
               ))}
             </div>
-            <span className="text-sm text-gray-500 font-medium">({product.reviews})</span>
+            <span className="text-sm text-gray-500">({product.reviews})</span>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <span className="text-2xl font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
               {product.originalPrice > product.price && (
                 <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
               )}
             </div>
             {product.freeShipping && (
-              <p className="text-xs text-green-600 font-bold bg-green-50 px-2 py-1 rounded-full inline-block">
-                FREE Delivery
-              </p>
+              <p className="text-xs text-green-600 font-medium">FREE Delivery</p>
             )}
           </div>
 
-          <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-full py-3 shadow-lg hover:shadow-xl transition-all duration-300">
-            <ShoppingCart className="h-5 w-5 mr-2" />
+          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full py-2">
+            <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart
           </Button>
         </div>
@@ -256,33 +249,33 @@ const Stationary = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 sticky top-0 z-40 pt-safe shadow-xl">
-        <div className="px-4 py-6">
+      <div className="bg-white shadow-sm sticky top-0 z-40 pt-safe">
+        <div className="px-4 py-3">
           {/* Top Bar */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                <span className="text-white font-bold text-2xl">📝</span>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">S</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-white">Premium Stationery Store</h1>
-                <p className="text-blue-100 text-sm flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  Discover quality stationery items for work, study, and creativity
+                <h1 className="text-xl font-bold text-gray-900">Stationery Store</h1>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  Deliver to 123 Block A, Delhi
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/20">
-                <Bell className="h-6 w-6" />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
                 <Badge className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full p-0" />
               </Button>
               <Link to="/cart">
-                <Button variant="ghost" size="icon" className="relative text-white hover:bg-white/20">
-                  <ShoppingCart className="h-6 w-6" />
-                  <Badge className="absolute -top-1 -right-1 h-6 w-6 flex items-center justify-center p-0 text-xs bg-orange-500 text-white font-bold rounded-full">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-orange-500">
                     3
                   </Badge>
                 </Button>
@@ -291,45 +284,45 @@ const Stationary = () => {
           </div>
 
           {/* Search Bar */}
-          <div className="relative mb-6">
-            <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Search for pens, notebooks, calculators..."
+              placeholder="Find you needed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-14 py-4 rounded-3xl border-0 bg-white/95 backdrop-blur-sm focus:bg-white focus:ring-2 focus:ring-white/50 text-lg font-medium shadow-lg"
+              className="w-full pl-12 pr-12 py-3 rounded-2xl border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-orange-500"
             />
             <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700">
-                  <SlidersHorizontal className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 bg-white">
+              <SheetContent side="right" className="w-80">
                 <SheetHeader>
-                  <SheetTitle className="text-xl font-bold">Filters & Sort</SheetTitle>
+                  <SheetTitle>Filters</SheetTitle>
                 </SheetHeader>
                 <div className="py-6 space-y-6">
                   <div>
-                    <h3 className="font-semibold mb-4 text-lg">Sort by</h3>
-                    <div className="space-y-3">
+                    <h3 className="font-semibold mb-3">Sort by</h3>
+                    <div className="space-y-2">
                       {[
                         { value: 'relevance', label: 'Relevance' },
                         { value: 'price-low', label: 'Price: Low to High' },
                         { value: 'price-high', label: 'Price: High to Low' },
                         { value: 'rating', label: 'Customer Rating' },
                       ].map((option) => (
-                        <label key={option.value} className="flex items-center cursor-pointer">
+                        <label key={option.value} className="flex items-center">
                           <input
                             type="radio"
                             name="sort"
                             value={option.value}
                             checked={sortBy === option.value}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="mr-3 w-4 h-4 text-blue-600"
+                            className="mr-3"
                           />
-                          <span className="font-medium">{option.label}</span>
+                          <span className="text-sm">{option.label}</span>
                         </label>
                       ))}
                     </div>
@@ -342,98 +335,78 @@ const Stationary = () => {
       </div>
 
       {/* Categories */}
-      <div className="px-4 py-6 bg-white">
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+      <div className="px-4 py-4 bg-white border-b">
+        <div className="grid grid-cols-4 gap-4">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.name)}
-              className={`flex-shrink-0 flex flex-col items-center p-4 rounded-2xl transition-all duration-300 min-w-[80px] ${
+              className={`flex flex-col items-center p-3 rounded-2xl transition-all ${
                 selectedCategory === category.name
-                  ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg transform scale-105'
-                  : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                  ? 'bg-orange-100 border-2 border-orange-500'
+                  : 'bg-gray-50 hover:bg-gray-100'
               }`}
             >
-              <div className={`w-12 h-12 bg-gradient-to-br ${category.color} rounded-xl flex items-center justify-center text-2xl mb-2 shadow-md`}>
-                {category.emoji}
+              <div className={`w-12 h-12 ${category.color} rounded-2xl flex items-center justify-center text-white text-lg mb-2`}>
+                {category.icon}
               </div>
-              <span className="text-xs font-bold text-center leading-tight">
+              <span className="text-xs font-medium text-gray-900 text-center leading-tight">
                 {category.name}
-              </span>
-              <span className="text-xs opacity-75 mt-1">
-                {category.count}
               </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Controls Bar */}
-      <div className="px-4 py-4 bg-white border-t">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-lg font-bold text-gray-900">
-              {filteredProducts.length} results
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="rounded-full"
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="rounded-full"
-              >
-                <List className="h-4 w-4" />
+      {/* Flash Sale Banner */}
+      <div className="mx-4 my-4">
+        <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-4 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">6.6 Flash Sale</h2>
+                <p className="text-sm opacity-90">Cashback Up to 100%</p>
+              </div>
+              <Button className="bg-white text-red-500 hover:bg-gray-100 font-semibold px-6 rounded-full">
+                Shop Now
               </Button>
             </div>
           </div>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsFilterOpen(true)}
-            className="rounded-full font-semibold"
-          >
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
         </div>
       </div>
 
       {/* Products Section */}
-      <div className="px-4 pb-24">
-        {filteredProducts.length > 0 ? (
-          <div className={`${
-            viewMode === 'grid' 
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
-              : 'flex flex-col gap-4'
-          } mt-6`}>
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-16">
-            <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Search className="h-12 w-12 text-gray-400" />
+      <div className="px-4 pb-20">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
+          <Link to="/stationary/all" className="text-orange-500 text-sm font-medium">
+            See all
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-2">No products found</h3>
-            <p className="text-gray-500 text-lg mb-6">Try adjusting your search or filters</p>
+            <p className="text-gray-500 text-lg mb-2">No products found</p>
+            <p className="text-gray-400 text-sm mb-4">Try adjusting your search or filters</p>
             <Button 
+              variant="outline" 
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('All');
               }}
-              className="rounded-full px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+              className="rounded-full"
             >
-              Clear All Filters
+              Clear Filters
             </Button>
           </div>
         )}
