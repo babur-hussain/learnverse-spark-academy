@@ -16,9 +16,6 @@ interface Subject {
   description?: string;
   icon?: string;
   thumbnail_url?: string;
-  total_chapters?: number;
-  total_notes?: number;
-  total_videos?: number;
 }
 
 interface ClassData {
@@ -81,9 +78,6 @@ const StudyClass = () => {
           description,
           icon,
           thumbnail_url,
-          total_chapters,
-          total_notes,
-          total_videos,
           class_subjects!inner(class_id, order_index)
         `)
         .eq('class_subjects.class_id', classData.id)
@@ -196,15 +190,15 @@ const StudyClass = () => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-blue-600">{subject.total_chapters || 12}</div>
+                        <div className="text-lg font-bold text-blue-600">12</div>
                         <div className="text-xs text-gray-500">Chapters</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-green-600">{subject.total_notes || 45}</div>
+                        <div className="text-lg font-bold text-green-600">45</div>
                         <div className="text-xs text-gray-500">Notes</div>
                       </div>
                       <div className="text-center">
-                        <div className="text-lg font-bold text-purple-600">{subject.total_videos || 28}</div>
+                        <div className="text-lg font-bold text-purple-600">28</div>
                         <div className="text-xs text-gray-500">Videos</div>
                       </div>
                     </div>
