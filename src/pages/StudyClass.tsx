@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -61,65 +62,80 @@ const StudyClass = () => {
 
   const fetchSubjects = async () => {
     try {
-      const { data: classData } = await supabase
+      // First get the class ID
+      const classResult = await supabase
         .from('classes')
         .select('id')
         .eq('slug', classSlug)
         .single();
 
-      if (!classData) return;
-
-      // First get the class_subjects to get the order
-      const { data: classSubjects, error: classSubjectsError } = await supabase
-        .from('class_subjects')
-        .select('subject_id, order_index')
-        .eq('class_id', classData.id)
-        .order('order_index');
-
-      if (classSubjectsError) throw classSubjectsError;
-
-      if (!classSubjects || classSubjects.length === 0) {
+      if (!classResult.data) {
         setSubjects([]);
         setIsLoading(false);
         return;
       }
 
-      // Then get the subjects data
-      const subjectIds = classSubjects.map(cs => cs.subject_id);
-      const { data: subjectsData, error: subjectsError } = await supabase
+      const classId = classResult.data.id;
+
+      // Get class_subjects mapping with explicit typing
+      const classSubjectsResult = await supabase
+        .from('class_subjects')
+        .select('subject_id, order_index')
+        .eq('class_id', classId)
+        .order('order_index');
+
+      if (classSubjectsResult.error) throw classSubjectsResult.error;
+
+      const classSubjectsData = classSubjectsResult.data || [];
+      
+      if (classSubjectsData.length === 0) {
+        setSubjects([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Extract subject IDs
+      const subjectIds = classSubjectsData.map(item => item.subject_id);
+
+      // Get subjects data
+      const subjectsResult = await supabase
         .from('subjects')
         .select('id, title, description, icon, thumbnail_url')
         .in('id', subjectIds)
         .eq('is_active', true);
 
-      if (subjectsError) throw subjectsError;
+      if (subjectsResult.error) throw subjectsResult.error;
 
-      // Process the data step by step to avoid complex type inference
-      const processedSubjects: Subject[] = [];
+      const subjectsRawData = subjectsResult.data || [];
+
+      // Process subjects with order - using simple approach
+      const orderedSubjects: Subject[] = [];
       
-      if (subjectsData) {
-        for (const subject of subjectsData) {
-          const classSubject = classSubjects.find(cs => cs.subject_id === subject.id);
-          const orderIndex = classSubject?.order_index || 0;
-          
-          processedSubjects.push({
-            id: subject.id,
-            title: subject.title,
-            description: subject.description,
-            icon: subject.icon,
-            thumbnail_url: subject.thumbnail_url
-          });
-        }
-        
-        // Sort by order index
-        processedSubjects.sort((a, b) => {
-          const aOrder = classSubjects.find(cs => cs.subject_id === a.id)?.order_index || 0;
-          const bOrder = classSubjects.find(cs => cs.subject_id === b.id)?.order_index || 0;
-          return aOrder - bOrder;
+      // Create a lookup map for order indices
+      const orderMap = new Map<string, number>();
+      classSubjectsData.forEach(cs => {
+        orderMap.set(cs.subject_id, cs.order_index || 0);
+      });
+
+      // Process each subject
+      subjectsRawData.forEach(subject => {
+        orderedSubjects.push({
+          id: subject.id,
+          title: subject.title,
+          description: subject.description || undefined,
+          icon: subject.icon || undefined,
+          thumbnail_url: subject.thumbnail_url || undefined
         });
-      }
+      });
+
+      // Sort by order index using the lookup map
+      orderedSubjects.sort((a, b) => {
+        const orderA = orderMap.get(a.id) || 0;
+        const orderB = orderMap.get(b.id) || 0;
+        return orderA - orderB;
+      });
       
-      setSubjects(processedSubjects);
+      setSubjects(orderedSubjects);
     } catch (error) {
       console.error('Error fetching subjects:', error);
     } finally {
