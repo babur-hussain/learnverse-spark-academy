@@ -167,11 +167,11 @@ const Stationary = () => {
   };
 
   const ProductCard = ({ product }: { product: typeof products[0] }) => (
-    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white rounded-2xl">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white dark:bg-gray-800 rounded-2xl">
       <CardContent className="p-0">
         <div className="relative">
           <Link to={`/product/${product.id}`}>
-            <div className="aspect-square overflow-hidden bg-gray-50 relative">
+            <div className="aspect-square overflow-hidden bg-gray-50 dark:bg-gray-700 relative">
               <img 
                 src={product.image} 
                 alt={product.name}
@@ -190,20 +190,20 @@ const Stationary = () => {
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 hover:bg-white shadow-sm"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-700 shadow-sm"
             onClick={() => toggleWishlist(product.id)}
           >
             <Heart 
-              className={`h-4 w-4 ${wishlist.includes(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+              className={`h-4 w-4 ${wishlist.includes(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-300'}`} 
             />
           </Button>
         </div>
 
         <div className="p-4 space-y-3">
           <div>
-            <p className="text-sm text-blue-600 font-medium">{product.brand}</p>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">{product.brand}</p>
             <Link to={`/product/${product.id}`}>
-              <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2 leading-tight mt-1">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors line-clamp-2 leading-tight mt-1">
                 {product.name}
               </h3>
             </Link>
@@ -219,27 +219,27 @@ const Stationary = () => {
                       ? 'fill-yellow-400 text-yellow-400'
                       : i < product.rating
                       ? 'fill-yellow-400/50 text-yellow-400'
-                      : 'text-gray-300'
+                      : 'text-gray-300 dark:text-gray-600'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-sm text-gray-500">({product.reviews})</span>
+            <span className="text-sm text-gray-500 dark:text-gray-400">({product.reviews})</span>
           </div>
 
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+              <span className="text-lg font-bold text-gray-900 dark:text-gray-100">₹{product.price.toLocaleString()}</span>
               {product.originalPrice > product.price && (
-                <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 line-through">₹{product.originalPrice.toLocaleString()}</span>
               )}
             </div>
             {product.freeShipping && (
-              <p className="text-xs text-green-600 font-medium">FREE Delivery</p>
+              <p className="text-xs text-green-600 dark:text-green-400 font-medium">FREE Delivery</p>
             )}
           </div>
 
-          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full py-2">
+          <Button className="w-full bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white font-medium rounded-full py-2">
             <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart
           </Button>
@@ -249,9 +249,9 @@ const Stationary = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       {/* Header */}
-      <div className="bg-white shadow-sm sticky top-0 z-40 pt-safe">
+      <div className="bg-white dark:bg-gray-800 shadow-sm sticky top-0 z-40 pt-safe transition-colors">
         <div className="px-4 py-3">
           {/* Top Bar */}
           <div className="flex items-center justify-between mb-4">
@@ -260,21 +260,21 @@ const Stationary = () => {
                 <span className="text-white font-bold text-lg">S</span>
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Stationery Store</h1>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">Stationery Store</h1>
+                <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                   <MapPin className="h-3 w-3" />
                   Deliver to 123 Block A, Delhi
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="relative hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                 <Badge className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full p-0" />
               </Button>
               <Link to="/cart">
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-5 w-5" />
+                <Button variant="ghost" size="icon" className="relative hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <ShoppingCart className="h-5 w-5 text-gray-600 dark:text-gray-300" />
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-orange-500">
                     3
                   </Badge>
@@ -285,27 +285,27 @@ const Stationary = () => {
 
           {/* Search Bar */}
           <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
             <Input
               type="text"
               placeholder="Find you needed..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-12 py-3 rounded-2xl border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-orange-500"
+              className="w-full pl-12 pr-12 py-3 rounded-2xl border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:bg-white dark:focus:bg-gray-600 focus:border-orange-500 focus:ring-orange-500 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             />
             <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2">
-                  <SlidersHorizontal className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2 hover:bg-gray-100 dark:hover:bg-gray-600">
+                  <SlidersHorizontal className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80">
+              <SheetContent side="right" className="w-80 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
                 <SheetHeader>
-                  <SheetTitle>Filters</SheetTitle>
+                  <SheetTitle className="text-gray-900 dark:text-gray-100">Filters</SheetTitle>
                 </SheetHeader>
                 <div className="py-6 space-y-6">
                   <div>
-                    <h3 className="font-semibold mb-3">Sort by</h3>
+                    <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Sort by</h3>
                     <div className="space-y-2">
                       {[
                         { value: 'relevance', label: 'Relevance' },
@@ -320,9 +320,9 @@ const Stationary = () => {
                             value={option.value}
                             checked={sortBy === option.value}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="mr-3"
+                            className="mr-3 text-orange-500 focus:ring-orange-500"
                           />
-                          <span className="text-sm">{option.label}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">{option.label}</span>
                         </label>
                       ))}
                     </div>
@@ -335,22 +335,22 @@ const Stationary = () => {
       </div>
 
       {/* Categories */}
-      <div className="px-4 py-4 bg-white border-b">
-        <div className="grid grid-cols-4 gap-4">
+      <div className="px-4 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
+        <div className="grid grid-cols-4 gap-3 sm:gap-4">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setSelectedCategory(category.name)}
-              className={`flex flex-col items-center p-3 rounded-2xl transition-all ${
+              className={`flex flex-col items-center p-2 sm:p-3 rounded-2xl transition-all ${
                 selectedCategory === category.name
-                  ? 'bg-orange-100 border-2 border-orange-500'
-                  : 'bg-gray-50 hover:bg-gray-100'
+                  ? 'bg-orange-100 dark:bg-orange-900/30 border-2 border-orange-500'
+                  : 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border-2 border-transparent'
               }`}
             >
-              <div className={`w-12 h-12 ${category.color} rounded-2xl flex items-center justify-center text-white text-lg mb-2`}>
+              <div className={`w-10 h-10 sm:w-12 sm:h-12 ${category.color} rounded-2xl flex items-center justify-center text-white text-base sm:text-lg mb-1 sm:mb-2`}>
                 {category.icon}
               </div>
-              <span className="text-xs font-medium text-gray-900 text-center leading-tight">
+              <span className="text-xs font-medium text-gray-900 dark:text-gray-100 text-center leading-tight">
                 {category.name}
               </span>
             </button>
@@ -368,7 +368,7 @@ const Stationary = () => {
                 <h2 className="text-lg font-bold">6.6 Flash Sale</h2>
                 <p className="text-sm opacity-90">Cashback Up to 100%</p>
               </div>
-              <Button className="bg-white text-red-500 hover:bg-gray-100 font-semibold px-6 rounded-full">
+              <Button className="bg-white text-red-500 hover:bg-gray-100 font-semibold px-4 sm:px-6 rounded-full text-sm">
                 Shop Now
               </Button>
             </div>
@@ -379,13 +379,13 @@ const Stationary = () => {
       {/* Products Section */}
       <div className="px-4 pb-20">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
-          <Link to="/stationary/all" className="text-orange-500 text-sm font-medium">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Flash Sale</h2>
+          <Link to="/stationary/all" className="text-orange-500 dark:text-orange-400 text-sm font-medium hover:text-orange-600 dark:hover:text-orange-300">
             See all
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {filteredProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -393,18 +393,18 @@ const Stationary = () => {
 
         {filteredProducts.length === 0 && (
           <div className="text-center py-12">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="h-8 w-8 text-gray-400" />
+            <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <p className="text-gray-500 text-lg mb-2">No products found</p>
-            <p className="text-gray-400 text-sm mb-4">Try adjusting your search or filters</p>
+            <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">No products found</p>
+            <p className="text-gray-400 dark:text-gray-500 text-sm mb-4">Try adjusting your search or filters</p>
             <Button 
               variant="outline" 
               onClick={() => {
                 setSearchQuery('');
                 setSelectedCategory('All');
               }}
-              className="rounded-full"
+              className="rounded-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
             >
               Clear Filters
             </Button>
