@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -113,8 +112,14 @@ const StudyClass = () => {
         };
       }).sort((a, b) => a.order_index - b.order_index);
 
-      // Convert to Subject[] format
-      const finalSubjects: Subject[] = subjectsWithOrder.map(({order_index, ...subject}) => subject);
+      // Convert to Subject[] format - simplified without destructuring
+      const finalSubjects: Subject[] = subjectsWithOrder.map(item => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        icon: item.icon,
+        thumbnail_url: item.thumbnail_url
+      }));
       
       setSubjects(finalSubjects);
     } catch (error) {
