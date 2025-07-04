@@ -158,8 +158,8 @@ const UserMenu = () => {
       </Button>
       
       <AuthDialog 
-        open={authDialogOpen}
-        onOpenChange={setAuthDialogOpen}
+        isOpen={authDialogOpen}
+        onClose={() => setAuthDialogOpen(false)}
       />
     </>
   );
@@ -171,8 +171,8 @@ const UserMenu = () => {
       
       {!user && (
         <AuthDialog 
-          open={authDialogOpen} 
-          onOpenChange={setAuthDialogOpen} 
+          isOpen={authDialogOpen} 
+          onClose={() => setAuthDialogOpen(false)} 
         />
       )}
     </>

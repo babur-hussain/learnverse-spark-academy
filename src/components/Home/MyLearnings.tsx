@@ -48,8 +48,8 @@ const MyLearnings = () => {
           </div>
           
           <AuthDialog 
-            open={authDialogOpen} 
-            onOpenChange={setAuthDialogOpen} 
+            isOpen={authDialogOpen} 
+            onClose={() => setAuthDialogOpen(false)} 
           />
         </div>
       </section>

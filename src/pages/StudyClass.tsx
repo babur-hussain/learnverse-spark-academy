@@ -12,7 +12,7 @@ import useIsMobile from '@/hooks/use-mobile';
 
 interface Subject {
   id: string;
-  name: string;
+  title: string;
   description?: string;
   icon?: string;
   thumbnail_url?: string;
@@ -76,7 +76,14 @@ const StudyClass = () => {
       const { data, error } = await supabase
         .from('subjects')
         .select(`
-          *,
+          id,
+          title,
+          description,
+          icon,
+          thumbnail_url,
+          total_chapters,
+          total_notes,
+          total_videos,
           class_subjects!inner(class_id, order_index)
         `)
         .eq('class_subjects.class_id', classData.id)
@@ -155,7 +162,7 @@ const StudyClass = () => {
                       {subject.thumbnail_url ? (
                         <img 
                           src={subject.thumbnail_url} 
-                          alt={subject.name}
+                          alt={subject.title}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -178,10 +185,10 @@ const StudyClass = () => {
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
-                          {subject.name}
+                          {subject.title}
                         </h3>
                         <p className="text-gray-600 text-sm line-clamp-2">
-                          {subject.description || `Complete ${subject.name} course with comprehensive materials`}
+                          {subject.description || `Complete ${subject.title} course with comprehensive materials`}
                         </p>
                       </div>
                       <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-600 transition-colors flex-shrink-0 ml-2" />
