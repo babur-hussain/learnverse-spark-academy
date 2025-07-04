@@ -29,15 +29,6 @@ interface ClassData {
   updated_at: string;
 }
 
-interface SubjectWithOrder {
-  id: string;
-  title: string;
-  description?: string;
-  icon?: string;
-  thumbnail_url?: string;
-  order_index: number;
-}
-
 const StudyClass = () => {
   const { classSlug } = useParams();
   const { user } = useAuth();
@@ -103,25 +94,32 @@ const StudyClass = () => {
 
       if (subjectsError) throw subjectsError;
 
-      // Combine and sort by order_index
-      const subjectsWithOrder: SubjectWithOrder[] = (subjectsData || []).map(subject => {
-        const classSubject = classSubjects.find(cs => cs.subject_id === subject.id);
-        return {
-          ...subject,
-          order_index: classSubject?.order_index || 0
-        };
-      }).sort((a, b) => a.order_index - b.order_index);
-
-      // Convert to Subject[] format - simplified without destructuring
-      const finalSubjects: Subject[] = subjectsWithOrder.map(item => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        icon: item.icon,
-        thumbnail_url: item.thumbnail_url
-      }));
+      // Process the data step by step to avoid complex type inference
+      const processedSubjects: Subject[] = [];
       
-      setSubjects(finalSubjects);
+      if (subjectsData) {
+        for (const subject of subjectsData) {
+          const classSubject = classSubjects.find(cs => cs.subject_id === subject.id);
+          const orderIndex = classSubject?.order_index || 0;
+          
+          processedSubjects.push({
+            id: subject.id,
+            title: subject.title,
+            description: subject.description,
+            icon: subject.icon,
+            thumbnail_url: subject.thumbnail_url
+          });
+        }
+        
+        // Sort by order index
+        processedSubjects.sort((a, b) => {
+          const aOrder = classSubjects.find(cs => cs.subject_id === a.id)?.order_index || 0;
+          const bOrder = classSubjects.find(cs => cs.subject_id === b.id)?.order_index || 0;
+          return aOrder - bOrder;
+        });
+      }
+      
+      setSubjects(processedSubjects);
     } catch (error) {
       console.error('Error fetching subjects:', error);
     } finally {
