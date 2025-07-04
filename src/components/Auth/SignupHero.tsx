@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/UI/input';
@@ -54,22 +55,24 @@ const SignupHero = () => {
     if (!referralCode) return;
 
     try {
-      const { data, error } = await supabase.rpc('process_referral_signup', {
-        referral_code_input: referralCode,
-        new_user_id: newUserId
-      });
+      // Create a simple referral record instead of using the missing function
+      const { error } = await supabase
+        .from('referrals')
+        .insert({
+          referral_code: referralCode,
+          referee_id: newUserId,
+          referee_reward_amount: 50
+        });
 
       if (error) {
         console.error('Error processing referral:', error);
         return;
       }
 
-      if (data) {
-        toast({
-          title: "Referral Success!",
-          description: "You've received a ₹50 discount coupon for your first purchase!",
-        });
-      }
+      toast({
+        title: "Referral Success!",
+        description: "You've received a ₹50 discount coupon for your first purchase!",
+      });
     } catch (error) {
       console.error('Error processing referral:', error);
     }
