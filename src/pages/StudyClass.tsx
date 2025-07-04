@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +27,20 @@ interface ClassData {
   order_index: number;
   created_at: string;
   updated_at: string;
+}
+
+// Simple interface for raw subject data from Supabase
+interface RawSubjectData {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: string | null;
+  thumbnail_url: string | null;
+}
+
+interface ClassSubjectData {
+  subject_id: string;
+  order_index: number | null;
 }
 
 const StudyClass = () => {
@@ -77,7 +90,7 @@ const StudyClass = () => {
 
       const classId = classResult.data.id;
 
-      // Get class_subjects mapping with explicit typing
+      // Get class_subjects mapping
       const classSubjectsResult = await supabase
         .from('class_subjects')
         .select('subject_id, order_index')
@@ -86,7 +99,7 @@ const StudyClass = () => {
 
       if (classSubjectsResult.error) throw classSubjectsResult.error;
 
-      const classSubjectsData = classSubjectsResult.data || [];
+      const classSubjectsData: ClassSubjectData[] = classSubjectsResult.data || [];
       
       if (classSubjectsData.length === 0) {
         setSubjects([]);
@@ -95,9 +108,12 @@ const StudyClass = () => {
       }
 
       // Extract subject IDs
-      const subjectIds = classSubjectsData.map(item => item.subject_id);
+      const subjectIds: string[] = [];
+      for (const item of classSubjectsData) {
+        subjectIds.push(item.subject_id);
+      }
 
-      // Get subjects data
+      // Get subjects data with explicit typing
       const subjectsResult = await supabase
         .from('subjects')
         .select('id, title, description, icon, thumbnail_url')
@@ -106,32 +122,32 @@ const StudyClass = () => {
 
       if (subjectsResult.error) throw subjectsResult.error;
 
-      const subjectsRawData = subjectsResult.data || [];
+      const subjectsRawData: RawSubjectData[] = subjectsResult.data || [];
 
-      // Process subjects with order - using simple approach
+      // Create order lookup map
+      const orderMap: Record<string, number> = {};
+      for (const cs of classSubjectsData) {
+        orderMap[cs.subject_id] = cs.order_index || 0;
+      }
+
+      // Process subjects with explicit type handling
       const orderedSubjects: Subject[] = [];
       
-      // Create a lookup map for order indices
-      const orderMap = new Map<string, number>();
-      classSubjectsData.forEach(cs => {
-        orderMap.set(cs.subject_id, cs.order_index || 0);
-      });
+      for (const rawSubject of subjectsRawData) {
+        const processedSubject: Subject = {
+          id: rawSubject.id,
+          title: rawSubject.title,
+          description: rawSubject.description || undefined,
+          icon: rawSubject.icon || undefined,
+          thumbnail_url: rawSubject.thumbnail_url || undefined
+        };
+        orderedSubjects.push(processedSubject);
+      }
 
-      // Process each subject
-      subjectsRawData.forEach(subject => {
-        orderedSubjects.push({
-          id: subject.id,
-          title: subject.title,
-          description: subject.description || undefined,
-          icon: subject.icon || undefined,
-          thumbnail_url: subject.thumbnail_url || undefined
-        });
-      });
-
-      // Sort by order index using the lookup map
+      // Sort by order index
       orderedSubjects.sort((a, b) => {
-        const orderA = orderMap.get(a.id) || 0;
-        const orderB = orderMap.get(b.id) || 0;
+        const orderA = orderMap[a.id] || 0;
+        const orderB = orderMap[b.id] || 0;
         return orderA - orderB;
       });
       
