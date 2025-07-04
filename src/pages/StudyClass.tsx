@@ -30,6 +30,15 @@ interface ClassData {
   updated_at: string;
 }
 
+interface SubjectWithOrder {
+  id: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  thumbnail_url?: string;
+  order_index: number;
+}
+
 const StudyClass = () => {
   const { classSlug } = useParams();
   const { user } = useAuth();
@@ -70,22 +79,44 @@ const StudyClass = () => {
 
       if (!classData) return;
 
-      const { data, error } = await supabase
+      // First get the class_subjects to get the order
+      const { data: classSubjects, error: classSubjectsError } = await supabase
+        .from('class_subjects')
+        .select('subject_id, order_index')
+        .eq('class_id', classData.id)
+        .order('order_index');
+
+      if (classSubjectsError) throw classSubjectsError;
+
+      if (!classSubjects || classSubjects.length === 0) {
+        setSubjects([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // Then get the subjects data
+      const subjectIds = classSubjects.map(cs => cs.subject_id);
+      const { data: subjectsData, error: subjectsError } = await supabase
         .from('subjects')
-        .select(`
-          id,
-          title,
-          description,
-          icon,
-          thumbnail_url,
-          class_subjects!inner(class_id, order_index)
-        `)
-        .eq('class_subjects.class_id', classData.id)
-        .eq('is_active', true)
-        .order('class_subjects.order_index');
+        .select('id, title, description, icon, thumbnail_url')
+        .in('id', subjectIds)
+        .eq('is_active', true);
+
+      if (subjectsError) throw subjectsError;
+
+      // Combine and sort by order_index
+      const subjectsWithOrder: SubjectWithOrder[] = (subjectsData || []).map(subject => {
+        const classSubject = classSubjects.find(cs => cs.subject_id === subject.id);
+        return {
+          ...subject,
+          order_index: classSubject?.order_index || 0
+        };
+      }).sort((a, b) => a.order_index - b.order_index);
+
+      // Convert to Subject[] format
+      const finalSubjects: Subject[] = subjectsWithOrder.map(({order_index, ...subject}) => subject);
       
-      if (error) throw error;
-      setSubjects(data || []);
+      setSubjects(finalSubjects);
     } catch (error) {
       console.error('Error fetching subjects:', error);
     } finally {
