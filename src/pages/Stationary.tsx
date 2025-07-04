@@ -1,24 +1,26 @@
+
 import React, { useState, useEffect } from 'react';
-import Navbar from '@/components/Layout/Navbar';
-import useIsMobile from '@/hooks/use-mobile';
-import MobileFooter from '@/components/Layout/MobileFooter';
-import { Search, Filter, Grid, List, Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, ChevronDown, ChevronRight } from 'lucide-react';
+import { Search, Filter, Grid, List, Star, Heart, ShoppingCart, Truck, Shield, RotateCcw, ChevronDown, Menu, SlidersHorizontal, MapPin, Bell } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Badge } from '@/components/UI/badge';
 import { Card, CardContent } from '@/components/UI/card';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/UI/sheet';
+import useIsMobile from '@/hooks/use-mobile';
+import MobileFooter from '@/components/Layout/MobileFooter';
+import { useAuth } from '@/contexts/AuthContext';
 
 const categories = [
-  { id: 1, name: 'Notebooks & Journals', count: 45, image: '/public/images/materials.png' },
-  { id: 2, name: 'Pens & Pencils', count: 89, image: '/public/images/books.png' },
-  { id: 3, name: 'Calculators', count: 23, image: '/public/images/computer.png' },
-  { id: 4, name: 'Art Supplies', count: 67, image: '/public/images/materials.png' },
-  { id: 5, name: 'Office Supplies', count: 156, image: '/public/images/books.png' },
-  { id: 6, name: 'School Essentials', count: 234, image: '/public/images/materials.png' },
+  { id: 1, name: 'Electronic', icon: '📱', color: 'bg-blue-500', count: 45 },
+  { id: 2, name: 'Food & Drink', icon: '🍔', color: 'bg-orange-500', count: 89 },
+  { id: 3, name: 'Accessories', icon: '👜', color: 'bg-purple-500', count: 23 },
+  { id: 4, name: 'Beauty', icon: '💄', color: 'bg-pink-500', count: 67 },
+  { id: 5, name: 'Furniture', icon: '🪑', color: 'bg-amber-500', count: 156 },
+  { id: 6, name: 'Fashion', icon: '👕', color: 'bg-green-500', count: 234 },
+  { id: 7, name: 'Health', icon: '🏥', color: 'bg-red-500', count: 45 },
+  { id: 8, name: 'Stationery', icon: '✏️', color: 'bg-indigo-500', count: 198 },
 ];
-
-const brands = ['Parker', 'Pilot', 'Faber-Castell', 'Staedtler', 'Casio', 'Texas Instruments', 'Moleskine', 'Rhodia'];
 
 const products = [
   { 
@@ -34,7 +36,8 @@ const products = [
     category: 'Notebooks',
     features: ['200 pages', 'Dotted', 'Elastic closure'],
     badge: 'Best Seller',
-    freeShipping: true
+    freeShipping: true,
+    colors: ['Black', 'Brown', 'Navy']
   },
   { 
     id: 2, 
@@ -49,7 +52,8 @@ const products = [
     category: 'Calculators',
     features: ['417 functions', 'Natural display', 'Dual power'],
     badge: 'Amazon\'s Choice',
-    freeShipping: true
+    freeShipping: true,
+    colors: ['Black']
   },
   { 
     id: 3, 
@@ -64,7 +68,8 @@ const products = [
     category: 'Pens',
     features: ['Premium metal body', 'Gift box included', 'Refillable'],
     badge: 'Limited Edition',
-    freeShipping: true
+    freeShipping: true,
+    colors: ['Silver', 'Gold', 'Black']
   },
   { 
     id: 4, 
@@ -79,7 +84,8 @@ const products = [
     category: 'Office Supplies',
     features: ['12 colors', '100 sheets each', 'Super sticky'],
     badge: 'Great Value',
-    freeShipping: false
+    freeShipping: false,
+    colors: ['Multicolor']
   },
   { 
     id: 5, 
@@ -94,7 +100,8 @@ const products = [
     category: 'Art Supplies',
     features: ['48 colors', 'Artist quality', 'Mixing palette included'],
     badge: 'Professional Grade',
-    freeShipping: true
+    freeShipping: true,
+    colors: ['Standard']
   },
   { 
     id: 6, 
@@ -109,35 +116,31 @@ const products = [
     category: 'Pencils',
     features: ['Metal grip', 'Lead indicator', 'Eraser included'],
     badge: 'Student Favorite',
-    freeShipping: true
+    freeShipping: true,
+    colors: ['Blue', 'Black', 'Red']
   },
 ];
 
 const Stationary = () => {
   const isMobile = useIsMobile();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedBrand, setSelectedBrand] = useState('All');
   const [sortBy, setSortBy] = useState('relevance');
-  const [viewMode, setViewMode] = useState('grid');
-  const [showFilters, setShowFilters] = useState(false);
-  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [filteredProducts, setFilteredProducts] = useState(products);
   const [wishlist, setWishlist] = useState<number[]>([]);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Filter products based on search and filters
   useEffect(() => {
     let filtered = products.filter(product => {
       const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            product.brand.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || product.category === selectedCategory;
-      const matchesBrand = selectedBrand === 'All' || product.brand === selectedBrand;
-      const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
       
-      return matchesSearch && matchesCategory && matchesBrand && matchesPrice;
+      return matchesSearch && matchesCategory;
     });
 
-    // Sort products
     switch (sortBy) {
       case 'price-low':
         filtered.sort((a, b) => a.price - b.price);
@@ -148,16 +151,12 @@ const Stationary = () => {
       case 'rating':
         filtered.sort((a, b) => b.rating - a.rating);
         break;
-      case 'newest':
-        // Keep original order for newest
-        break;
       default:
-        // Relevance - keep original order
         break;
     }
 
     setFilteredProducts(filtered);
-  }, [searchQuery, selectedCategory, selectedBrand, sortBy, priceRange]);
+  }, [searchQuery, selectedCategory, sortBy]);
 
   const toggleWishlist = (productId: number) => {
     setWishlist(prev => 
@@ -168,44 +167,30 @@ const Stationary = () => {
   };
 
   const ProductCard = ({ product }: { product: typeof products[0] }) => (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-0 shadow-sm hover:shadow-xl">
+    <Card className="group hover:shadow-xl transition-all duration-300 border-0 shadow-md overflow-hidden bg-white rounded-2xl">
       <CardContent className="p-0">
         <div className="relative">
           <Link to={`/product/${product.id}`}>
-            <div className="aspect-square overflow-hidden rounded-t-lg bg-gray-50">
+            <div className="aspect-square overflow-hidden bg-gray-50 relative">
               <img 
                 src={product.image} 
                 alt={product.name}
-                className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain p-6 group-hover:scale-105 transition-transform duration-300"
               />
+              {product.discount > 0 && (
+                <div className="absolute top-3 left-3">
+                  <Badge className="bg-red-500 text-white px-2 py-1 text-xs font-semibold rounded-full">
+                    {product.discount}% off
+                  </Badge>
+                </div>
+              )}
             </div>
           </Link>
           
-          {/* Badges */}
-          <div className="absolute top-2 left-2 space-y-1">
-            {product.badge && (
-              <Badge className={`text-xs px-2 py-1 ${
-                product.badge === 'Best Seller' ? 'bg-orange-500' :
-                product.badge === 'Amazon\'s Choice' ? 'bg-blue-600' :
-                product.badge === 'Limited Edition' ? 'bg-purple-600' :
-                product.badge === 'Professional Grade' ? 'bg-green-600' :
-                'bg-red-500'
-              }`}>
-                {product.badge}
-              </Badge>
-            )}
-            {product.discount > 0 && (
-              <Badge variant="destructive" className="text-xs px-2 py-1">
-                -{product.discount}%
-              </Badge>
-            )}
-          </div>
-
-          {/* Wishlist button */}
           <Button
             variant="ghost"
             size="icon"
-            className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/80 hover:bg-white shadow-sm"
+            className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 hover:bg-white shadow-sm"
             onClick={() => toggleWishlist(product.id)}
           >
             <Heart 
@@ -214,18 +199,16 @@ const Stationary = () => {
           </Button>
         </div>
 
-        <div className="p-4 space-y-2">
-          {/* Brand */}
-          <p className="text-sm text-blue-600 font-medium">{product.brand}</p>
-          
-          {/* Product name */}
-          <Link to={`/product/${product.id}`}>
-            <h3 className="font-medium text-gray-900 hover:text-blue-600 transition-colors line-clamp-2 leading-tight">
-              {product.name}
-            </h3>
-          </Link>
+        <div className="p-4 space-y-3">
+          <div>
+            <p className="text-sm text-blue-600 font-medium">{product.brand}</p>
+            <Link to={`/product/${product.id}`}>
+              <h3 className="font-semibold text-gray-900 hover:text-blue-600 transition-colors line-clamp-2 leading-tight mt-1">
+                {product.name}
+              </h3>
+            </Link>
+          </div>
 
-          {/* Rating */}
           <div className="flex items-center gap-1">
             <div className="flex items-center">
               {[...Array(5)].map((_, i) => (
@@ -241,36 +224,22 @@ const Stationary = () => {
                 />
               ))}
             </div>
-            <span className="text-sm text-gray-600">({product.reviews})</span>
+            <span className="text-sm text-gray-500">({product.reviews})</span>
           </div>
 
-          {/* Price */}
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-semibold text-gray-900">₹{product.price.toLocaleString()}</span>
-            {product.originalPrice > product.price && (
-              <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold text-gray-900">₹{product.price.toLocaleString()}</span>
+              {product.originalPrice > product.price && (
+                <span className="text-sm text-gray-500 line-through">₹{product.originalPrice.toLocaleString()}</span>
+              )}
+            </div>
+            {product.freeShipping && (
+              <p className="text-xs text-green-600 font-medium">FREE Delivery</p>
             )}
           </div>
 
-          {/* Features */}
-          <div className="flex flex-wrap gap-1">
-            {product.features.slice(0, 2).map((feature, index) => (
-              <Badge key={index} variant="secondary" className="text-xs px-2 py-0.5">
-                {feature}
-              </Badge>
-            ))}
-          </div>
-
-          {/* Shipping info */}
-          {product.freeShipping && (
-            <p className="text-sm text-green-600 flex items-center gap-1">
-              <Truck className="h-3 w-3" />
-              FREE Delivery
-            </p>
-          )}
-
-          {/* Add to cart button */}
-          <Button className="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-medium mt-3">
+          <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-full py-2">
             <ShoppingCart className="h-4 w-4 mr-2" />
             Add to Cart
           </Button>
@@ -281,203 +250,169 @@ const Stationary = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      
-      <main className="pt-16">
-        {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Premium Stationery Store</h1>
-              <p className="text-blue-100 mb-6">Discover quality stationery items for work, study, and creativity</p>
-              
-              {/* Search Bar */}
-              <div className="max-w-2xl mx-auto relative">
-                <Input
-                  type="text"
-                  placeholder="Search for pens, notebooks, calculators..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 text-lg rounded-lg border-0 shadow-lg"
-                />
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+      {/* Header */}
+      <div className="bg-white shadow-sm sticky top-0 z-40 pt-safe">
+        <div className="px-4 py-3">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">S</span>
               </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">Stationery Store</h1>
+                <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  Deliver to 123 Block A, Delhi
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="relative">
+                <Bell className="h-5 w-5" />
+                <Badge className="absolute -top-1 -right-1 h-2 w-2 bg-red-500 rounded-full p-0" />
+              </Button>
+              <Link to="/cart">
+                <Button variant="ghost" size="icon" className="relative">
+                  <ShoppingCart className="h-5 w-5" />
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs bg-orange-500">
+                    3
+                  </Badge>
+                </Button>
+              </Link>
             </div>
           </div>
-        </div>
 
-        {/* Categories Bar */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.name)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
-                    selectedCategory === category.name
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                  }`}
-                >
-                  <img src={category.image} alt={category.name} className="w-5 h-5 rounded" />
-                  <span className="font-medium">{category.name}</span>
-                  <Badge variant="secondary" className="text-xs">{category.count}</Badge>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex gap-6">
-            {/* Sidebar Filters */}
-            <div className={`${isMobile ? (showFilters ? 'block' : 'hidden') : 'block'} w-full md:w-64 space-y-6`}>
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-semibold mb-3">Brands</h3>
-                <div className="space-y-2">
-                  {['All', ...brands].map((brand) => (
-                    <label key={brand} className="flex items-center">
-                      <input
-                        type="radio"
-                        name="brand"
-                        value={brand}
-                        checked={selectedBrand === brand}
-                        onChange={(e) => setSelectedBrand(e.target.value)}
-                        className="mr-2"
-                      />
-                      <span className="text-sm">{brand}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-semibold mb-3">Price Range</h3>
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="10000"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([0, Number(e.target.value)])}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-sm text-gray-600">
-                    <span>₹0</span>
-                    <span>₹{priceRange[1].toLocaleString()}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <h3 className="font-semibold mb-3">Features</h3>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span className="text-sm">Quality Guaranteed</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Truck className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm">Free Shipping</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RotateCcw className="h-4 w-4 text-purple-600" />
-                    <span className="text-sm">Easy Returns</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1">
-              {/* Toolbar */}
-              <div className="bg-white rounded-lg p-4 shadow-sm mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">
-                      {filteredProducts.length} results
-                    </span>
-                    
-                    {isMobile && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowFilters(!showFilters)}
-                      >
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filters
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-4">
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value)}
-                      className="text-sm border rounded px-3 py-2"
-                    >
-                      <option value="relevance">Sort by Relevance</option>
-                      <option value="price-low">Price: Low to High</option>
-                      <option value="price-high">Price: High to Low</option>
-                      <option value="rating">Customer Rating</option>
-                      <option value="newest">Newest Arrivals</option>
-                    </select>
-
-                    <div className="flex border rounded">
-                      <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('grid')}
-                      >
-                        <Grid className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('list')}
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
+          {/* Search Bar */}
+          <div className="relative mb-4">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Find you needed..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-12 pr-12 py-3 rounded-2xl border-gray-200 bg-gray-50 focus:bg-white focus:border-orange-500 focus:ring-orange-500"
+            />
+            <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-80">
+                <SheetHeader>
+                  <SheetTitle>Filters</SheetTitle>
+                </SheetHeader>
+                <div className="py-6 space-y-6">
+                  <div>
+                    <h3 className="font-semibold mb-3">Sort by</h3>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'relevance', label: 'Relevance' },
+                        { value: 'price-low', label: 'Price: Low to High' },
+                        { value: 'price-high', label: 'Price: High to Low' },
+                        { value: 'rating', label: 'Customer Rating' },
+                      ].map((option) => (
+                        <label key={option.value} className="flex items-center">
+                          <input
+                            type="radio"
+                            name="sort"
+                            value={option.value}
+                            checked={sortBy === option.value}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="mr-3"
+                          />
+                          <span className="text-sm">{option.label}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </div>
+              </SheetContent>
+            </Sheet>
+          </div>
+        </div>
+      </div>
 
-              {/* Products Grid */}
-              <div className={`grid gap-6 ${
-                viewMode === 'grid' 
-                  ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                  : 'grid-cols-1'
-              }`}>
-                {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
+      {/* Categories */}
+      <div className="px-4 py-4 bg-white border-b">
+        <div className="grid grid-cols-4 gap-4">
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => setSelectedCategory(category.name)}
+              className={`flex flex-col items-center p-3 rounded-2xl transition-all ${
+                selectedCategory === category.name
+                  ? 'bg-orange-100 border-2 border-orange-500'
+                  : 'bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <div className={`w-12 h-12 ${category.color} rounded-2xl flex items-center justify-center text-white text-lg mb-2`}>
+                {category.icon}
               </div>
+              <span className="text-xs font-medium text-gray-900 text-center leading-tight">
+                {category.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-              {filteredProducts.length === 0 && (
-                <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">No products found matching your criteria.</p>
-                  <Button 
-                    variant="outline" 
-                    className="mt-4"
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSelectedCategory('All');
-                      setSelectedBrand('All');
-                      setPriceRange([0, 10000]);
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </div>
-              )}
+      {/* Flash Sale Banner */}
+      <div className="mx-4 my-4">
+        <div className="bg-gradient-to-r from-red-500 to-pink-500 rounded-2xl p-4 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">6.6 Flash Sale</h2>
+                <p className="text-sm opacity-90">Cashback Up to 100%</p>
+              </div>
+              <Button className="bg-white text-red-500 hover:bg-gray-100 font-semibold px-6 rounded-full">
+                Shop Now
+              </Button>
             </div>
           </div>
         </div>
-      </main>
+      </div>
 
-      {isMobile && <MobileFooter />}
+      {/* Products Section */}
+      <div className="px-4 pb-20">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-gray-900">Flash Sale</h2>
+          <Link to="/stationary/all" className="text-orange-500 text-sm font-medium">
+            See all
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-12">
+            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Search className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 text-lg mb-2">No products found</p>
+            <p className="text-gray-400 text-sm mb-4">Try adjusting your search or filters</p>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedCategory('All');
+              }}
+              className="rounded-full"
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {isMobile && user && <MobileFooter />}
     </div>
   );
 };
