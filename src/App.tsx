@@ -1,4 +1,3 @@
-
 import React, { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router-dom';
 import './App.css';
@@ -16,21 +15,15 @@ function App() {
   
   // Android back button handler
   useEffect(() => {
-    const setupBackButton = async () => {
-      const handler = await CapApp.addListener('backButton', () => {
-        if (window.history.length > 1) {
-          window.history.back();
-        } else {
-          CapApp.exitApp();
-        }
-      });
-      return handler;
-    };
-
-    let handlerPromise = setupBackButton();
-    
+    const handler = CapApp.addListener('backButton', () => {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        CapApp.exitApp();
+      }
+    });
     return () => {
-      handlerPromise.then(handler => handler.remove());
+      handler.remove();
     };
   }, []);
 
