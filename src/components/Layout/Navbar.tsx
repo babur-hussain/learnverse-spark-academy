@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,7 +19,12 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-const Navbar = ({ selectedClass, setSelectedClass }) => {
+interface NavbarProps {
+  selectedClass?: any;
+  setSelectedClass?: any;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
@@ -40,8 +46,10 @@ const Navbar = ({ selectedClass, setSelectedClass }) => {
 
   const selectedClassObj = classes.find(cls => cls.id === selectedClass);
 
-  const handleClassSelect = (classObj) => {
-    setSelectedClass(classObj.id);
+  const handleClassSelect = (classObj: any) => {
+    if (setSelectedClass) {
+      setSelectedClass(classObj.id);
+    }
   };
 
   return (
@@ -57,29 +65,31 @@ const Navbar = ({ selectedClass, setSelectedClass }) => {
             <div className="hidden md:flex items-center space-x-2">
               <NavigationMenu>
                 <NavigationMenuList>
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-sm">
-                      {selectedClassObj ? (selectedClassObj.board ? `${selectedClassObj.board} > ${selectedClassObj.name}` : selectedClassObj.name) : 'Class'}
-                    </NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="w-56 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-                        {isLoadingClasses ? (
-                          <li className="p-2 text-center text-muted-foreground">Loading...</li>
-                        ) : (
-                          classes.map((cls) => (
-                            <li key={cls.id}>
-                              <button
-                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
-                                onClick={() => handleClassSelect(cls)}
-                              >
-                                {cls.board ? `${cls.board} > ${cls.name}` : cls.name}
-                              </button>
-                            </li>
-                          ))
-                        )}
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
+                  {setSelectedClass && (
+                    <NavigationMenuItem>
+                      <NavigationMenuTrigger className="text-sm">
+                        {selectedClassObj ? selectedClassObj.name : 'Class'}
+                      </NavigationMenuTrigger>
+                      <NavigationMenuContent>
+                        <ul className="w-56 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
+                          {isLoadingClasses ? (
+                            <li className="p-2 text-center text-muted-foreground">Loading...</li>
+                          ) : (
+                            classes.map((cls) => (
+                              <li key={cls.id}>
+                                <button
+                                  className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
+                                  onClick={() => handleClassSelect(cls)}
+                                >
+                                  {cls.name}
+                                </button>
+                              </li>
+                            ))
+                          )}
+                        </ul>
+                      </NavigationMenuContent>
+                    </NavigationMenuItem>
+                  )}
 
                   <NavigationMenuItem>
                     <NavigationMenuTrigger className="text-sm">Community</NavigationMenuTrigger>
@@ -199,9 +209,9 @@ const Navbar = ({ selectedClass, setSelectedClass }) => {
           )}
 
           <div className="flex items-center space-x-2 md:space-x-4">
-            {isMobile && (
+            {isMobile && setSelectedClass && (
               <select
-                className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2"
+                className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2 border-gray-300 dark:border-gray-600"
                 value={selectedClass || ''}
                 onChange={e => {
                   const cls = classes.find(c => c.id === e.target.value);
@@ -211,7 +221,7 @@ const Navbar = ({ selectedClass, setSelectedClass }) => {
                 <option value="">Class</option>
                 {classes.map(cls => (
                   <option key={cls.id} value={cls.id}>
-                    {cls.board ? `${cls.board} > ${cls.name}` : cls.name}
+                    {cls.name}
                   </option>
                 ))}
               </select>

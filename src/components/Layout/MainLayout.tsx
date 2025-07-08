@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import Navbar from './Navbar';
 import MobileFooter from './MobileFooter';
@@ -9,9 +10,16 @@ import LoadingSpinner from './LoadingSpinner';
 interface MainLayoutProps {
   children: React.ReactNode;
   isLoading?: boolean;
+  selectedClass?: any;
+  setSelectedClass?: any;
 }
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children, isLoading = false }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ 
+  children, 
+  isLoading = false,
+  selectedClass,
+  setSelectedClass
+}) => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
   
@@ -43,7 +51,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, isLoading = false }) 
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <Navbar />
+        <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} />
         <main className="flex-grow flex items-center justify-center">
           <LoadingSpinner message="Loading..." />
         </main>
@@ -55,7 +63,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, isLoading = false }) 
   return (
     <SafeErrorBoundary>
       <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-x-hidden">
-        <Navbar />
+        <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} />
         <main style={{ marginTop: 'calc(56px + env(safe-area-inset-top, 32px))' }} className={`flex-grow transition-all duration-300 ${
           isMobile 
             ? 'pb-20 min-h-screen-safe' 
