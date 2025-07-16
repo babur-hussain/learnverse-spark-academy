@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import MainLayout from '@/components/Layout/MainLayout';
 
 interface School {
-  id: string;
+  id: number;
   block: string;
   school_udise_code: string;
   school_name: string;
@@ -19,6 +19,15 @@ interface School {
   habitation: string;
   pincode: string;
   assembly: string;
+  assembly_vidhansabha: string;
+  school_category: string;
+  school_management: string;
+  jsk: string;
+  sankul_aeo_code: string;
+  school_status: string;
+  school_type: string;
+  udise_code: string;
+  urban_rural: string;
   school_incharge_unique_id: string;
   school_incharge_name: string;
   school_incharge_designation: string;

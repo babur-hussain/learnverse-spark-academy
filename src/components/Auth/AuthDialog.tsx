@@ -113,22 +113,22 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     if (!referralCode) return;
 
     try {
-      const { data, error } = await supabase.rpc('process_referral_signup', {
-        referral_code_input: referralCode,
-        new_user_id: newUserId
-      });
+      // const { data, error } = await supabase.rpc('process_referral_signup', {
+      //   referral_code_input: referralCode,
+      //   new_user_id: newUserId
+      // });
 
-      if (error) {
-        console.error('Error processing referral:', error);
-        return;
-      }
+      // if (error) {
+      //   console.error('Error processing referral:', error);
+      //   return;
+      // }
 
-      if (data) {
-        toast({
-          title: "Referral Success!",
-          description: "You've received a ₹50 discount coupon for your first purchase!",
-        });
-      }
+      // if (data) {
+      //   toast({
+      //     title: "Referral Success!",
+      //     description: "You've received a ₹50 discount coupon for your first purchase!",
+      //   });
+      // }
     } catch (error) {
       console.error('Error processing referral:', error);
     }

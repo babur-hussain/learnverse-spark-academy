@@ -27,7 +27,7 @@ import {
 import { AdminAnalytics } from '@/components/Admin/AdminAnalytics';
 import { AdminUserManagement } from '@/components/Admin/AdminUserManagement';
 import { AdminContentManager } from '@/components/Admin/AdminContentManager';
-import { AdminSystemSettings } from '@/components/Admin/AdminSystemSettings';
+import { EcommerceManager } from '@/components/Admin/EcommerceManager';
 import { CouponsList } from '@/components/Admin/CouponManager/CouponsList';
 import { NewsletterManager } from '@/components/Admin/Newsletter/NewsletterManager';
 import { supabase } from '@/lib/supabase';
@@ -188,7 +188,7 @@ const AdminPage = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -205,17 +205,13 @@ const AdminPage = () => {
                 <BookOpen className="h-4 w-4" />
                 Content
               </TabsTrigger>
-              <TabsTrigger value="coupons" className="flex items-center gap-2">
-                <Tag className="h-4 w-4" />
-                Coupons
+              <TabsTrigger value="ecommerce" className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Ecommerce
               </TabsTrigger>
               <TabsTrigger value="newsletter" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
                 Newsletter
-              </TabsTrigger>
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" />
-                Settings
               </TabsTrigger>
             </TabsList>
 
@@ -252,16 +248,12 @@ const AdminPage = () => {
               <AdminContentManager />
             </TabsContent>
 
-            <TabsContent value="coupons">
-              <CouponsList />
+            <TabsContent value="ecommerce">
+              <EcommerceManager />
             </TabsContent>
 
             <TabsContent value="newsletter">
               <NewsletterManager />
-            </TabsContent>
-
-            <TabsContent value="settings">
-              <AdminSystemSettings />
             </TabsContent>
           </Tabs>
         </MainLayout>
