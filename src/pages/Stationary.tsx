@@ -85,28 +85,28 @@ const Stationary = () => {
         {/* Categories Bar */}
         <div className="bg-white dark:bg-gray-800 border-b dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex items-center gap-4 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600">
               <button
                 onClick={() => setSelectedCategory('')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors flex-shrink-0 ${
                   selectedCategory === ''
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                 }`}
               >
-                <span className="font-medium">All Categories</span>
+                <span className="font-medium text-sm">All Categories</span>
               </button>
               {categories.map((category) => (
                 <button
                   key={category.id}
                   onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-colors flex-shrink-0 ${
                     selectedCategory === category.id
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  <span className="font-medium">{category.name}</span>
+                  <span className="font-medium text-sm">{category.name}</span>
                 </button>
               ))}
             </div>
@@ -114,9 +114,17 @@ const Stationary = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex gap-6">
+          <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar Filters */}
-            <div className={`${isMobile ? (showFilters ? 'block' : 'hidden') : 'block'} w-full md:w-64 space-y-6`}>
+            <div className={`${isMobile ? (showFilters ? 'block' : 'hidden') : 'block'} w-full lg:w-64 space-y-6 ${isMobile ? 'fixed inset-0 bg-white dark:bg-gray-900 z-50 p-4 overflow-y-auto' : ''}`}>
+              {isMobile && showFilters && (
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
+                  <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
+                    ✕
+                  </Button>
+                </div>
+              )}
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
                 <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Brands</h3>
                 <div className="space-y-2">
@@ -170,8 +178,8 @@ const Stationary = () => {
             <div className="flex-1">
               {/* Toolbar */}
               <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                       {filteredProducts.length} results
                     </span>
@@ -181,6 +189,7 @@ const Stationary = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => setShowFilters(!showFilters)}
+                        className="w-full sm:w-auto"
                       >
                         <Filter className="h-4 w-4 mr-2" />
                         Filters
@@ -188,11 +197,11 @@ const Stationary = () => {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
-                      className="text-sm border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+                      className="text-sm border rounded px-3 py-2 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 min-w-0 sm:min-w-[180px]"
                     >
                       <option value="relevance">Sort by Relevance</option>
                       <option value="price-low">Price: Low to High</option>
@@ -201,22 +210,24 @@ const Stationary = () => {
                       <option value="newest">Newest Arrivals</option>
                     </select>
 
-                    <div className="flex border rounded dark:border-gray-600">
-                      <Button
-                        variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('grid')}
-                      >
-                        <Grid className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant={viewMode === 'list' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setViewMode('list')}
-                      >
-                        <List className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {!isMobile && (
+                      <div className="flex border rounded dark:border-gray-600">
+                        <Button
+                          variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('grid')}
+                        >
+                          <Grid className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant={viewMode === 'list' ? 'default' : 'ghost'}
+                          size="sm"
+                          onClick={() => setViewMode('list')}
+                        >
+                          <List className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -233,9 +244,9 @@ const Stationary = () => {
                   ))}
                 </div>
               ) : (
-                <div className={`grid gap-6 ${
+                <div className={`grid gap-4 sm:gap-6 ${
                   viewMode === 'grid' 
-                    ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+                    ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
                     : 'grid-cols-1'
                 }`}>
                   {filteredProducts.map((product) => (

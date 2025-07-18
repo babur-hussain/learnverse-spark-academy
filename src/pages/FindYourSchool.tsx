@@ -4,30 +4,22 @@ import MainLayout from '@/components/Layout/MainLayout';
 
 interface School {
   id: number;
+  sr_no?: string;
   block: string;
   school_udise_code: string;
   school_name: string;
-  sanch_bao_code: string;
+  sankul_aeo_code: string;
   board_type: string;
   board_code: string;
   school_category_details: string;
   school_management_group_details: string;
   school_medium: string;
   tehsil: string;
-  isr: string;
+  jsk: string;
   village_ward: string;
   habitation: string;
   pincode: string;
-  assembly: string;
   assembly_vidhansabha: string;
-  school_category: string;
-  school_management: string;
-  jsk: string;
-  sankul_aeo_code: string;
-  school_status: string;
-  school_type: string;
-  udise_code: string;
-  urban_rural: string;
   school_incharge_unique_id: string;
   school_incharge_name: string;
   school_incharge_designation: string;
@@ -112,18 +104,18 @@ const FindYourSchool: React.FC = () => {
                     <th className="px-3 py-2">Block</th>
                     <th className="px-3 py-2">UDISE Code</th>
                     <th className="px-3 py-2">School Name</th>
-                    <th className="px-3 py-2">Sanch/BAO Code</th>
+                    <th className="px-3 py-2">Sankul/AEO Code</th>
                     <th className="px-3 py-2">Board Type</th>
                     <th className="px-3 py-2">Board Code</th>
                     <th className="px-3 py-2">Category</th>
                     <th className="px-3 py-2">Management Group</th>
                     <th className="px-3 py-2">Medium</th>
                     <th className="px-3 py-2">Tehsil</th>
-                    <th className="px-3 py-2">ISR</th>
+                    <th className="px-3 py-2">JSK</th>
                     <th className="px-3 py-2">Village/Ward</th>
                     <th className="px-3 py-2">Habitation</th>
                     <th className="px-3 py-2">Pincode</th>
-                    <th className="px-3 py-2">Assembly</th>
+                    <th className="px-3 py-2">Assembly Vidhansabha</th>
                     <th className="px-3 py-2">Incharge Unique ID</th>
                     <th className="px-3 py-2">Incharge Name</th>
                     <th className="px-3 py-2">Incharge Designation</th>
@@ -144,18 +136,18 @@ const FindYourSchool: React.FC = () => {
                         <td className="px-3 py-2 whitespace-nowrap">{school.block}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_udise_code}</td>
                         <td className="px-3 py-2 font-semibold whitespace-nowrap">{school.school_name}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{school.sanch_bao_code}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{school.sankul_aeo_code}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.board_type}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.board_code}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_category_details}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_management_group_details}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_medium}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.tehsil}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{school.isr}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{school.jsk}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.village_ward}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.habitation}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.pincode}</td>
-                        <td className="px-3 py-2 whitespace-nowrap">{school.assembly}</td>
+                        <td className="px-3 py-2 whitespace-nowrap">{school.assembly_vidhansabha}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_incharge_unique_id}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_incharge_name}</td>
                         <td className="px-3 py-2 whitespace-nowrap">{school.school_incharge_designation}</td>
