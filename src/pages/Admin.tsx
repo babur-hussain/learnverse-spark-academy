@@ -30,6 +30,7 @@ import { AdminContentManager } from '@/components/Admin/AdminContentManager';
 import { EcommerceManager } from '@/components/Admin/EcommerceManager';
 import { CouponsList } from '@/components/Admin/CouponManager/CouponsList';
 import { NewsletterManager } from '@/components/Admin/Newsletter/NewsletterManager';
+import KidsManager from '@/components/Admin/KidsManager';
 import { supabase } from '@/lib/supabase';
 
 const AdminPage = () => {
@@ -188,7 +189,7 @@ const AdminPage = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-7">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -208,6 +209,10 @@ const AdminPage = () => {
               <TabsTrigger value="ecommerce" className="flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 Ecommerce
+              </TabsTrigger>
+              <TabsTrigger value="kids" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Kids
               </TabsTrigger>
               <TabsTrigger value="newsletter" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -250,6 +255,10 @@ const AdminPage = () => {
 
             <TabsContent value="ecommerce">
               <EcommerceManager />
+            </TabsContent>
+
+            <TabsContent value="kids">
+              <KidsManager />
             </TabsContent>
 
             <TabsContent value="newsletter">

@@ -1,13 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Baby, Star, Heart, Sparkles, Play, BookOpen, Music, Gamepad2, Palette, Users, Volume2, Download } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Card, CardContent } from '@/components/UI/card';
 import { Badge } from '@/components/UI/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/UI/dialog';
 import MainLayout from '@/components/Layout/MainLayout';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface KidsCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  age_group: 'infants' | 'preschool';
+  icon: string;
+  color_gradient: string;
+  order_index: number;
+  is_active: boolean;
+}
+
+interface KidsContentItem {
+  id: string;
+  category_id: string;
+  title: string;
+  description: string;
+  content_type: 'video' | 'flashcard' | 'game' | 'rhyme' | 'story' | 'activity';
+  thumbnail_url?: string;
+  content_url?: string;
+  content_data?: any;
+  duration_minutes?: number;
+  difficulty_level?: 'easy' | 'medium' | 'hard';
+  tags?: string[];
+  is_featured: boolean;
+  is_active: boolean;
+  order_index: number;
+}
 
 const Kids = () => {
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<'infants' | 'preschool'>('infants');
+  const [categories, setCategories] = useState<KidsCategory[]>([]);
+  const [contentItems, setContentItems] = useState<KidsContentItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<KidsCategory | null>(null);
+  const [showContentDialog, setShowContentDialog] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchContentItems();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('kids_content_categories')
+        .select('*')
+        .eq('is_active', true)
+        .order('age_group', { ascending: true })
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      setCategories((data as KidsCategory[]) || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      toast.error('Failed to load categories');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchContentItems = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('kids_content_items')
+        .select('*')
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
+
+      if (error) throw error;
+      setContentItems((data as KidsContentItem[]) || []);
+    } catch (error) {
+      console.error('Error fetching content items:', error);
+    }
+  };
+
+  const handleCategoryClick = (category: KidsCategory) => {
+    setSelectedCategory(category);
+    setShowContentDialog(true);
+  };
+
+  const getIconComponent = (iconName: string) => {
+    const iconMap: { [key: string]: any } = {
+      BookOpen,
+      Play,
+      Music,
+      Gamepad2,
+      Baby,
+      Star
+    };
+    return iconMap[iconName] || BookOpen;
+  };
 
   const ageGroups = [
     {
@@ -30,69 +123,26 @@ const Kids = () => {
     }
   ];
 
-  const infantsContent = [
-    {
-      title: 'Colorful Notes & Flashcards',
-      description: 'Simple, image-rich educational flashcards with alphabets, shapes, and animals',
-      icon: BookOpen,
-      color: 'from-pink-400 to-rose-400',
-      items: ['Baby Alphabets', 'Animal Sounds', 'Color Recognition', 'Shape Learning']
-    },
-    {
-      title: 'Baby Videos',
-      description: 'Short, engaging visual content with music and baby rhymes',
-      icon: Play,
-      color: 'from-purple-400 to-pink-400',
-      items: ['Lullaby Videos', 'Motion Learning', 'Gentle Animations', 'Sensory Stimulation']
-    },
-    {
-      title: 'Baby Rhymes & Poems',
-      description: 'Classic and modern baby rhymes with audio and animated visuals',
-      icon: Music,
-      color: 'from-indigo-400 to-purple-400',
-      items: ['Nursery Rhymes', 'Bedtime Songs', 'Action Songs', 'Sound Play']
-    },
-    {
-      title: 'Mini Baby Games',
-      description: 'Simple touch-interactive games for sensory development',
-      icon: Gamepad2,
-      color: 'from-teal-400 to-cyan-400',
-      items: ['Pop Balloons', 'Color Touch', 'Sound Matching', 'Gentle Puzzles']
-    }
-  ];
+  // Filter categories by selected age group
+  const currentCategories = categories.filter(cat => cat.age_group === selectedAgeGroup);
+  
+  // Get content items for selected category
+  const getCategoryContent = (categoryId: string) => {
+    return contentItems.filter(item => item.category_id === categoryId);
+  };
 
-  const preschoolContent = [
-    {
-      title: 'Interactive Learning Notes',
-      description: 'Illustrated notes and worksheets for foundational learning',
-      icon: BookOpen,
-      color: 'from-blue-500 to-indigo-500',
-      items: ['ABC Learning', 'Number Recognition', 'Daily Life Themes', 'Basic Literacy']
-    },
-    {
-      title: 'Educational Videos',
-      description: 'Fun videos mixing entertainment with foundational learning',
-      icon: Play,
-      color: 'from-green-500 to-teal-500',
-      items: ['Phonics Fun', 'Counting Games', 'Story Time', 'Science Basics']
-    },
-    {
-      title: 'Poems & Sing-Alongs',
-      description: 'Animated poems with read-along features and karaoke subtitles',
-      icon: Music,
-      color: 'from-orange-500 to-red-500',
-      items: ['Action Rhymes', 'Learning Songs', 'Story Poems', 'Sing-Along Fun']
-    },
-    {
-      title: 'Fun Learning Games',
-      description: 'Engaging educational games for memory and problem-solving',
-      icon: Gamepad2,
-      color: 'from-purple-500 to-pink-500',
-      items: ['Memory Games', 'Puzzle Play', 'Matching Pairs', 'Logic Games']
-    }
-  ];
-
-  const currentContent = selectedAgeGroup === 'infants' ? infantsContent : preschoolContent;
+  if (loading) {
+    return (
+      <MainLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <Sparkles className="h-16 w-16 mx-auto mb-4 animate-spin text-purple-500" />
+            <p className="text-lg">Loading magical content...</p>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
   const currentAgeGroup = ageGroups.find(group => group.id === selectedAgeGroup)!;
 
   return (
@@ -188,36 +238,38 @@ const Kids = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {currentContent.map((section, index) => {
-                const IconComponent = section.icon;
+              {currentCategories.map((category, index) => {
+                const IconComponent = getIconComponent(category.icon);
+                const contentCount = getCategoryContent(category.id).length;
                 return (
                   <motion.div
-                    key={section.title}
+                    key={category.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
                     <Card className="h-full hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 bg-white/80 backdrop-blur-sm">
                       <CardContent className="p-6">
-                        <div className={`inline-flex p-3 rounded-full bg-gradient-to-r ${section.color} mb-4`}>
+                        <div className={`inline-flex p-3 rounded-full bg-gradient-to-r ${category.color_gradient} mb-4`}>
                           <IconComponent className="h-6 w-6 text-white" />
                         </div>
-                        <h3 className="text-xl font-bold mb-3 text-gray-800">{section.title}</h3>
-                        <p className="text-gray-600 mb-4">{section.description}</p>
-                        <div className="space-y-2 mb-6">
-                          {section.items.map((item, itemIndex) => (
-                            <div key={itemIndex} className="flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-400"></div>
-                              <span className="text-sm text-gray-700">{item}</span>
-                            </div>
-                          ))}
+                        <h3 className="text-xl font-bold mb-3 text-gray-800">{category.name}</h3>
+                        <p className="text-gray-600 mb-4">{category.description}</p>
+                        <div className="flex items-center justify-between mb-6">
+                          <Badge variant="secondary">
+                            {contentCount} {contentCount === 1 ? 'item' : 'items'}
+                          </Badge>
+                          <Badge variant="outline">
+                            {category.age_group === 'infants' ? '0-3 years' : 'Nursery-KG3'}
+                          </Badge>
                         </div>
                         <Button 
-                          className={`w-full bg-gradient-to-r ${section.color} hover:opacity-90 transition-opacity text-white border-0 shadow-lg`}
+                          className={`w-full bg-gradient-to-r ${category.color_gradient} hover:opacity-90 transition-opacity text-white border-0 shadow-lg`}
                           size={selectedAgeGroup === 'infants' ? 'lg' : 'default'}
+                          onClick={() => handleCategoryClick(category)}
                         >
                           <Play className="w-4 h-4 mr-2" />
-                          Start Learning
+                          Start Learning ({contentCount})
                         </Button>
                       </CardContent>
                     </Card>
@@ -267,6 +319,64 @@ const Kids = () => {
               </Button>
             </div>
           </motion.div>
+
+          {/* Content Dialog */}
+          <Dialog open={showContentDialog} onOpenChange={setShowContentDialog}>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-center">
+                  {selectedCategory?.name}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                {selectedCategory && getCategoryContent(selectedCategory.id).map((item) => (
+                  <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-4">
+                      {item.thumbnail_url && (
+                        <img 
+                          src={item.thumbnail_url} 
+                          alt={item.title}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                      )}
+                      <h4 className="font-semibold mb-2">{item.title}</h4>
+                      <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge variant="outline">{item.content_type}</Badge>
+                        {item.duration_minutes && (
+                          <span className="text-xs text-gray-500">
+                            {item.duration_minutes} min
+                          </span>
+                        )}
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        size="sm"
+                        onClick={() => {
+                          if (item.content_url) {
+                            window.open(item.content_url, '_blank');
+                          } else {
+                            toast.info('Content coming soon!');
+                          }
+                        }}
+                      >
+                        <Play className="w-3 h-3 mr-1" />
+                        {item.content_type === 'video' ? 'Watch' : 
+                         item.content_type === 'game' ? 'Play' : 
+                         item.content_type === 'flashcard' ? 'Study' : 'Start'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+                {selectedCategory && getCategoryContent(selectedCategory.id).length === 0 && (
+                  <div className="col-span-full text-center py-8">
+                    <Sparkles className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500">No content available yet. Check back soon for exciting new activities!</p>
+                  </div>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </MainLayout>
