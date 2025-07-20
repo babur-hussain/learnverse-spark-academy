@@ -19,7 +19,7 @@ const AppDownload: React.FC = () => {
                 className="border-2 border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 h-14"
               >
                 <img 
-                  src="/public/lovable-uploads/a52e4e42-5192-4a92-8bcc-e23b4f2fdd5b.png" 
+                  src="/lovable-uploads/a52e4e42-5192-4a92-8bcc-e23b4f2fdd5b.png" 
                   alt="App Store" 
                   className="w-6 h-6 mr-2 invert-0 dark:invert" 
                 />
@@ -30,7 +30,7 @@ const AppDownload: React.FC = () => {
                 className="border-2 border-gray-800 dark:border-gray-200 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 h-14"
               >
                 <img 
-                  src="/public/lovable-uploads/a52e4e42-5192-4a92-8bcc-e23b4f2fdd5b.png" 
+                  src="/lovable-uploads/a52e4e42-5192-4a92-8bcc-e23b4f2fdd5b.png" 
                   alt="Google Play" 
                   className="w-6 h-6 mr-2 invert-0 dark:invert" 
                 />

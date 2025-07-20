@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Upload, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 interface Category {
   id: string;
@@ -46,6 +47,11 @@ interface SubjectDialogProps {
   onOpenChange: (open: boolean) => void;
   subject?: Subject | null;
   onSuccess: () => void;
+}
+
+interface College {
+  id: string;
+  name: string;
 }
 
 const formSchema = z.object({
@@ -81,6 +87,7 @@ export function SubjectDialog({
   const isEditing = !!subject?.id;
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>('');
+  const [selectedCollegeId, setSelectedCollegeId] = useState<string>('');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -91,6 +98,18 @@ export function SubjectDialog({
       thumbnail_url: '',
       categoryIds: [],
     },
+  });
+
+  const { data: colleges = [] } = useQuery({
+    queryKey: ['colleges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('colleges')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data as College[];
+    }
   });
 
   useEffect(() => {
@@ -362,6 +381,7 @@ export function SubjectDialog({
             description: values.description,
             icon: iconUrl || values.icon,
             thumbnail_url: values.thumbnail_url,
+            college_id: selectedCollegeId || null,
           })
           .select();
 
@@ -575,6 +595,20 @@ export function SubjectDialog({
               ) : (
                 <div className="p-2 text-center text-muted-foreground text-sm">Loading classes...</div>
               )}
+            </div>
+
+            <div>
+              <FormLabel>College (optional)</FormLabel>
+              <select
+                className="w-full border rounded-md px-3 py-2 text-sm"
+                value={selectedCollegeId}
+                onChange={e => setSelectedCollegeId(e.target.value)}
+              >
+                <option value="">Select a college</option>
+                {colleges.map(college => (
+                  <option key={college.id} value={college.id}>{college.name}</option>
+                ))}
+              </select>
             </div>
 
             <DialogFooter>

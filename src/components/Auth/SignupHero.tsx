@@ -173,7 +173,7 @@ const SignupHero = () => {
             <div className="relative">
               <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-500 dark:text-gray-400">
                 <img 
-                  src="/public/lovable-uploads/5f8332a7-0fd5-4cf0-ba9e-7f701f8b6385.png" 
+                  src="/lovable-uploads/5f8332a7-0fd5-4cf0-ba9e-7f701f8b6385.png" 
                   alt="India flag" 
                   className="h-4 w-6 mr-2" 
                 />

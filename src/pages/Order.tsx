@@ -8,8 +8,8 @@ const order = {
   status: 'In Delivery',
   address: '123 Main Street, City, Country',
   items: [
-    { id: 1, name: 'Notebook A5', img: '/public/images/materials.png', price: 120, qty: 2 },
-    { id: 2, name: 'Calculator FX-991', img: '/public/images/computer.png', price: 950, qty: 1 },
+    { id: 1, name: 'Notebook A5', img: '/images/materials.png', price: 120, qty: 2 },
+    { id: 2, name: 'Calculator FX-991', img: '/images/computer.png', price: 950, qty: 1 },
   ],
 };
 

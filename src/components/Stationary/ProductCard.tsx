@@ -17,7 +17,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart, isAddingToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
 
-  const primaryImage = product.images?.find(img => img.is_primary)?.image_url || '/public/images/materials.png';
+  const primaryImage = product.images?.find(img => img.is_primary)?.image_url || '/images/materials.png';
   const discount = product.original_price && product.original_price > product.price 
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0;

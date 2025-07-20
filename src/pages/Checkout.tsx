@@ -23,7 +23,7 @@ const Checkout = () => {
       id: 1, 
       name: 'Premium A5 Leather Journal', 
       brand: 'Moleskine',
-      image: '/public/images/materials.png', 
+      image: '/images/materials.png', 
       price: 1299, 
       qty: 2,
       deliveryDate: 'Tomorrow'
@@ -32,7 +32,7 @@ const Checkout = () => {
       id: 2, 
       name: 'Scientific Calculator FX-991ES Plus', 
       brand: 'Casio',
-      image: '/public/images/computer.png', 
+      image: '/images/computer.png', 
       price: 2450, 
       qty: 1,
       deliveryDate: 'Tomorrow'

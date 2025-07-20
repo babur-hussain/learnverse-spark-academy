@@ -31,6 +31,8 @@ const Cart = React.lazy(() => import('./pages/Cart'));
 const Wishlist = React.lazy(() => import('./pages/Wishlist'));
 const Checkout = React.lazy(() => import('./pages/Checkout'));
 const Order = React.lazy(() => import('./pages/Order'));
+const Audio = React.lazy(() => import('./pages/Audio'));
+const CollegeManagement = React.lazy(() => import('./pages/CollegeManagement'));
 
 export const router = createBrowserRouter([
   {
@@ -121,6 +123,10 @@ export const router = createBrowserRouter([
     element: <FindYourSchool />,
   },
   {
+    path: '/college-management',
+    element: <CollegeManagement />,
+  },
+  {
     path: '/stationary',
     element: <Stationary />,
   },
@@ -151,6 +157,10 @@ export const router = createBrowserRouter([
   {
     path: '/order/:id',
     element: <Order />,
+  },
+  {
+    path: '/audio',
+    element: <Audio />,
   },
   {
     path: '*',

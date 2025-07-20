@@ -16,7 +16,7 @@ const Wishlist = () => {
       id: 1, 
       name: 'Premium A5 Leather Journal', 
       brand: 'Moleskine',
-      image: '/public/images/materials.png', 
+      image: '/images/materials.png', 
       price: 1299, 
       originalPrice: 1899,
       rating: 4.5,
@@ -29,7 +29,7 @@ const Wishlist = () => {
       id: 2, 
       name: 'Scientific Calculator FX-991ES Plus', 
       brand: 'Casio',
-      image: '/public/images/computer.png', 
+      image: '/images/computer.png', 
       price: 2450, 
       originalPrice: 2990,
       rating: 4.8,
@@ -42,7 +42,7 @@ const Wishlist = () => {
       id: 3, 
       name: 'Professional Ballpoint Pen Set', 
       brand: 'Parker',
-      image: '/public/images/books.png', 
+      image: '/images/books.png', 
       price: 3250, 
       originalPrice: 4500,
       rating: 4.3,
@@ -249,10 +249,10 @@ const Wishlist = () => {
             <h2 className="text-xl font-bold mb-6">You might also like</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
-                { id: 101, name: 'Watercolor Paint Set', price: 4899, image: '/public/images/books.png' },
-                { id: 102, name: 'Fountain Pen Collection', price: 2499, image: '/public/images/materials.png' },
-                { id: 103, name: 'Sketching Notebook', price: 599, image: '/public/images/computer.png' },
-                { id: 104, name: 'Geometry Box Set', price: 349, image: '/public/images/books.png' },
+                { id: 101, name: 'Watercolor Paint Set', price: 4899, image: '/images/books.png' },
+                { id: 102, name: 'Fountain Pen Collection', price: 2499, image: '/images/materials.png' },
+                { id: 103, name: 'Sketching Notebook', price: 599, image: '/images/computer.png' },
+                { id: 104, name: 'Geometry Box Set', price: 349, image: '/images/books.png' },
               ].map((product) => (
                 <Card key={product.id} className="hover:shadow-lg transition-shadow">
                   <CardContent className="p-3">

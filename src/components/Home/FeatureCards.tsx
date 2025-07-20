@@ -40,7 +40,7 @@ const FeatureCards: React.FC = () => {
       icon: <MessageCircle className="h-6 w-6" />,
       bgColor: "bg-blue-100",
       darkBgColor: "dark:bg-blue-900/30",
-      imageSrc: "/public/lovable-uploads/1569b805-6435-4733-a347-b3da28d83dc0.png"
+      imageSrc: "/lovable-uploads/1569b805-6435-4733-a347-b3da28d83dc0.png"
     },
     {
       title: "Practice and revise",
@@ -48,7 +48,7 @@ const FeatureCards: React.FC = () => {
       icon: <FileText className="h-6 w-6" />,
       bgColor: "bg-pink-100",
       darkBgColor: "dark:bg-pink-900/30",
-      imageSrc: "/public/lovable-uploads/975abd52-dbd2-46db-9a22-99c1f432c985.png"
+      imageSrc: "/lovable-uploads/975abd52-dbd2-46db-9a22-99c1f432c985.png"
     },
     {
       title: "Learn anytime, anywhere",
@@ -56,7 +56,7 @@ const FeatureCards: React.FC = () => {
       icon: <Video className="h-6 w-6" />,
       bgColor: "bg-yellow-100",
       darkBgColor: "dark:bg-yellow-900/30",
-      imageSrc: "/public/lovable-uploads/d7669345-f691-4da8-8d7d-c7b80f50b033.png"
+      imageSrc: "/lovable-uploads/d7669345-f691-4da8-8d7d-c7b80f50b033.png"
     }
   ];
 

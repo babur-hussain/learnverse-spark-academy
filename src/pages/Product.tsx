@@ -15,7 +15,7 @@ const products = [
     id: 1, 
     name: 'Premium A5 Leather Journal', 
     brand: 'Moleskine',
-    images: ['/public/images/materials.png', '/public/images/books.png', '/public/images/computer.png'],
+    images: ['/images/materials.png', '/images/books.png', '/images/computer.png'],
     price: 1299, 
     originalPrice: 1899, 
     rating: 4.5, 
@@ -42,7 +42,7 @@ const products = [
     id: 2, 
     name: 'Scientific Calculator FX-991ES Plus', 
     brand: 'Casio',
-    images: ['/public/images/computer.png', '/public/images/materials.png'],
+    images: ['/images/computer.png', '/images/materials.png'],
     price: 2450, 
     originalPrice: 2990, 
     rating: 4.8, 
@@ -68,10 +68,10 @@ const products = [
 ];
 
 const relatedProducts = [
-  { id: 3, name: 'Fountain Pen Set', price: 2499, rating: 4.3, image: '/public/images/books.png' },
-  { id: 4, name: 'Sticky Notes Pack', price: 299, rating: 4.2, image: '/public/images/materials.png' },
-  { id: 5, name: 'Ruler Set', price: 149, rating: 4.1, image: '/public/images/computer.png' },
-  { id: 6, name: 'Highlighter Set', price: 399, rating: 4.4, image: '/public/images/books.png' },
+  { id: 3, name: 'Fountain Pen Set', price: 2499, rating: 4.3, image: '/images/books.png' },
+  { id: 4, name: 'Sticky Notes Pack', price: 299, rating: 4.2, image: '/images/materials.png' },
+  { id: 5, name: 'Ruler Set', price: 149, rating: 4.1, image: '/images/computer.png' },
+  { id: 6, name: 'Highlighter Set', price: 399, rating: 4.4, image: '/images/books.png' },
 ];
 
 const Product = () => {

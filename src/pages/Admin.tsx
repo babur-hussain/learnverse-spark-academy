@@ -22,7 +22,9 @@ import {
   BookMarked,
   TestTube,
   Tag,
-  Mail
+  Mail,
+  Headphones,
+  GraduationCap
 } from 'lucide-react';
 import { AdminAnalytics } from '@/components/Admin/AdminAnalytics';
 import { AdminUserManagement } from '@/components/Admin/AdminUserManagement';
@@ -31,6 +33,8 @@ import { EcommerceManager } from '@/components/Admin/EcommerceManager';
 import { CouponsList } from '@/components/Admin/CouponManager/CouponsList';
 import { NewsletterManager } from '@/components/Admin/Newsletter/NewsletterManager';
 import KidsManager from '@/components/Admin/KidsManager';
+import AudioManager from '@/components/Admin/AudioManager';
+import CollegeManagement from './CollegeManagement';
 import { supabase } from '@/lib/supabase';
 
 const AdminPage = () => {
@@ -120,6 +124,13 @@ const AdminPage = () => {
       color: "bg-pink-500"
     },
     {
+      title: "College Management",
+      description: "Create and manage colleges, upload notes",
+      icon: <GraduationCap className="h-6 w-6" />,
+      link: "/college-management",
+      color: "bg-indigo-500"
+    },
+    {
       title: "Subject Management", 
       description: "Manage subjects, chapters and resources",
       icon: <BookMarked className="h-6 w-6" />,
@@ -189,7 +200,7 @@ const AdminPage = () => {
           </div>
 
           <Tabs defaultValue="overview" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7">
+            <TabsList className="grid w-full grid-cols-8">
               <TabsTrigger value="overview" className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 Overview
@@ -213,6 +224,10 @@ const AdminPage = () => {
               <TabsTrigger value="kids" className="flex items-center gap-2">
                 <Users className="h-4 w-4" />
                 Kids
+              </TabsTrigger>
+              <TabsTrigger value="audio" className="flex items-center gap-2">
+                <Headphones className="h-4 w-4" />
+                Audio
               </TabsTrigger>
               <TabsTrigger value="newsletter" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -259,6 +274,9 @@ const AdminPage = () => {
 
             <TabsContent value="kids">
               <KidsManager />
+            </TabsContent>
+            <TabsContent value="audio">
+              <AudioManager selectedCourse={null} onSelectCourse={() => {}} />
             </TabsContent>
 
             <TabsContent value="newsletter">

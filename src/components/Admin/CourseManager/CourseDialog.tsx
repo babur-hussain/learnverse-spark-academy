@@ -26,6 +26,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 
 interface Instructor {
   id: string;
@@ -40,6 +41,11 @@ interface Course {
   thumbnail_url: string | null;
   instructor_id: string | null;
   subscription_required: boolean;
+}
+
+interface College {
+  id: string;
+  name: string;
 }
 
 interface CourseDialogProps {
@@ -76,6 +82,18 @@ export function CourseDialog({
       instructor_id: '',
       subscription_required: false,
     },
+  });
+
+  const { data: colleges = [] } = useQuery({
+    queryKey: ['colleges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('colleges')
+        .select('id, name')
+        .order('name');
+      if (error) throw error;
+      return data as College[];
+    }
   });
 
   // Reset form when the dialog opens with course data or when creating a new course
@@ -267,6 +285,32 @@ export function CourseDialog({
                         <SelectItem key={instructor.id} value={instructor.id}>
                           {instructor.full_name || instructor.username}
                         </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="college_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>College (optional)</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a college" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {colleges.map((college) => (
+                        <SelectItem key={college.id} value={college.id}>{college.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
