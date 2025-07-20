@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee } from 'lucide-react';
+import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
 
 const MobileFooter = () => {
   const location = useLocation();
@@ -11,6 +11,8 @@ const MobileFooter = () => {
     { icon: Video, label: 'Live', path: '/live-class' },
     { icon: FileText, label: 'Notes', path: '/notes' },
     { icon: ShoppingBag, label: 'Stationary', path: '/stationary' },
+    { icon: Baby, label: 'Kids', path: '/kids' },
+    { icon: Headphones, label: 'Audio', path: '/audio' },
     { icon: Coffee, label: 'Cafes', path: '/cafes' },
   ];
 

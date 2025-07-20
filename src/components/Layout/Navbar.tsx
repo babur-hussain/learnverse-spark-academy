@@ -7,7 +7,7 @@ import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
-import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee } from 'lucide-react';
+import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -192,6 +192,22 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
                       <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
                         <ShoppingBag size={18} />
                         <span>Stationary</span>
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Link to="/kids" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                        <Baby size={18} />
+                        <span>Kids</span>
+                      </Link>
+                    </NavigationMenuLink>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem>
+                    <NavigationMenuLink asChild>
+                      <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                        <Headphones size={18} />
+                        <span>Audio</span>
                       </Link>
                     </NavigationMenuLink>
                   </NavigationMenuItem>
