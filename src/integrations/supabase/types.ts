@@ -89,6 +89,76 @@ export type Database = {
           },
         ]
       }
+      audio_files: {
+        Row: {
+          class_id: string | null
+          course_id: string | null
+          created_at: string | null
+          description: string | null
+          duration: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_public: boolean | null
+          title: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          title: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_public?: boolean | null
+          title?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audio_files_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_files_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_files_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       badges: {
         Row: {
           created_at: string
@@ -367,6 +437,30 @@ export type Database = {
           name?: string
           order_index?: number | null
           slug?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      colleges: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -696,6 +790,7 @@ export type Database = {
       }
       courses: {
         Row: {
+          college_id: string | null
           created_at: string | null
           currency: string | null
           description: string | null
@@ -708,6 +803,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          college_id?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
@@ -720,6 +816,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          college_id?: string | null
           created_at?: string | null
           currency?: string | null
           description?: string | null
@@ -731,7 +828,15 @@ export type Database = {
           title?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "courses_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       doubt_attachments: {
         Row: {
@@ -4143,6 +4248,7 @@ export type Database = {
       }
       subjects: {
         Row: {
+          college_id: string | null
           created_at: string
           description: string | null
           icon: string | null
@@ -4153,6 +4259,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          college_id?: string | null
           created_at?: string
           description?: string | null
           icon?: string | null
@@ -4163,6 +4270,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          college_id?: string | null
           created_at?: string
           description?: string | null
           icon?: string | null
@@ -4172,7 +4280,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subjects_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tags: {
         Row: {
