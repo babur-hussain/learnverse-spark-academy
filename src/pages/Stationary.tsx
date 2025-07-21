@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
@@ -10,6 +11,7 @@ import MainLayout from '@/components/Layout/MainLayout';
 import useIsMobile from '@/hooks/use-mobile';
 
 const Stationary = () => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -272,6 +274,35 @@ const Stationary = () => {
                   </Button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Seller Registration CTA */}
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 mt-12">
+          <div className="max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold mb-4">Want to Sell Your Products?</h2>
+            <p className="text-purple-100 mb-6 text-lg">
+              Join thousands of sellers and start your business journey with us. 
+              Easy setup, powerful tools, and dedicated support.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                variant="secondary"
+                onClick={() => navigate('/seller-registration')}
+                className="bg-white text-purple-600 hover:bg-gray-100"
+              >
+                Register as Seller
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                onClick={() => navigate('/seller-dashboard')}
+                className="border-white text-white hover:bg-white/10"
+              >
+                Seller Dashboard
+              </Button>
             </div>
           </div>
         </div>

@@ -3432,6 +3432,7 @@ export type Database = {
           name: string
           original_price: number | null
           price: number
+          seller_id: string | null
           short_description: string | null
           sku: string | null
           specifications: Json | null
@@ -3460,6 +3461,7 @@ export type Database = {
           name: string
           original_price?: number | null
           price: number
+          seller_id?: string | null
           short_description?: string | null
           sku?: string | null
           specifications?: Json | null
@@ -3488,6 +3490,7 @@ export type Database = {
           name?: string
           original_price?: number | null
           price?: number
+          seller_id?: string | null
           short_description?: string | null
           sku?: string | null
           specifications?: Json | null
@@ -3920,6 +3923,54 @@ export type Database = {
           sr_no?: string | null
           tehsil?: string | null
           village_ward?: string | null
+        }
+        Relationships: []
+      }
+      seller_applications: {
+        Row: {
+          applied_at: string | null
+          business_address: Json
+          business_documents: Json | null
+          business_email: string
+          business_name: string
+          business_phone: string
+          business_registration_number: string | null
+          id: string
+          rejected_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          business_address: Json
+          business_documents?: Json | null
+          business_email: string
+          business_name: string
+          business_phone: string
+          business_registration_number?: string | null
+          id?: string
+          rejected_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          business_address?: Json
+          business_documents?: Json | null
+          business_email?: string
+          business_name?: string
+          business_phone?: string
+          business_registration_number?: string | null
+          id?: string
+          rejected_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
