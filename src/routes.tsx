@@ -20,6 +20,9 @@ import TestManagement from './pages/TestManagement';
 import StudyClass from './pages/StudyClass';
 import AdminClassesPage from './pages/AdminClasses';
 import FindYourSchool from './pages/FindYourSchool';
+import CourseResourcePage from './pages/CourseResourcePage';
+import CourseDetailPage from './pages/CourseDetailPage';
+import AllCoursesPage from './pages/AllCoursesPage';
 
 // Lazy load SimpleContent page
 const SimpleContent = lazy(() => import('./pages/SimpleContent'));
@@ -101,6 +104,10 @@ export const router = createBrowserRouter([
     path: '/catalog',
     element: <Catalog />,
   },
+  {
+    path: '/catalog/course/:courseId',
+    element: <CourseDetailPage />,
+  },
   // Add the Profile route
   {
     path: '/profile',
@@ -161,6 +168,14 @@ export const router = createBrowserRouter([
   {
     path: '/audio',
     element: <Audio />,
+  },
+  {
+    path: '/admin/course-resources/:courseId',
+    element: <CourseResourcePage />,
+  },
+  {
+    path: '/all-courses',
+    element: <AllCoursesPage />,
   },
   {
     path: '*',

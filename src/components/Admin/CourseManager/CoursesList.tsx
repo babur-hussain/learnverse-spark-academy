@@ -5,7 +5,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/components/UI/button';
 import { Switch } from '@/components/UI/switch';
 import { Badge } from '@/components/UI/badge';
-import { Edit, Trash2, Copy, Eye, EyeOff, Book, Tag } from 'lucide-react';
+import { Edit, Trash2, Copy, Eye, EyeOff, Book, Tag, Folder } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { CourseDialog } from './CourseDialog';
@@ -23,6 +23,7 @@ import {
 import { Input } from '@/components/UI/input';
 import { CourseSubjectsDialog } from './CourseSubjectsDialog';
 import { CourseCategoriesDialog } from './CourseCategoriesDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface Course {
   id: string;
@@ -35,6 +36,7 @@ interface Course {
   instructor_name?: string;
   subject_count?: number;
   category_count?: number;
+  featured?: boolean; // Added featured field
 }
 
 const CoursesList = () => {
@@ -45,6 +47,7 @@ const CoursesList = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: courses, isLoading, refetch } = useQuery({
     queryKey: ['admin-courses'],
@@ -60,7 +63,8 @@ const CoursesList = () => {
             thumbnail_url,
             instructor_id,
             subscription_required,
-            price
+            price,
+            featured
           `)
           .order('title');
         
@@ -143,6 +147,27 @@ const CoursesList = () => {
         subscription_required: value,
         price: value ? 499 : 0 // Default price for paid courses
       })
+      .eq('id', id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: "Course updated successfully"
+      });
+      refetch();
+    }
+  };
+
+  const toggleFeatured = async (id: string, value: boolean) => {
+    const { error } = await supabase
+      .from('courses')
+      .update({ featured: value })
       .eq('id', id);
 
     if (error) {
@@ -284,6 +309,7 @@ const CoursesList = () => {
             <TableHead>Content</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>Paid Course</TableHead>
+            <TableHead>Featured</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -342,6 +368,12 @@ const CoursesList = () => {
                   onCheckedChange={(checked) => togglePaid(course.id, checked)}
                 />
               </TableCell>
+              <TableCell>
+                <Switch
+                  checked={!!course.featured}
+                  onCheckedChange={(checked) => toggleFeatured(course.id, checked)}
+                />
+              </TableCell>
               <TableCell className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => handleEdit(course)}>
                   <Edit className="h-4 w-4" />
@@ -364,6 +396,9 @@ const CoursesList = () => {
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => handleClone(course)}>
                   <Copy className="h-4 w-4" />
+                </Button>
+                <Button size="icon" variant="ghost" title="Manage Resources" onClick={() => navigate(`/admin/course-resources/${course.id}`)}>
+                  <Folder size={18} />
                 </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>

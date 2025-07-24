@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
+import { CourseResourceManager } from './CourseResourceManager';
 
 interface Instructor {
   id: string;
@@ -59,6 +60,7 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   thumbnail_url: z.string().optional().nullable(),
+  banner_url: z.string().optional().nullable(), // Add banner_url
   instructor_id: z.string().optional().nullable(),
   subscription_required: z.boolean().default(false),
 });
@@ -79,6 +81,7 @@ export function CourseDialog({
       title: '',
       description: '',
       thumbnail_url: '',
+      banner_url: '',
       instructor_id: '',
       subscription_required: false,
     },
@@ -104,6 +107,7 @@ export function CourseDialog({
           title: course.title || '',
           description: course.description || '',
           thumbnail_url: course.thumbnail_url || '',
+          banner_url: course.banner_url || '',
           instructor_id: course.instructor_id || '',
           subscription_required: course.subscription_required ?? false,
         });
@@ -113,6 +117,7 @@ export function CourseDialog({
           title: '',
           description: '',
           thumbnail_url: '',
+          banner_url: '',
           instructor_id: '',
           subscription_required: false,
         });
@@ -155,6 +160,23 @@ export function CourseDialog({
     }
   }, [open, toast]);
 
+  // Banner upload handler
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `banner_${Date.now()}.${fileExt}`;
+    const filePath = `banners/${fileName}`;
+    const { error } = await supabase.storage.from('courses').upload(filePath, file, { upsert: true });
+    if (error) {
+      toast({ title: 'Banner upload error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const { data } = await supabase.storage.from('courses').getPublicUrl(filePath);
+    form.setValue('banner_url', data?.publicUrl || '');
+    toast({ title: 'Banner uploaded', description: 'Banner image uploaded successfully.' });
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && course) {
@@ -164,6 +186,7 @@ export function CourseDialog({
             title: values.title,
             description: values.description,
             thumbnail_url: values.thumbnail_url,
+            banner_url: values.banner_url,
             instructor_id: values.instructor_id,
             subscription_required: values.subscription_required,
           })
@@ -181,8 +204,10 @@ export function CourseDialog({
             title: values.title,
             description: values.description,
             thumbnail_url: values.thumbnail_url,
-            instructor_id: values.instructor_id,
+            banner_url: values.banner_url,
+            instructor_id: values.instructor_id || null,
             subscription_required: values.subscription_required,
+            college_id: values.college_id || null, // Add college_id if present
           });
 
         if (error) throw error;
@@ -206,7 +231,7 @@ export function CourseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Edit Course' : 'Create Course'}
@@ -215,142 +240,161 @@ export function CourseDialog({
             {isEditing ? 'Edit course details below.' : 'Fill out the form to create a new course.'}
           </DialogDescription>
         </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Course title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Course description" 
-                      className="min-h-[100px]"
-                      {...field} 
-                      value={field.value || ''}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="thumbnail_url"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Thumbnail URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="instructor_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Instructor</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || undefined}
-                  >
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1">
+          <Form {...form}>
+            <form id="course-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an instructor" />
-                      </SelectTrigger>
+                      <Input placeholder="Course title" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {instructors.map((instructor) => (
-                        <SelectItem key={instructor.id} value={instructor.id}>
-                          {instructor.full_name || instructor.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="college_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>College (optional)</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || undefined}
-                  >
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a college" />
-                      </SelectTrigger>
+                      <Textarea 
+                        placeholder="Course description" 
+                        className="min-h-[100px]"
+                        {...field} 
+                        value={field.value || ''}
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {colleges.map((college) => (
-                        <SelectItem key={college.id} value={college.id}>{college.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="thumbnail_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Thumbnail URL</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ''} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="subscription_required"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
-                  <div className="space-y-0.5">
-                    <FormLabel>Subscription Required</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="banner_url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Course Banner</FormLabel>
+                    <FormControl>
+                      <div className="flex flex-col gap-2">
+                        {field.value && (
+                          <img src={field.value} alt="Banner Preview" className="w-full h-32 object-cover rounded" />
+                        )}
+                        <Input type="file" accept="image/*" onChange={handleBannerUpload} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">
-                {isEditing ? 'Save Changes' : 'Create Course'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+              <FormField
+                control={form.control}
+                name="instructor_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Instructor</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select an instructor" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {instructors.map((instructor) => (
+                          <SelectItem key={instructor.id} value={instructor.id}>
+                            {instructor.full_name || instructor.username}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="college_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>College (optional)</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a college" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {colleges.map((college) => (
+                          <SelectItem key={college.id} value={college.id}>{college.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="subscription_required"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                    <div className="space-y-0.5">
+                      <FormLabel>Subscription Required</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </form>
+          </Form>
+        </div>
+        <DialogFooter className="bg-background pt-4 pb-2 z-10 flex justify-end gap-2 mt-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" form="course-form">
+            {isEditing ? 'Save Changes' : 'Create Course'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
