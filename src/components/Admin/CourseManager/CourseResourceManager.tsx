@@ -235,6 +235,8 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
       .eq('course_id', courseId);
     if (!error && data) {
       setResources(data as ResourceNode[]);
+      // Debug output: log resources after fetching
+      console.log('Fetched resources:', data);
     }
   };
 
@@ -315,8 +317,31 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
     setUploadProgress({ uploaded: 0, total });
     try {
       await ensureCourseFolder(courseId);
+      // Collect all unique folder paths from files
+      const folderSet = new Set<string>();
       for (const file of Array.from(files)) {
-        const relativePath = (file as any).webkitRelativePath || file.name;
+        const relativePath = normalize((file as any).webkitRelativePath || file.name);
+        const folders = relativePath.split('/').slice(0, -1);
+        let folderPath = '';
+        for (const folder of folders) {
+          folderPath = folderPath ? `${folderPath}/${folder}` : folder;
+          folderSet.add(normalize(folderPath));
+        }
+      }
+      // Insert all unique folders into the database (up to 10 levels deep)
+      const folderUpserts = Array.from(folderSet).map(folderPath => {
+        const folderName = folderPath.split('/').pop() || folderPath;
+        return supabase.from('course_resources').upsert({
+          course_id: courseId,
+          path: normalize(folderPath),
+          name: folderName,
+          type: 'folder',
+        }, { onConflict: 'course_id,path' });
+      });
+      await Promise.all(folderUpserts);
+      // Now upload files as before
+      const fileUpserts = Array.from(files).map(async file => {
+        const relativePath = normalize((file as any).webkitRelativePath || file.name);
         const storagePath = `${courseId}/${relativePath}`;
         // Upload to 'courses' bucket
         const { error: uploadError } = await supabase.storage
@@ -325,7 +350,7 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
         if (uploadError && uploadError.statusCode !== '409') {
           console.error('Upload error:', uploadError);
           toast({ title: 'Upload error', description: uploadError.message, variant: 'destructive' });
-          continue;
+          return;
         }
         uploaded += file.size;
         setUploadProgress({ uploaded, total });
@@ -341,9 +366,11 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
           url: urlData?.publicUrl,
           mime_type: file.type,
         }, { onConflict: 'course_id,path' });
-      }
+      });
+      await Promise.all(fileUpserts);
       setUploadProgress({ uploaded: 0, total: 0 });
-      fetchResources();
+      // Force UI refresh after upload
+      await fetchResources();
     } finally {
       setIsUploading(false);
       if (folderInputRef.current) folderInputRef.current.value = '';
@@ -514,12 +541,14 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   };
 
   // Simple explorer: show only direct children of currentPath
-  const normalize = (p: string) => p.replace(/\\/g, '/').replace(/(^\/|\/$)/g, '');
+  const normalize = (p: string) => (p || '').replace(/\\/g, '/').replace(/(^\/|\/$)/g, '');
   const normCurrent = normalize(currentPath);
   const children = resources.filter(n => {
     const nodeParent = normalize(n.path.split('/').slice(0, -1).join('/'));
     return nodeParent === normCurrent;
   });
+  // Debug: log which children are being displayed in the grid
+  console.log('Grid view for path:', currentPath, 'Children:', children.map(c => c.path));
   const isRoot = !currentPath;
 
   return (
