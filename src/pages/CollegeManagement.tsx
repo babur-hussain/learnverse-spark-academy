@@ -7,10 +7,11 @@ import { Input } from '@/components/UI/input';
 import { Textarea } from '@/components/UI/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/UI/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { Plus, Pencil, Trash2, Upload, Download, BookOpen, FolderOpen, FileText } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, Download, BookOpen, FolderOpen, FileText, ExternalLink } from 'lucide-react';
 import { CollegeSubjectDialog } from '@/components/Admin/CollegeManager/CollegeSubjectDialog';
 import { CollegeChapterDialog } from '@/components/Admin/CollegeManager/CollegeChapterDialog';
 import { CollegeResourceDialog } from '@/components/Admin/CollegeManager/CollegeResourceDialog';
+import { CollegeResourceUpload } from '@/components/Admin/CollegeManager/CollegeResourceUpload';
 
 const CollegeManagement = () => {
   const queryClient = useQueryClient();
@@ -210,6 +211,22 @@ const CollegeManagement = () => {
     queryClient.invalidateQueries({ queryKey: ['subject-resources', selectedSubjectId, selectedChapterId] });
   };
 
+  const handleFolderUpload = async (files: FileList) => {
+    if (!selectedSubjectId) return;
+    setUploading(true);
+    const promises: Promise<any>[] = [];
+    for (const file of Array.from(files)) {
+      const filePath = `subject-resources/${selectedSubjectId}/${Date.now()}-${file.name}`;
+      const promise = supabase.storage
+        .from('learn-verse-resources')
+        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+      promises.push(promise);
+    }
+    await Promise.all(promises);
+    setUploading(false);
+    queryClient.invalidateQueries({ queryKey: ['subject-resources', selectedSubjectId] });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -352,11 +369,118 @@ const CollegeManagement = () => {
                         >
                           <Pencil className="h-3 w-3" />
                         </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setSelectedSubjectId(subject.id);
+                            setResourceDialogOpen(true);
+                          }}
+                        >
+                          <Upload className="h-3 w-3" />
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
+
+              {/* Subject Resources Section */}
+              {selectedSubjectId && (
+                <div className="mt-8 border-t pt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold">
+                      Resources for {collegeSubjects.find(s => s.id === selectedSubjectId)?.title}
+                    </h4>
+                    <div className="flex gap-2">
+                      <Button 
+                        onClick={() => setResourceDialogOpen(true)}
+                        className="gradient-primary"
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Resource
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        onClick={() => {
+                          // Open folder upload dialog
+                          const input = document.createElement('input');
+                          input.type = 'file';
+                          input.webkitdirectory = true;
+                          input.multiple = true;
+                          input.onchange = (e) => {
+                            const files = (e.target as HTMLInputElement).files;
+                            if (files) {
+                              handleFolderUpload(files);
+                            }
+                          };
+                          input.click();
+                        }}
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Folder
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Resource Upload Component */}
+                  <div className="mb-6">
+                    <CollegeResourceUpload 
+                      subjectId={selectedSubjectId}
+                      onResourceAdded={() => {
+                        queryClient.invalidateQueries({ queryKey: ['subject-resources', selectedSubjectId, selectedChapterId] });
+                      }}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {subjectResources.length === 0 ? (
+                      <div className="col-span-full text-center py-8 text-gray-500">
+                        No resources found for this subject. Add your first resource.
+                      </div>
+                    ) : subjectResources.map(resource => (
+                      <Card key={resource.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="text-base">{resource.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-3">{resource.description}</p>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingResource(resource);
+                                setResourceDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            {resource.file_url && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => window.open(resource.file_url, '_blank')}
+                              >
+                                <Download className="h-3 w-3" />
+                              </Button>
+                            )}
+                            {resource.external_url && (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => window.open(resource.external_url, '_blank')}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
             </TabsContent>
             
             <TabsContent value="chapters" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
