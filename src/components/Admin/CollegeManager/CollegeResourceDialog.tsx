@@ -207,31 +207,55 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
               const bucketName = 'college_content'; // New dedicated bucket
       const bucketExists = buckets.some(b => b.name === bucketName);
 
-      if (!bucketExists) {
-        // Create the bucket if it doesn't exist
-        const { error: createError } = await supabase.storage.createBucket(bucketName, {
-          public: true,
-          fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
-          allowedMimeTypes: [
-            'application/pdf', 
-            'application/msword', 
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-            'image/jpeg', 
-            'image/png', 
-            'text/plain', 
-            'video/mp4', 
-            'audio/mpeg',
-            'application/vnd.ms-excel',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'application/zip',
-            'application/x-rar-compressed'
-          ]
-        });
-        
-        if (createError) {
-          throw createError;
+              if (!bucketExists) {
+          // Create the bucket if it doesn't exist
+          const { error: createError } = await supabase.storage.createBucket(bucketName, {
+            public: true,
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
+          });
+          
+          if (createError) {
+            throw createError;
+          }
+        } else {
+          // Update existing bucket to ensure it has the correct file size limit
+          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
+          });
+          
+          if (updateError) {
+            console.warn('Failed to update bucket settings:', updateError);
+            // Continue anyway, the bucket exists and might work
+          }
         }
-      }
 
       const { error: uploadError, data } = await supabase.storage
         .from(bucketName)

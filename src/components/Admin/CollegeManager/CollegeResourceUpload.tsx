@@ -117,6 +117,30 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           if (createError) {
             throw createError;
           }
+        } else {
+          // Update existing bucket to ensure it has the correct file size limit
+          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
+          });
+          
+          if (updateError) {
+            console.warn('Failed to update bucket settings:', updateError);
+            // Continue anyway, the bucket exists and might work
+          }
         }
 
         // Upload to Supabase Storage with upsert to handle duplicates
@@ -290,6 +314,30 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           
           if (createError) {
             throw createError;
+          }
+        } else {
+          // Update existing bucket to ensure it has the correct file size limit
+          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
+          });
+          
+          if (updateError) {
+            console.warn('Failed to update bucket settings:', updateError);
+            // Continue anyway, the bucket exists and might work
           }
         }
 
