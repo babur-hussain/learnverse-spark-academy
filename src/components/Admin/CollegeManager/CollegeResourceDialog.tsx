@@ -229,10 +229,13 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
           });
           
           if (createError) {
-            throw createError;
+            console.warn('Failed to create bucket:', createError);
+            // Try to use existing bucket anyway
           }
-        } else {
-          // Update existing bucket to ensure it has the correct file size limit
+        }
+        
+        // Always try to update the bucket settings, even if it already exists
+        try {
           const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
             fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
             allowedMimeTypes: [
@@ -255,6 +258,9 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
             console.warn('Failed to update bucket settings:', updateError);
             // Continue anyway, the bucket exists and might work
           }
+        } catch (updateError) {
+          console.warn('Error updating bucket settings:', updateError);
+          // Continue anyway
         }
 
       const { error: uploadError, data } = await supabase.storage
