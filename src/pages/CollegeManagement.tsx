@@ -218,7 +218,7 @@ const CollegeManagement = () => {
     for (const file of Array.from(files)) {
       const filePath = `subject-resources/${selectedSubjectId}/${Date.now()}-${file.name}`;
       const promise = supabase.storage
-        .from('learn-verse-resources')
+        .from('subject-content')
         .upload(filePath, file, { cacheControl: '3600', upsert: false });
       promises.push(promise);
     }

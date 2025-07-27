@@ -195,8 +195,30 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
       
       const cleanup = simulateProgress();
       
+      // Check if bucket exists, create if it doesn't
+      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+      if (bucketError) {
+        throw bucketError;
+      }
+
+      const bucketName = 'subject-content'; // Use existing bucket
+      const bucketExists = buckets.some(b => b.name === bucketName);
+
+      if (!bucketExists) {
+        // Create the bucket if it doesn't exist
+        const { error: createError } = await supabase.storage.createBucket(bucketName, {
+          public: true,
+          fileSizeLimit: 50 * 1024 * 1024, // 50MB
+          allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+        });
+        
+        if (createError) {
+          throw createError;
+        }
+      }
+
       const { error: uploadError, data } = await supabase.storage
-        .from('resource-files')
+        .from(bucketName)
         .upload(filePath, file);
       
       cleanup();
@@ -208,7 +230,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
       
       // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
-        .from('resource-files')
+        .from(bucketName)
         .getPublicUrl(filePath);
       
       return publicUrl;

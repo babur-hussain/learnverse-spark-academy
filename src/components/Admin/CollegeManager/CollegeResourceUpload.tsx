@@ -69,9 +69,31 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           ));
         }, 200);
 
+        // Check if bucket exists, create if it doesn't
+        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+        if (bucketError) {
+          throw bucketError;
+        }
+
+        const bucketName = 'subject-content'; // Use existing bucket
+        const bucketExists = buckets.some(b => b.name === bucketName);
+
+        if (!bucketExists) {
+          // Create the bucket if it doesn't exist
+          const { error: createError } = await supabase.storage.createBucket(bucketName, {
+            public: true,
+            fileSizeLimit: 50 * 1024 * 1024, // 50MB
+            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+          });
+          
+          if (createError) {
+            throw createError;
+          }
+        }
+
         // Upload to Supabase Storage
         const { error: uploadError, data } = await supabase.storage
-          .from('learn-verse-resources')
+          .from(bucketName)
           .upload(filePath, uploadFile.file, {
             cacheControl: '3600',
             upsert: false
@@ -85,7 +107,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('learn-verse-resources')
+          .from(bucketName)
           .getPublicUrl(filePath);
 
         // Save to database
@@ -168,9 +190,31 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           ));
         }, 100);
 
+        // Check if bucket exists, create if it doesn't
+        const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
+        if (bucketError) {
+          throw bucketError;
+        }
+
+        const bucketName = 'subject-content'; // Use existing bucket
+        const bucketExists = buckets.some(b => b.name === bucketName);
+
+        if (!bucketExists) {
+          // Create the bucket if it doesn't exist
+          const { error: createError } = await supabase.storage.createBucket(bucketName, {
+            public: true,
+            fileSizeLimit: 50 * 1024 * 1024, // 50MB
+            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+          });
+          
+          if (createError) {
+            throw createError;
+          }
+        }
+
         // Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
-          .from('learn-verse-resources')
+          .from(bucketName)
           .upload(filePath, uploadFile.file, {
             cacheControl: '3600',
             upsert: false
@@ -184,7 +228,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
 
         // Get public URL
         const { data: { publicUrl } } = supabase.storage
-          .from('learn-verse-resources')
+          .from(bucketName)
           .getPublicUrl(filePath);
 
         // Save to database
