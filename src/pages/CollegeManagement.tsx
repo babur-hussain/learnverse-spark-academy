@@ -6,7 +6,11 @@ import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Textarea } from '@/components/UI/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/UI/dialog';
-import { Plus, Pencil, Trash2, Upload, Download } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
+import { Plus, Pencil, Trash2, Upload, Download, BookOpen, FolderOpen, FileText } from 'lucide-react';
+import { CollegeSubjectDialog } from '@/components/Admin/CollegeManager/CollegeSubjectDialog';
+import { CollegeChapterDialog } from '@/components/Admin/CollegeManager/CollegeChapterDialog';
+import { CollegeResourceDialog } from '@/components/Admin/CollegeManager/CollegeResourceDialog';
 
 const CollegeManagement = () => {
   const queryClient = useQueryClient();
@@ -18,6 +22,16 @@ const CollegeManagement = () => {
   const [noteTitle, setNoteTitle] = useState('');
   const [noteDescription, setNoteDescription] = useState('');
   const [uploading, setUploading] = useState(false);
+  
+  // Subject management states
+  const [selectedSubjectId, setSelectedSubjectId] = useState<string | null>(null);
+  const [selectedChapterId, setSelectedChapterId] = useState<string | null>(null);
+  const [subjectDialogOpen, setSubjectDialogOpen] = useState(false);
+  const [chapterDialogOpen, setChapterDialogOpen] = useState(false);
+  const [resourceDialogOpen, setResourceDialogOpen] = useState(false);
+  const [editingSubject, setEditingSubject] = useState(null);
+  const [editingChapter, setEditingChapter] = useState(null);
+  const [editingResource, setEditingResource] = useState(null);
 
   // Fetch colleges
   const { data: colleges = [], isLoading } = useQuery({
@@ -30,6 +44,59 @@ const CollegeManagement = () => {
       if (error) throw error;
       return data;
     }
+  });
+
+  // Fetch subjects for selected college
+  const { data: collegeSubjects = [] } = useQuery({
+    queryKey: ['college-subjects', selectedCollege?.id],
+    queryFn: async () => {
+      if (!selectedCollege) return [];
+      const { data, error } = await supabase
+        .from('subjects')
+        .select('*')
+        .eq('college_id', selectedCollege.id)
+        .order('title');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedCollege
+  });
+
+  // Fetch chapters for selected subject
+  const { data: subjectChapters = [] } = useQuery({
+    queryKey: ['subject-chapters', selectedSubjectId],
+    queryFn: async () => {
+      if (!selectedSubjectId) return [];
+      const { data, error } = await supabase
+        .from('chapters')
+        .select('*')
+        .eq('subject_id', selectedSubjectId)
+        .order('order_index');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedSubjectId
+  });
+
+  // Fetch resources for selected subject/chapter
+  const { data: subjectResources = [] } = useQuery({
+    queryKey: ['subject-resources', selectedSubjectId, selectedChapterId],
+    queryFn: async () => {
+      if (!selectedSubjectId) return [];
+      let query = supabase
+        .from('subject_resources')
+        .select('*')
+        .eq('subject_id', selectedSubjectId);
+      
+      if (selectedChapterId) {
+        query = query.eq('chapter_id', selectedChapterId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!selectedSubjectId
   });
 
   // Create or update college
@@ -125,6 +192,24 @@ const CollegeManagement = () => {
     enabled: !!selectedCollege
   });
 
+  const handleSubjectSuccess = () => {
+    setSubjectDialogOpen(false);
+    setEditingSubject(null);
+    queryClient.invalidateQueries({ queryKey: ['college-subjects', selectedCollege?.id] });
+  };
+
+  const handleChapterSuccess = () => {
+    setChapterDialogOpen(false);
+    setEditingChapter(null);
+    queryClient.invalidateQueries({ queryKey: ['subject-chapters', selectedSubjectId] });
+  };
+
+  const handleResourceSuccess = () => {
+    setResourceDialogOpen(false);
+    setEditingResource(null);
+    queryClient.invalidateQueries({ queryKey: ['subject-resources', selectedSubjectId, selectedChapterId] });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -176,6 +261,7 @@ const CollegeManagement = () => {
           </DialogContent>
         </Dialog>
       </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {isLoading ? (
           <div>Loading...</div>
@@ -190,7 +276,7 @@ const CollegeManagement = () => {
               <div className="flex gap-2">
                 <Button size="icon" variant="ghost" onClick={() => { setEditingCollege(college); setNewCollege({ name: college.name, description: college.description }); setDialogOpen(true); }}><Pencil className="h-4 w-4" /></Button>
                 <Button size="icon" variant="ghost" className="text-destructive" onClick={() => deleteCollege.mutate(college.id)}><Trash2 className="h-4 w-4" /></Button>
-                <Button size="sm" onClick={() => setSelectedCollege(college)}>Manage Notes</Button>
+                <Button size="sm" onClick={() => setSelectedCollege(college)}>Manage Content</Button>
               </div>
             </CardHeader>
             <CardContent>
@@ -199,32 +285,243 @@ const CollegeManagement = () => {
           </Card>
         ))}
       </div>
+
       {selectedCollege && (
         <div className="mb-8">
-          <h2 className="text-xl font-semibold mb-4">Notes for {selectedCollege.name}</h2>
-          <div className="flex gap-4 mb-4">
-            <Input type="file" onChange={e => setNoteFile(e.target.files?.[0] || null)} />
-            <Input placeholder="Note Title" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} />
-            <Input placeholder="Description (optional)" value={noteDescription} onChange={e => setNoteDescription(e.target.value)} />
-            <Button onClick={() => uploadNote.mutate()} disabled={!noteFile || !noteTitle || uploading}>{uploading ? 'Uploading...' : 'Upload Note'}</Button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {collegeNotes.length === 0 ? (
-              <div>No notes found for this college.</div>
-            ) : collegeNotes.map(note => (
-              <Card key={note.id}>
-                <CardHeader>
-                  <CardTitle>{note.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <a href={note.file_path} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View/Download</a>
-                  <div className="text-xs text-gray-500 mt-2">{note.description}</div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <h2 className="text-xl font-semibold mb-4">Content Management for {selectedCollege.name}</h2>
+          
+          <Tabs defaultValue="subjects" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="subjects" className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4" />
+                Subjects
+              </TabsTrigger>
+              <TabsTrigger value="chapters" disabled={!selectedSubjectId} className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4" />
+                Chapters
+              </TabsTrigger>
+              <TabsTrigger value="resources" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Resources
+              </TabsTrigger>
+              <TabsTrigger value="notes" className="flex items-center gap-2">
+                <Upload className="h-4 w-4" />
+                Notes
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="subjects" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Subjects</h3>
+                <Button 
+                  onClick={() => setSubjectDialogOpen(true)}
+                  className="gradient-primary"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Subject
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {collegeSubjects.length === 0 ? (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    No subjects found. Create your first subject.
+                  </div>
+                ) : collegeSubjects.map(subject => (
+                  <Card key={subject.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{subject.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-3">{subject.description}</p>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedSubjectId(subject.id)}
+                        >
+                          Select
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setEditingSubject(subject);
+                            setSubjectDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="chapters" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              {selectedSubjectId ? (
+                <div>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">Chapters</h3>
+                    <Button 
+                      onClick={() => setChapterDialogOpen(true)}
+                      className="gradient-primary"
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Add Chapter
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {subjectChapters.length === 0 ? (
+                      <div className="col-span-full text-center py-8 text-gray-500">
+                        No chapters found. Create your first chapter.
+                      </div>
+                    ) : subjectChapters.map(chapter => (
+                      <Card key={chapter.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                        <CardHeader>
+                          <CardTitle className="text-base">{chapter.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-sm text-gray-600 mb-3">{chapter.description}</p>
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => setSelectedChapterId(chapter.id)}
+                            >
+                              Select
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setEditingChapter(chapter);
+                                setChapterDialogOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  Please select a subject first to manage chapters.
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="resources" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Resources</h3>
+                <Button 
+                  onClick={() => setResourceDialogOpen(true)}
+                  className="gradient-primary"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Resource
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {subjectResources.length === 0 ? (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    No resources found. Create your first resource.
+                  </div>
+                ) : subjectResources.map(resource => (
+                  <Card key={resource.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <CardTitle className="text-base">{resource.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-gray-600 mb-3">{resource.description}</p>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            setEditingResource(resource);
+                            setResourceDialogOpen(true);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        {resource.file_url && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => window.open(resource.file_url, '_blank')}
+                          >
+                            <Download className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="notes" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+              <h3 className="text-lg font-semibold mb-4">Notes for {selectedCollege.name}</h3>
+              <div className="flex gap-4 mb-4">
+                <Input type="file" onChange={e => setNoteFile(e.target.files?.[0] || null)} />
+                <Input placeholder="Note Title" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} />
+                <Input placeholder="Description (optional)" value={noteDescription} onChange={e => setNoteDescription(e.target.value)} />
+                <Button onClick={() => uploadNote.mutate()} disabled={!noteFile || !noteTitle || uploading}>{uploading ? 'Uploading...' : 'Upload Note'}</Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {collegeNotes.length === 0 ? (
+                  <div>No notes found for this college.</div>
+                ) : collegeNotes.map(note => (
+                  <Card key={note.id}>
+                    <CardHeader>
+                      <CardTitle>{note.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <a href={note.file_path} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View/Download</a>
+                      <div className="text-xs text-gray-500 mt-2">{note.description}</div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       )}
+
+      {/* Subject Dialog */}
+      <CollegeSubjectDialog
+        open={subjectDialogOpen}
+        onOpenChange={setSubjectDialogOpen}
+        subject={editingSubject}
+        collegeId={selectedCollege?.id}
+        onSuccess={handleSubjectSuccess}
+      />
+
+      {/* Chapter Dialog */}
+      <CollegeChapterDialog
+        open={chapterDialogOpen}
+        onOpenChange={setChapterDialogOpen}
+        chapter={editingChapter}
+        subjectId={selectedSubjectId}
+        onSuccess={handleChapterSuccess}
+      />
+
+      {/* Resource Dialog */}
+      <CollegeResourceDialog
+        open={resourceDialogOpen}
+        onOpenChange={setResourceDialogOpen}
+        resource={editingResource}
+        subjectId={selectedSubjectId}
+        chapterId={selectedChapterId}
+        onSuccess={handleResourceSuccess}
+      />
     </div>
   );
 };
