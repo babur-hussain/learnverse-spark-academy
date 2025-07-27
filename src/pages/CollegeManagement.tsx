@@ -218,8 +218,8 @@ const CollegeManagement = () => {
     for (const file of Array.from(files)) {
       const filePath = `subject-resources/${selectedSubjectId}/${Date.now()}-${file.name}`;
       const promise = supabase.storage
-        .from('subject-content')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
+        .from('college_content')
+        .upload(filePath, file, { cacheControl: '3600', upsert: true });
       promises.push(promise);
     }
     await Promise.all(promises);

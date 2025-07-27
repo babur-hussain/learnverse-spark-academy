@@ -57,8 +57,10 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
     for (const uploadFile of newFiles) {
       try {
         const fileExt = uploadFile.file.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `college-subject-resources/${subjectId}/${fileName}`;
+        const timestamp = Date.now();
+        const randomId = uuidv4().substring(0, 8);
+        const fileName = `${timestamp}-${randomId}-${uploadFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const filePath = `college-subjects/${subjectId}/${fileName}`;
 
         // Simulate progress
         const progressInterval = setInterval(() => {
@@ -75,15 +77,28 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           throw bucketError;
         }
 
-        const bucketName = 'subject-content'; // Use existing bucket
+        const bucketName = 'college_content'; // New dedicated bucket
         const bucketExists = buckets.some(b => b.name === bucketName);
 
         if (!bucketExists) {
           // Create the bucket if it doesn't exist
           const { error: createError } = await supabase.storage.createBucket(bucketName, {
             public: true,
-            fileSizeLimit: 50 * 1024 * 1024, // 50MB
-            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+            fileSizeLimit: 100 * 1024 * 1024, // 100MB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
           });
           
           if (createError) {
@@ -91,12 +106,12 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           }
         }
 
-        // Upload to Supabase Storage
+        // Upload to Supabase Storage with upsert to handle duplicates
         const { error: uploadError, data } = await supabase.storage
           .from(bucketName)
           .upload(filePath, uploadFile.file, {
             cacheControl: '3600',
-            upsert: false
+            upsert: true // Allow overwriting existing files
           });
 
         clearInterval(progressInterval);
@@ -110,24 +125,49 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           .from(bucketName)
           .getPublicUrl(filePath);
 
-        // Save to database
-        const { error: dbError } = await supabase
+        // Check if resource already exists in database
+        const { data: existingResource } = await supabase
           .from('subject_resources')
-          .insert({
-            title: resourceTitle || uploadFile.file.name,
-            description: resourceDescription,
-            resource_type: 'document',
-            file_url: publicUrl,
-            external_url: externalUrl || null,
-            subject_id: subjectId,
-            file_name: uploadFile.file.name,
-            file_type: uploadFile.file.type,
-            file_size: uploadFile.file.size,
-            is_published: true
-          });
+          .select('id')
+          .eq('subject_id', subjectId)
+          .eq('file_name', uploadFile.file.name)
+          .single();
 
-        if (dbError) {
-          throw dbError;
+        if (existingResource) {
+          // Update existing resource
+          const { error: dbError } = await supabase
+            .from('subject_resources')
+            .update({
+              file_url: publicUrl,
+              file_type: uploadFile.file.type,
+              file_size: uploadFile.file.size,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingResource.id);
+
+          if (dbError) {
+            throw dbError;
+          }
+        } else {
+          // Create new resource
+          const { error: dbError } = await supabase
+            .from('subject_resources')
+            .insert({
+              title: resourceTitle || uploadFile.file.name,
+              description: resourceDescription,
+              resource_type: 'document',
+              file_url: publicUrl,
+              external_url: externalUrl || null,
+              subject_id: subjectId,
+              file_name: uploadFile.file.name,
+              file_type: uploadFile.file.type,
+              file_size: uploadFile.file.size,
+              is_published: true
+            });
+
+          if (dbError) {
+            throw dbError;
+          }
         }
 
         // Update progress to completed
@@ -178,8 +218,10 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
     for (const uploadFile of newFiles) {
       try {
         const fileExt = uploadFile.file.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `college-subject-resources/${subjectId}/${fileName}`;
+        const timestamp = Date.now();
+        const randomId = uuidv4().substring(0, 8);
+        const fileName = `${timestamp}-${randomId}-${uploadFile.file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+        const filePath = `college-subjects/${subjectId}/${fileName}`;
 
         // Simulate progress
         const progressInterval = setInterval(() => {
@@ -196,15 +238,28 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           throw bucketError;
         }
 
-        const bucketName = 'subject-content'; // Use existing bucket
+        const bucketName = 'college_content'; // New dedicated bucket
         const bucketExists = buckets.some(b => b.name === bucketName);
 
         if (!bucketExists) {
           // Create the bucket if it doesn't exist
           const { error: createError } = await supabase.storage.createBucket(bucketName, {
             public: true,
-            fileSizeLimit: 50 * 1024 * 1024, // 50MB
-            allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+            fileSizeLimit: 100 * 1024 * 1024, // 100MB
+            allowedMimeTypes: [
+              'application/pdf', 
+              'application/msword', 
+              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+              'image/jpeg', 
+              'image/png', 
+              'text/plain', 
+              'video/mp4', 
+              'audio/mpeg',
+              'application/vnd.ms-excel',
+              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              'application/zip',
+              'application/x-rar-compressed'
+            ]
           });
           
           if (createError) {
@@ -212,12 +267,12 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           }
         }
 
-        // Upload to Supabase Storage
+        // Upload to Supabase Storage with upsert
         const { error: uploadError } = await supabase.storage
           .from(bucketName)
           .upload(filePath, uploadFile.file, {
             cacheControl: '3600',
-            upsert: false
+            upsert: true // Allow overwriting existing files
           });
 
         clearInterval(progressInterval);
@@ -231,23 +286,48 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           .from(bucketName)
           .getPublicUrl(filePath);
 
-        // Save to database
-        const { error: dbError } = await supabase
+        // Check if resource already exists in database
+        const { data: existingResource } = await supabase
           .from('subject_resources')
-          .insert({
-            title: uploadFile.file.name,
-            description: `Uploaded from folder`,
-            resource_type: 'document',
-            file_url: publicUrl,
-            subject_id: subjectId,
-            file_name: uploadFile.file.name,
-            file_type: uploadFile.file.type,
-            file_size: uploadFile.file.size,
-            is_published: true
-          });
+          .select('id')
+          .eq('subject_id', subjectId)
+          .eq('file_name', uploadFile.file.name)
+          .single();
 
-        if (dbError) {
-          throw dbError;
+        if (existingResource) {
+          // Update existing resource
+          const { error: dbError } = await supabase
+            .from('subject_resources')
+            .update({
+              file_url: publicUrl,
+              file_type: uploadFile.file.type,
+              file_size: uploadFile.file.size,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', existingResource.id);
+
+          if (dbError) {
+            throw dbError;
+          }
+        } else {
+          // Create new resource
+          const { error: dbError } = await supabase
+            .from('subject_resources')
+            .insert({
+              title: uploadFile.file.name,
+              description: `Uploaded from folder`,
+              resource_type: 'document',
+              file_url: publicUrl,
+              subject_id: subjectId,
+              file_name: uploadFile.file.name,
+              file_type: uploadFile.file.type,
+              file_size: uploadFile.file.size,
+              is_published: true
+            });
+
+          if (dbError) {
+            throw dbError;
+          }
         }
 
         // Update progress to completed

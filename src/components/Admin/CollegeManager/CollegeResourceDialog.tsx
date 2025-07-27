@@ -177,7 +177,10 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
     setUploadProgress(0);
     try {
       const fileExt = file.name.split('.').pop();
-      const filePath = `${uuidv4()}.${fileExt}`;
+      const timestamp = Date.now();
+      const randomId = uuidv4().substring(0, 8);
+      const fileName = `${timestamp}-${randomId}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      const filePath = `college-subjects/${subjectId || 'general'}/${fileName}`;
       
       // Upload with simulated progress
       const simulateProgress = () => {
@@ -201,15 +204,28 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
         throw bucketError;
       }
 
-      const bucketName = 'subject-content'; // Use existing bucket
+              const bucketName = 'college_content'; // New dedicated bucket
       const bucketExists = buckets.some(b => b.name === bucketName);
 
       if (!bucketExists) {
         // Create the bucket if it doesn't exist
         const { error: createError } = await supabase.storage.createBucket(bucketName, {
           public: true,
-          fileSizeLimit: 50 * 1024 * 1024, // 50MB
-          allowedMimeTypes: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png', 'text/plain', 'video/mp4', 'audio/mpeg']
+          fileSizeLimit: 100 * 1024 * 1024, // 100MB
+          allowedMimeTypes: [
+            'application/pdf', 
+            'application/msword', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'image/jpeg', 
+            'image/png', 
+            'text/plain', 
+            'video/mp4', 
+            'audio/mpeg',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/zip',
+            'application/x-rar-compressed'
+          ]
         });
         
         if (createError) {
