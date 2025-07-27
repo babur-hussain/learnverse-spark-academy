@@ -153,7 +153,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
           file_url: resource.file_url || '',
           external_url: resource.external_url || '',
           subject_id: resource.subject_id || '',
-          chapter_id: resource.chapter_id || '',
+          chapter_id: resource.chapter_id || 'none',
         });
         setFileContent(`File: ${resource.file_name || 'No file'} (${resource.file_type || 'Unknown type'})`);
       } else {
@@ -164,7 +164,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
           file_url: '',
           external_url: '',
           subject_id: subjectId || '',
-          chapter_id: chapterId || '',
+          chapter_id: chapterId || 'none',
         });
         setUploadedFile(null);
         setFileContent('');
@@ -297,7 +297,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
         file_url: fileUrl,
         external_url: values.external_url || null,
         subject_id: values.subject_id,
-        chapter_id: values.chapter_id || null,
+        chapter_id: values.chapter_id === 'none' ? null : values.chapter_id || null,
         file_name: uploadedFile?.name || resource?.file_name || null,
         file_type: uploadedFile?.type || resource?.file_type || null,
         file_size: uploadedFile?.size || resource?.file_size || null,
@@ -396,7 +396,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No chapter</SelectItem>
+                      <SelectItem value="none">No chapter</SelectItem>
                       {chapters.map((chapter) => (
                         <SelectItem key={chapter.id} value={chapter.id}>
                           {chapter.title}

@@ -224,16 +224,16 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ subjectId, chapterId }) =
   };
   
   const handleSubjectChange = (value: string) => {
-    setSelectedSubject(value);
+    setSelectedSubject(value === 'all' ? '' : value);
     setSelectedChapter(''); // Reset chapter selection when subject changes
   };
   
   const handleChapterChange = (value: string) => {
-    setSelectedChapter(value);
+    setSelectedChapter(value === 'all' ? '' : value);
   };
   
   const handleResourceTypeChange = (value: string) => {
-    setResourceType(value);
+    setResourceType(value === 'all' ? '' : value);
   };
 
   const filteredResources = resources?.filter(resource => 
@@ -259,7 +259,7 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ subjectId, chapterId }) =
               <SelectValue placeholder="All Subjects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Subjects</SelectItem>
+                                      <SelectItem value="all">All Subjects</SelectItem>
               {subjects?.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>
                   {subject.title}
@@ -280,7 +280,7 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ subjectId, chapterId }) =
               <SelectValue placeholder="All Chapters" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Chapters</SelectItem>
+                                      <SelectItem value="all">All Chapters</SelectItem>
               {chapters?.map((chapter) => (
                 <SelectItem key={chapter.id} value={chapter.id}>
                   {chapter.title}
@@ -297,7 +297,7 @@ const ResourcesList: React.FC<ResourcesListProps> = ({ subjectId, chapterId }) =
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+                                      <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="note">Notes</SelectItem>
               <SelectItem value="video">Videos</SelectItem>
               <SelectItem value="assignment">Assignments</SelectItem>
