@@ -510,7 +510,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           <input
             ref={folderInputRef}
             type="file"
-            webkitdirectory
+            webkitdirectory="true"
             multiple
             onChange={(e) => e.target.files && handleFolderUpload(e.target.files)}
             className="hidden"

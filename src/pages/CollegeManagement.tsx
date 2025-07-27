@@ -153,18 +153,18 @@ const CollegeManagement = () => {
         .from('learn-verse-notes')
         .getPublicUrl(filePath);
       const { error } = await supabase
-        .from('note_files')
+        .from('subject_resources')
         .insert([{
           title: noteTitle,
           description: noteDescription,
-          file_path: urlData.publicUrl,
+          file_url: urlData.publicUrl,
+          file_name: noteFile.name,
           file_size: noteFile.size,
           file_type: noteFile.type,
-          is_public: true,
-          uploaded_by: null,
-          view_count: 0,
-          download_count: 0,
-          college_id: selectedCollege.id
+          resource_type: 'document',
+          is_published: true,
+          subject_id: null, // General college notes don't belong to a specific subject
+          chapter_id: null
         }]);
       setUploading(false);
       if (error) throw error;
@@ -177,15 +177,19 @@ const CollegeManagement = () => {
     }
   });
 
-  // Fetch notes for selected college
+  // Fetch notes for selected college - using subject_resources
   const { data: collegeNotes = [] } = useQuery({
     queryKey: ['college-notes', selectedCollege?.id],
     queryFn: async () => {
       if (!selectedCollege) return [];
+      // For now, we'll fetch all general notes (not tied to specific subjects)
+      // In the future, you might want to add a college_id column to subject_resources
       const { data, error } = await supabase
-        .from('note_files')
+        .from('subject_resources')
         .select('*')
-        .eq('college_id', selectedCollege.id)
+        .is('subject_id', null)
+        .is('chapter_id', null)
+        .eq('resource_type', 'document')
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data;
@@ -406,7 +410,7 @@ const CollegeManagement = () => {
                           // Open folder upload dialog
                           const input = document.createElement('input');
                           input.type = 'file';
-                          input.webkitdirectory = true;
+                          input.setAttribute('webkitdirectory', 'true');
                           input.multiple = true;
                           input.onchange = (e) => {
                             const files = (e.target as HTMLInputElement).files;
