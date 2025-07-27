@@ -199,7 +199,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
       const cleanup = simulateProgress();
       
               // Use the manually created bucket
-        const bucketName = 'college_content';
+        const bucketName = 'collegecontent';
 
       const { error: uploadError, data } = await supabase.storage
         .from(bucketName)

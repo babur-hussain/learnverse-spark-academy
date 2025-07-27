@@ -85,7 +85,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
         }, 200);
 
         // Use the manually created bucket
-        const bucketName = 'college_content';
+        const bucketName = 'collegecontent';
         
         // Upload to Supabase Storage with upsert to handle duplicates
         const { error: uploadError, data } = await supabase.storage
@@ -227,7 +227,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
         }, 100);
 
         // Use the manually created bucket
-        const bucketName = 'college_content';
+        const bucketName = 'collegecontent';
         
         // Upload to Supabase Storage with upsert
         const { error: uploadError } = await supabase.storage
