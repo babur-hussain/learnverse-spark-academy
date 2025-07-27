@@ -198,70 +198,8 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
       
       const cleanup = simulateProgress();
       
-      // Check if bucket exists, create if it doesn't
-      const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-      if (bucketError) {
-        throw bucketError;
-      }
-
-              const bucketName = 'college_content'; // New dedicated bucket
-      const bucketExists = buckets.some(b => b.name === bucketName);
-
-              if (!bucketExists) {
-          // Create the bucket if it doesn't exist
-          const { error: createError } = await supabase.storage.createBucket(bucketName, {
-            public: true,
-            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
-            allowedMimeTypes: [
-              'application/pdf', 
-              'application/msword', 
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-              'image/jpeg', 
-              'image/png', 
-              'text/plain', 
-              'video/mp4', 
-              'audio/mpeg',
-              'application/vnd.ms-excel',
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-              'application/zip',
-              'application/x-rar-compressed'
-            ]
-          });
-          
-          if (createError) {
-            console.warn('Failed to create bucket:', createError);
-            // Try to use existing bucket anyway
-          }
-        }
-        
-        // Always try to update the bucket settings, even if it already exists
-        try {
-          const { error: updateError } = await supabase.storage.updateBucket(bucketName, {
-            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
-            allowedMimeTypes: [
-              'application/pdf', 
-              'application/msword', 
-              'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-              'image/jpeg', 
-              'image/png', 
-              'text/plain', 
-              'video/mp4', 
-              'audio/mpeg',
-              'application/vnd.ms-excel',
-              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-              'application/zip',
-              'application/x-rar-compressed'
-            ]
-          });
-          
-          if (updateError) {
-            console.warn('Failed to update bucket settings:', updateError);
-            // Continue anyway, the bucket exists and might work
-          }
-        } catch (updateError) {
-          console.warn('Error updating bucket settings:', updateError);
-          // Continue anyway
-        }
+              // Use the manually created bucket
+        const bucketName = 'college_content';
 
       const { error: uploadError, data } = await supabase.storage
         .from(bucketName)
