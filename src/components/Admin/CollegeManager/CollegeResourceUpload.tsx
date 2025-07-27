@@ -44,6 +44,19 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
   const handleFileUpload = async (files: FileList) => {
     if (!files.length) return;
 
+    // Check file sizes before upload
+    const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+    for (const file of Array.from(files)) {
+      if (file.size > maxSize) {
+        toast({
+          title: 'File too large',
+          description: `${file.name} is ${(file.size / (1024 * 1024 * 1024)).toFixed(2)}GB. Maximum allowed size is 2GB.`,
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     const newFiles: UploadingFile[] = Array.from(files).map(file => ({
       id: uuidv4(),
       file,
@@ -84,7 +97,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           // Create the bucket if it doesn't exist
           const { error: createError } = await supabase.storage.createBucket(bucketName, {
             public: true,
-            fileSizeLimit: 100 * 1024 * 1024, // 100MB
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
             allowedMimeTypes: [
               'application/pdf', 
               'application/msword', 
@@ -205,6 +218,19 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
   const handleFolderUpload = async (files: FileList) => {
     if (!files.length) return;
 
+    // Check file sizes before upload
+    const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
+    for (const file of Array.from(files)) {
+      if (file.size > maxSize) {
+        toast({
+          title: 'File too large',
+          description: `${file.name} is ${(file.size / (1024 * 1024 * 1024)).toFixed(2)}GB. Maximum allowed size is 2GB.`,
+          variant: 'destructive'
+        });
+        return;
+      }
+    }
+
     const newFiles: UploadingFile[] = Array.from(files).map(file => ({
       id: uuidv4(),
       file,
@@ -245,7 +271,7 @@ export function CollegeResourceUpload({ subjectId, onResourceAdded }: CollegeRes
           // Create the bucket if it doesn't exist
           const { error: createError } = await supabase.storage.createBucket(bucketName, {
             public: true,
-            fileSizeLimit: 100 * 1024 * 1024, // 100MB
+            fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
             allowedMimeTypes: [
               'application/pdf', 
               'application/msword', 

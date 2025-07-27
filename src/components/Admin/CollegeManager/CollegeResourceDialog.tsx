@@ -211,7 +211,7 @@ export const CollegeResourceDialog: React.FC<CollegeResourceDialogProps> = ({
         // Create the bucket if it doesn't exist
         const { error: createError } = await supabase.storage.createBucket(bucketName, {
           public: true,
-          fileSizeLimit: 100 * 1024 * 1024, // 100MB
+          fileSizeLimit: 2 * 1024 * 1024 * 1024, // 2GB
           allowedMimeTypes: [
             'application/pdf', 
             'application/msword', 
