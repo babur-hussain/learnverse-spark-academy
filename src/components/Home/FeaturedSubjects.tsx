@@ -199,7 +199,7 @@ const FeaturedSubjects = () => {
           {arraySafe(featuredSubjects).map((subject) => {
             if (!subject || !subject.title) return null;
             return (
-              <Card key={subject.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-primary rounded-lg">
+              <Card key={subject.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg rounded-lg">
                 <div className="aspect-[16/9] w-full bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 relative flex items-center justify-center">
                   {subject.thumbnail_url ? (
                     <img 

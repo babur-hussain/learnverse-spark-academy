@@ -15,7 +15,7 @@ learnverse-spark-academy/
 ├── src/                     # Main source code directory
 ├── public/                  # Static assets and public files
 ├── supabase/                # Backend configuration and functions
-├── package.json             # Dependencies and scripts
+├── package.json             # Dependencies and scripts     
 ├── vite.config.ts           # Build configuration
 ├── tailwind.config.ts       # CSS framework configuration
 ├── tsconfig.json            # TypeScript configuration
