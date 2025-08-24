@@ -34,19 +34,24 @@ const Home = () => {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const [selectedClass, setSelectedClass] = useState(() => localStorage.getItem('selectedClass') || '');
+  const [selectedCollege, setSelectedCollege] = useState(() => localStorage.getItem('selectedCollege') || '');
 
-  // On mount or user change, load class from profile if logged in
+  // On mount or user change, load class and college from profile if logged in
   useEffect(() => {
     if (user?.id) {
       supabase
         .from('profiles')
-        .select('class_id')
+        .select('class_id, college_id')
         .eq('id', user.id)
         .single()
         .then(({ data }) => {
           if (data?.class_id) {
             setSelectedClass(data.class_id);
             localStorage.setItem('selectedClass', data.class_id);
+          }
+          if (data?.college_id) {
+            setSelectedCollege(data.college_id);
+            localStorage.setItem('selectedCollege', data.college_id);
           }
         });
     }
@@ -62,15 +67,50 @@ const Home = () => {
           .update({ class_id: selectedClass })
           .eq('id', user.id);
       }
+      // Auto-deselect college when class is selected
+      if (selectedCollege) {
+        setSelectedCollege('');
+        localStorage.removeItem('selectedCollege');
+        if (user?.id) {
+          supabase
+            .from('profiles')
+            .update({ college_id: null })
+            .eq('id', user.id);
+        }
+      }
     }
-  }, [selectedClass, user]);
+  }, [selectedClass, user, selectedCollege]);
+
+  // On college change, update profile if logged in, else just localStorage
+  useEffect(() => {
+    if (selectedCollege) {
+      localStorage.setItem('selectedCollege', selectedCollege);
+      if (user?.id) {
+        supabase
+          .from('profiles')
+          .update({ college_id: selectedCollege })
+          .eq('id', user.id);
+      }
+      // Auto-deselect class when college is selected
+      if (selectedClass) {
+        setSelectedClass('');
+        localStorage.removeItem('selectedClass');
+        if (user?.id) {
+          supabase
+            .from('profiles')
+            .update({ class_id: null })
+            .eq('id', user.id);
+        }
+      }
+    }
+  }, [selectedCollege, user, selectedClass]);
 
   return (
-    <MainLayout>
-      <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} />
+    <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
+      <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />
       <div className="min-h-screen flex flex-col">
         <AIHero />
-        <ClassSubjectsGrid selectedClass={selectedClass} />
+        <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />
         <Hero />
         <FindSchoolSection />
         <FeaturedCategories />
@@ -83,7 +123,7 @@ const Home = () => {
         <OnlineEducationSection />
         
         <div className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900 py-4">
-          <FeaturedSubjects />
+          <FeaturedSubjects selectedCollege={selectedCollege} />
         </div>
         
         <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950 py-4">

@@ -16,26 +16,41 @@ const isUrl = (str?: string | null) => {
   return !!str && (str.startsWith('http://') || str.startsWith('https://'));
 };
 
-const ClassSubjectsGrid: React.FC<{ selectedClass: string }> = ({ selectedClass }) => {
+const ClassSubjectsGrid: React.FC<{ selectedClass: string; selectedCollege: string }> = ({ selectedClass, selectedCollege }) => {
   const navigate = useNavigate();
 
-  // Fetch subjects mapped to the selected class
+  // Fetch subjects mapped to the selected class or college
   const { data: subjects, isLoading, error } = useQuery({
-    queryKey: ['class-subjects', selectedClass],
+    queryKey: ['class-college-subjects', selectedClass, selectedCollege],
     queryFn: async () => {
-      if (!selectedClass) return [];
-      const { data, error } = await supabase
-        .from('class_subjects')
-        .select('subject_id, subjects(*)')
-        .eq('class_id', selectedClass)
-        .order('order_index', { ascending: true });
-      if (error) throw error;
-      return (data || []).map((row: any) => row.subjects);
+      if (!selectedClass && !selectedCollege) return [];
+      
+      if (selectedClass) {
+        // Fetch subjects for selected class
+        const { data, error } = await supabase
+          .from('class_subjects')
+          .select('subject_id, subjects(*)')
+          .eq('class_id', selectedClass)
+          .order('order_index', { ascending: true });
+        if (error) throw error;
+        return (data || []).map((row: any) => row.subjects);
+      } else if (selectedCollege) {
+        // Fetch subjects for selected college
+        const { data, error } = await supabase
+          .from('subjects')
+          .select('*')
+          .eq('college_id', selectedCollege)
+          .order('title', { ascending: true });
+        if (error) throw error;
+        return data || [];
+      }
+      
+      return [];
     },
-    enabled: !!selectedClass
+    enabled: !!(selectedClass || selectedCollege)
   });
 
-  if (!selectedClass) return null;
+  if (!selectedClass && !selectedCollege) return null;
 
   if (isLoading) {
     return (
@@ -47,21 +62,26 @@ const ClassSubjectsGrid: React.FC<{ selectedClass: string }> = ({ selectedClass 
 
   if (error) {
     return (
-      <div className="text-center text-muted-foreground py-8">Failed to load subjects for this class.</div>
+      <div className="text-center text-muted-foreground py-8">Failed to load subjects.</div>
     );
   }
 
   if (!subjects || subjects.length === 0) {
+    const message = selectedClass 
+      ? "No subjects mapped to this class yet."
+      : "No subjects available for this college yet.";
     return (
-      <div className="text-center text-muted-foreground py-8">No subjects mapped to this class yet.</div>
+      <div className="text-center text-muted-foreground py-8">{message}</div>
     );
   }
+
+  const sectionTitle = selectedClass ? "Class Subjects" : "College Subjects";
 
   return (
     <section className="w-full py-8 bg-white dark:bg-gray-950">
       <div className="max-w-5xl mx-auto px-4">
         <div className="mb-6 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">Subjects</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">{sectionTitle}</h2>
           <div className="flex justify-center">
             <div className="w-16 h-1 rounded-full bg-primary mb-4"></div>
           </div>

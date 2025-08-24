@@ -24,20 +24,26 @@ const isUrl = (str?: string | null) => {
   return !!str && (str.startsWith('http://') || str.startsWith('https://'));
 };
 
-const FeaturedSubjects = () => {
+const FeaturedSubjects = ({ selectedCollege }: { selectedCollege?: string }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Fetch featured subjects directly using is_featured flag
+  // Fetch featured subjects directly using is_featured flag, filtered by college if selected
   const { data: featuredSubjects, isLoading, error } = useQuery({
-    queryKey: ['featured-subjects'],
+    queryKey: ['featured-subjects', selectedCollege],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('subjects')
           .select('id, title, description, thumbnail_url, icon')
-          .eq('is_featured', true)
-          .order('title');
+          .eq('is_featured', true);
+        
+        // If a college is selected, filter by that college
+        if (selectedCollege) {
+          query = query.eq('college_id', selectedCollege);
+        }
+        
+        const { data, error } = await query.order('title');
 
         if (error) {
           throw error;

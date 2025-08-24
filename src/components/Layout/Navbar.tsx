@@ -7,16 +7,18 @@ import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
-import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown } from 'lucide-react';
+import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown, Building2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface NavbarProps {
   selectedClass?: any;
   setSelectedClass?: any;
+  selectedCollege?: any;
+  setSelectedCollege?: any;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
+const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
@@ -24,16 +26,19 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
   
   // Custom dropdown state
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
+  const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
   const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
   const [isResourcesDropdownOpen, setIsResourcesDropdownOpen] = useState(false);
   
   // Refs for dropdown positioning
   const classDropdownRef = useRef<HTMLDivElement>(null);
+  const collegeDropdownRef = useRef<HTMLDivElement>(null);
   const communityDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
 
   // Timeout refs for smooth hover experience
   const classTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const collegeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const communityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resourcesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -48,6 +53,20 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
     } else {
       classTimeoutRef.current = setTimeout(() => {
         setIsClassDropdownOpen(false);
+      }, 150); // 150ms delay before closing
+    }
+  }, []);
+
+  const handleCollegeDropdownHover = useCallback((isHovering: boolean) => {
+    if (collegeTimeoutRef.current) {
+      clearTimeout(collegeTimeoutRef.current);
+    }
+    
+    if (isHovering) {
+      setIsCollegeDropdownOpen(true);
+    } else {
+      collegeTimeoutRef.current = setTimeout(() => {
+        setIsCollegeDropdownOpen(false);
       }, 150); // 150ms delay before closing
     }
   }, []);
@@ -84,10 +103,12 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
   const closeAllDropdowns = useCallback(() => {
     // Clear all timeouts
     if (classTimeoutRef.current) clearTimeout(classTimeoutRef.current);
+    if (collegeTimeoutRef.current) clearTimeout(collegeTimeoutRef.current);
     if (communityTimeoutRef.current) clearTimeout(communityTimeoutRef.current);
     if (resourcesTimeoutRef.current) clearTimeout(resourcesTimeoutRef.current);
     
     setIsClassDropdownOpen(false);
+    setIsCollegeDropdownOpen(false);
     setIsCommunityDropdownOpen(false);
     setIsResourcesDropdownOpen(false);
   }, []);
@@ -96,6 +117,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
   useEffect(() => {
     return () => {
       if (classTimeoutRef.current) clearTimeout(classTimeoutRef.current);
+      if (collegeTimeoutRef.current) clearTimeout(collegeTimeoutRef.current);
       if (communityTimeoutRef.current) clearTimeout(communityTimeoutRef.current);
       if (resourcesTimeoutRef.current) clearTimeout(resourcesTimeoutRef.current);
     };
@@ -120,12 +142,36 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
     cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  const selectedClassObj = classes.find(cls => cls.id === selectedClass);
+  // Fetch active colleges for College dropdown
+  const { data: colleges = [], isLoading: isLoadingColleges, error: collegesError, refetch: refetchColleges } = useQuery({
+    queryKey: ['active-colleges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('colleges')
+        .select('*')
+        .eq('is_active', true)
+        .order('name', { ascending: true });
+      if (error) throw error;
+      console.log('Navbar: Fetched colleges:', data); // Debug log
+      return data;
+    },
+    retry: 3, // Retry up to 3 times
+    retryDelay: 1000, // Wait 1 second between retries
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+  });
 
-  // Debug log for classes state
+  const selectedClassObj = classes.find(cls => cls.id === selectedClass);
+  const selectedCollegeObj = colleges.find(col => col.id === selectedCollege);
+
+  // Debug log for classes and colleges state
   useEffect(() => {
     console.log('Navbar: Classes state updated:', { classes, selectedClass, selectedClassObj, isLoadingClasses, classesError });
   }, [classes, selectedClass, selectedClassObj, isLoadingClasses, classesError]);
+
+  useEffect(() => {
+    console.log('Navbar: Colleges state updated:', { colleges, selectedCollege, selectedCollegeObj, isLoadingColleges, collegesError });
+  }, [colleges, selectedCollege, selectedCollegeObj, isLoadingColleges, collegesError]);
 
   // Auto-refetch classes if there's an error or no data
   useEffect(() => {
@@ -135,12 +181,35 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
     }
   }, [classesError, classes, isLoadingClasses, refetchClasses]);
 
+  // Auto-refetch colleges if there's an error or no data
+  useEffect(() => {
+    if (collegesError || (!isLoadingColleges && (!colleges || colleges.length === 0))) {
+      console.log('Navbar: Attempting to refetch colleges due to error or empty data');
+      refetchColleges();
+    }
+  }, [collegesError, colleges, isLoadingColleges, refetchColleges]);
+
   const handleClassSelect = useCallback((classObj: any) => {
     if (setSelectedClass) {
       setSelectedClass(classObj.id);
+      // Auto-deselect college when class is selected
+      if (setSelectedCollege) {
+        setSelectedCollege(null);
+      }
     }
     setIsClassDropdownOpen(false);
-  }, [setSelectedClass]);
+  }, [setSelectedClass, setSelectedCollege]);
+
+  const handleCollegeSelect = useCallback((collegeObj: any) => {
+    if (setSelectedCollege) {
+      setSelectedCollege(collegeObj.id);
+      // Auto-deselect class when college is selected
+      if (setSelectedClass) {
+        setSelectedClass(null);
+      }
+    }
+    setIsCollegeDropdownOpen(false);
+  }, [setSelectedCollege, setSelectedClass]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -149,6 +218,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
       
       // Check if click is outside all dropdown containers
       if (!classDropdownRef.current?.contains(target) && 
+          !collegeDropdownRef.current?.contains(target) &&
           !communityDropdownRef.current?.contains(target) && 
           !resourcesDropdownRef.current?.contains(target)) {
         closeAllDropdowns();
@@ -186,7 +256,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
               {setSelectedClass && (
                 <div className="relative" ref={classDropdownRef}>
                   <button
-                    onClick={handleClassDropdownHover}
                     onMouseEnter={() => handleClassDropdownHover(true)}
                     onMouseLeave={() => handleClassDropdownHover(false)}
                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
@@ -246,6 +315,77 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
                           ))
                         ) : (
                           <li className="p-2 text-center text-muted-foreground">No classes available</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Custom College Dropdown */}
+              {setSelectedCollege && (
+                <div className="relative" ref={collegeDropdownRef}>
+                  <button
+                    onMouseEnter={() => handleCollegeDropdownHover(true)}
+                    onMouseLeave={() => handleCollegeDropdownHover(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                    disabled={isLoadingColleges}
+                  >
+                    <Building2 className="h-4 w-4" />
+                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isCollegeDropdownOpen && (
+                    <div 
+                      className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                      onMouseEnter={() => handleCollegeDropdownHover(true)}
+                      onMouseLeave={() => handleCollegeDropdownHover(false)}
+                    >
+                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select College</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              refetchColleges();
+                            }}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            title="Refresh colleges"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+                      <ul className="p-2">
+                        {isLoadingColleges ? (
+                          <li className="p-2 text-center text-muted-foreground">Loading colleges...</li>
+                        ) : collegesError ? (
+                          <li className="p-2 text-center text-red-500">
+                            <div>Error loading colleges</div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                refetchColleges();
+                              }}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                            >
+                              Try again
+                            </button>
+                          </li>
+                        ) : colleges && colleges.length > 0 ? (
+                          colleges.map((col) => (
+                            <li key={col.id}>
+                              <button
+                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedCollege === col.id ? 'bg-accent font-bold' : ''}`}
+                                onClick={() => handleCollegeSelect(col)}
+                              >
+                                {col.name}
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-center text-muted-foreground">No colleges available</li>
                         )}
                       </ul>
                     </div>
@@ -391,13 +531,42 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
                 value={selectedClass || ''}
                 onChange={e => {
                   const cls = classes.find(c => c.id === e.target.value);
-                  if (cls) setSelectedClass(cls.id);
+                  if (cls) {
+                    setSelectedClass(cls.id);
+                    // Auto-deselect college when class is selected
+                    if (setSelectedCollege) {
+                      setSelectedCollege(null);
+                    }
+                  }
                 }}
               >
                 <option value="">Class</option>
                 {classes.map(cls => (
                   <option key={cls.id} value={cls.id}>
                     {cls.name}
+                  </option>
+                ))}
+              </select>
+            )}
+            {isMobile && setSelectedCollege && (
+              <select
+                className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2 border-gray-300 dark:border-gray-600"
+                value={selectedCollege || ''}
+                onChange={e => {
+                  const col = colleges.find(c => c.id === e.target.value);
+                  if (col) {
+                    setSelectedCollege(col.id);
+                    // Auto-deselect class when college is selected
+                    if (setSelectedClass) {
+                      setSelectedClass(null);
+                    }
+                  }
+                }}
+              >
+                <option value="">College</option>
+                {colleges.map(col => (
+                  <option key={col.id} value={col.id}>
+                    {col.name}
                   </option>
                 ))}
               </select>
