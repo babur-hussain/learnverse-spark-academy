@@ -206,15 +206,14 @@ const FeaturedCourses = () => {
                   />
                 ) : null}
                 
-                {/* Fallback when no image or image fails to load */}
-                <div className={`image-fallback w-full h-full flex items-center justify-center ${(course.thumbnail_url || course.banner_url) ? 'hidden' : ''}`}>
-                  <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-2 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
-                      <BookOpen size={32} className="text-indigo-500 dark:text-indigo-400" />
-                    </div>
-                    <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium">Course</p>
+                                  {/* Fallback when no image or image fails to load */}
+                  <div className={`image-fallback w-full h-full flex items-center justify-center ${(course.thumbnail_url || course.banner_url) ? 'hidden' : ''}`}>
+                    <img 
+                      src="/course-placeholder.svg" 
+                      alt="Course placeholder" 
+                      className="w-full h-full object-contain p-4"
+                    />
                   </div>
-                </div>
                 
                 {course.price !== null && course.price > 0 && (
                   <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">

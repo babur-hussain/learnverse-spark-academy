@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, Star, Lock } from 'lucide-react';
+import { Clock, Star, Lock, BookOpen } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/UI/badge';
@@ -62,6 +62,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
 }) => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const [imageError, setImageError] = useState(false);
 
   const handleClick = () => {
     if (onClick) {
@@ -71,11 +72,40 @@ const CourseCard: React.FC<CourseCardProps> = ({
     }
   };
 
+  const handleImageError = () => {
+    console.log(`CourseCard: Image failed to load for course "${title}":`, image);
+    setImageError(true);
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ')
       .map(part => part[0])
       .join('')
       .toUpperCase();
+  };
+
+  const renderImage = () => {
+    if (imageError || !image || image === '/placeholder.svg') {
+      return (
+        <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+          <img 
+            src="/course-placeholder.svg" 
+            alt="Course placeholder" 
+            className="w-full h-full object-contain p-4"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <img 
+        src={image} 
+        alt={title} 
+        className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+        loading="lazy"
+        onError={handleImageError}
+      />
+    );
   };
 
   return (
@@ -89,12 +119,8 @@ const CourseCard: React.FC<CourseCardProps> = ({
       onClick={handleClick}
     >
       <div className={`relative ${isMobile ? 'aspect-video' : 'aspect-video'} overflow-hidden`}>
-        <img 
-          src={image} 
-          alt={title} 
-          className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-          loading="lazy"
-        />
+        {renderImage()}
+        
         {!isPurchased && price !== 0 && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
             <Lock className="h-6 w-6 md:h-8 md:w-8 text-white opacity-75" />
