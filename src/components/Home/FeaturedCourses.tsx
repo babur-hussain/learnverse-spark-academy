@@ -15,6 +15,7 @@ interface Course {
   price: number | null;
   promotional_text?: string;
   cta_text?: string;
+  banner_url?: string | null; // Added banner_url to the interface
 }
 
 const FeaturedCourses = () => {
@@ -30,6 +31,15 @@ const FeaturedCourses = () => {
           .eq('featured', true)
           .order('title');
         if (error) throw error;
+        
+        // Debug logging to see what thumbnail data we're getting
+        console.log('FeaturedCourses: Fetched courses with thumbnails:', data?.map(course => ({
+          id: course.id,
+          title: course.title,
+          thumbnail_url: course.thumbnail_url,
+          banner_url: course.banner_url
+        })));
+        
         return data || [];
       } catch (err) {
         console.error('Error fetching featured courses:', err);
@@ -114,7 +124,23 @@ const FeaturedCourses = () => {
   }
 
   if (!featuredCourses || featuredCourses.length === 0) {
-    return null;
+    // If no featured courses, try to get some regular courses as fallback
+    console.log('FeaturedCourses: No featured courses found, showing fallback message');
+    return (
+      <section className="w-full py-16 bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">Featured Courses</h2>
+            <div className="flex justify-center">
+              <div className="w-20 h-1 rounded-full bg-primary mb-6"></div>
+            </div>
+            <p className="text-gray-500 dark:text-gray-400">
+              No featured courses available at the moment. Check back soon!
+            </p>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -133,20 +159,33 @@ const FeaturedCourses = () => {
           {featuredCourses.map((course) => (
             <Card key={course.id} className="overflow-hidden transition-all duration-300 hover:shadow-lg border-t-4 border-indigo-500 rounded-lg">
               <div className="aspect-[16/9] w-full bg-gradient-to-r from-indigo-500/10 to-indigo-500/5 dark:from-indigo-500/20 dark:to-indigo-500/10 relative">
-                {course.thumbnail_url ? (
+                {course.thumbnail_url || course.banner_url ? (
                   <img 
-                    src={course.thumbnail_url} 
+                    src={course.thumbnail_url || course.banner_url} 
                     alt={course.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
+                      console.log(`FeaturedCourses: Image failed to load for course "${course.title}":`, course.thumbnail_url || course.banner_url);
                       e.currentTarget.style.display = 'none';
+                      // Show fallback when image fails to load
+                      const fallback = e.currentTarget.parentElement?.querySelector('.image-fallback');
+                      if (fallback) {
+                        fallback.classList.remove('hidden');
+                      }
                     }}
                   />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <BookOpen size={48} className="text-indigo-500 opacity-80" />
+                ) : null}
+                
+                {/* Fallback when no image or image fails to load */}
+                <div className={`image-fallback w-full h-full flex items-center justify-center ${(course.thumbnail_url || course.banner_url) ? 'hidden' : ''}`}>
+                  <div className="text-center">
+                    <div className="w-16 h-16 mx-auto mb-2 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center">
+                      <BookOpen size={32} className="text-indigo-500 dark:text-indigo-400" />
+                    </div>
+                    <p className="text-xs text-indigo-500 dark:text-indigo-400 font-medium">Course</p>
                   </div>
-                )}
+                </div>
+                
                 {course.price !== null && course.price > 0 && (
                   <div className="absolute top-3 right-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-sm">
                     ₹{course.price}
