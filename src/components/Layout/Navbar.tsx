@@ -142,23 +142,36 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
     cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  // Fetch active colleges for College dropdown
+  // Fetch colleges for College dropdown
   const { data: colleges = [], isLoading: isLoadingColleges, error: collegesError, refetch: refetchColleges } = useQuery({
-    queryKey: ['active-colleges'],
+    queryKey: ['colleges'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('colleges')
-        .select('*')
-        .eq('is_active', true)
-        .order('name', { ascending: true });
-      if (error) throw error;
-      console.log('Navbar: Fetched colleges:', data); // Debug log
-      return data;
+      console.log('Navbar: Fetching colleges...'); // Debug log
+      try {
+        const { data, error } = await supabase
+          .from('colleges')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Navbar: Error fetching colleges:', error); // Debug log
+          throw error;
+        }
+        
+        console.log('Navbar: Fetched colleges successfully:', data); // Debug log
+        console.log('Navbar: Colleges count:', data?.length || 0); // Debug log
+        
+        return data || [];
+      } catch (err) {
+        console.error('Navbar: Exception in colleges query:', err); // Debug log
+        throw err;
+      }
     },
     retry: 3, // Retry up to 3 times
     retryDelay: 1000, // Wait 1 second between retries
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   const selectedClassObj = classes.find(cls => cls.id === selectedClass);
@@ -170,7 +183,14 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   }, [classes, selectedClass, selectedClassObj, isLoadingClasses, classesError]);
 
   useEffect(() => {
-    console.log('Navbar: Colleges state updated:', { colleges, selectedCollege, selectedCollegeObj, isLoadingColleges, collegesError });
+    console.log('Navbar: Colleges state updated:', { 
+      colleges, 
+      selectedCollege, 
+      selectedCollegeObj, 
+      isLoadingColleges, 
+      collegesError,
+      collegesLength: colleges?.length || 0
+    });
   }, [colleges, selectedCollege, selectedCollegeObj, isLoadingColleges, collegesError]);
 
   // Auto-refetch classes if there's an error or no data
@@ -332,7 +352,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                     disabled={isLoadingColleges}
                   >
                     <Building2 className="h-4 w-4" />
-                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
+                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : `College (${colleges?.length || 0})`)}
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   
@@ -348,6 +368,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
+                              console.log('Navbar: Manual refresh of colleges triggered'); // Debug log
                               refetchColleges();
                             }}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
