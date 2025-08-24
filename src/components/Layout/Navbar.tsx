@@ -264,12 +264,15 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 h-14 md:h-16 border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-gray-900/60 z-50 shadow-sm">
-        <div className="h-full mx-auto px-4 flex items-center justify-between max-w-7xl">
-          <Link to="/" className="text-xl md:text-2xl font-bold text-learn-purple flex items-center gap-2 touch-feedback">
-            <GraduationCap className="h-6 w-6 md:h-8 md:w-8" />
-            <span className={isMobile ? 'text-lg' : 'text-2xl'}>LearnVerse</span>
+        <div className="h-full mx-auto px-2 sm:px-4 flex items-center justify-between max-w-7xl">
+          {/* Logo - Responsive sizing */}
+          <Link to="/" className="text-lg md:text-2xl font-bold text-learn-purple flex items-center gap-1 md:gap-2 touch-feedback flex-shrink-0">
+            <GraduationCap className="h-5 w-5 md:h-8 md:w-8" />
+            <span className="hidden sm:inline text-lg md:text-2xl">LearnVerse</span>
+            <span className="sm:hidden text-base">Learn</span>
           </Link>
 
+          {/* Desktop Navigation */}
           {!isMobile && (
             <div className="hidden md:flex items-center space-x-2">
               {/* Custom Class Dropdown */}
@@ -352,7 +355,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                     disabled={isLoadingColleges}
                   >
                     <Building2 className="h-4 w-4" />
-                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : `College (${colleges?.length || 0})`)}
+                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
                     <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   
@@ -368,7 +371,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log('Navbar: Manual refresh of colleges triggered'); // Debug log
                               refetchColleges();
                             }}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
@@ -545,10 +547,12 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
             </div>
           )}
 
-          <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Right side controls - Responsive layout */}
+          <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
+            {/* Mobile Class/College Selectors */}
             {isMobile && setSelectedClass && (
               <select
-                className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2 border-gray-300 dark:border-gray-600"
+                className="rounded-md border px-1 sm:px-2 py-1 text-xs sm:text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 max-w-[80px] sm:max-w-none"
                 value={selectedClass || ''}
                 onChange={e => {
                   const cls = classes.find(c => c.id === e.target.value);
@@ -571,7 +575,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
             )}
             {isMobile && setSelectedCollege && (
               <select
-                className="rounded-md border px-2 py-1 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white mr-2 border-gray-300 dark:border-gray-600"
+                className="rounded-md border px-1 sm:px-2 py-1 text-xs sm:text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 max-w-[80px] sm:max-w-none"
                 value={selectedCollege || ''}
                 onChange={e => {
                   const col = colleges.find(c => c.id === e.target.value);
@@ -592,11 +596,13 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 ))}
               </select>
             )}
+            
+            {/* Theme Toggle Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className={`touch-feedback transition-all duration-300 hover:scale-110 ${isMobile ? 'h-9 w-9' : 'h-10 w-10'}`}
+              className={`touch-feedback transition-all duration-300 hover:scale-110 ${isMobile ? 'h-8 w-8' : 'h-10 w-10'}`}
             >
               {theme === "light" ? (
                 <Moon className={isMobile ? 'h-4 w-4' : 'h-5 w-5'} />
@@ -605,7 +611,11 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               )}
               <span className="sr-only">Toggle theme</span>
             </Button>
-            <UserMenu />
+            
+            {/* User Menu */}
+            <div className="flex-shrink-0">
+              <UserMenu />
+            </div>
           </div>
         </div>
       </nav>

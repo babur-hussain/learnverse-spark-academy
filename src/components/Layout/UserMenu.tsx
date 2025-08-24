@@ -73,17 +73,17 @@ const UserMenu = () => {
       <>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="focus:outline-none">
-              <Avatar className="h-8 w-8">
+            <button className="focus:outline-none flex-shrink-0">
+              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                 <AvatarImage src={user?.user_metadata?.avatar_url || ''} />
-                <AvatarFallback>{getInitials()}</AvatarFallback>
+                <AvatarFallback className="text-xs sm:text-sm">{getInitials()}</AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 z-[9999]">
             <DropdownMenuLabel>
               <div className="flex flex-col">
-                <span>{user?.user_metadata?.username || user?.email}</span>
+                <span className="text-sm font-medium">{user?.user_metadata?.username || user?.email}</span>
                 <span className="text-xs text-muted-foreground flex items-center mt-1">
                   {getRoleIcon()}
                   {getRoleLabel()}
@@ -150,11 +150,12 @@ const UserMenu = () => {
     <>
       <Button 
         onClick={() => setAuthDialogOpen(true)} 
-        className="gradient-primary"
+        className="gradient-primary text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 h-7 sm:h-9"
         size="sm"
       >
-        <User className="h-4 w-4 mr-2" />
-        <span>Sign In</span>
+        <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+        <span className="hidden sm:inline">Sign In</span>
+        <span className="sm:hidden">Sign</span>
       </Button>
       
       <AuthDialog 
