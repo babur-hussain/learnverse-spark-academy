@@ -230,19 +230,36 @@ export function CourseDialog({
     }
   };
 
+  // Helper function to sanitize UUID fields
+  const sanitizeUUIDField = (value: string | null | undefined): string | null => {
+    if (!value || value.trim() === '') return null;
+    return value;
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      // Sanitize all UUID fields to prevent empty string errors
+      const sanitizedValues = {
+        ...values,
+        instructor_id: sanitizeUUIDField(values.instructor_id),
+        college_id: sanitizeUUIDField(values.college_id),
+      };
+
+      // Debug logging to see what values are being sent
+      console.log('CourseDialog: Original values:', values);
+      console.log('CourseDialog: Sanitized values:', sanitizedValues);
+
       if (isEditing && course) {
         const { error } = await supabase
           .from('courses')
           .update({
-            title: values.title,
-            description: values.description,
-            thumbnail_url: values.thumbnail_url,
-            banner_url: values.banner_url,
-            instructor_id: values.instructor_id,
-            subscription_required: values.subscription_required,
-            college_id: values.college_id || null,
+            title: sanitizedValues.title,
+            description: sanitizedValues.description,
+            thumbnail_url: sanitizedValues.thumbnail_url,
+            banner_url: sanitizedValues.banner_url,
+            instructor_id: sanitizedValues.instructor_id,
+            subscription_required: sanitizedValues.subscription_required,
+            college_id: sanitizedValues.college_id,
           })
           .eq('id', course.id);
 
@@ -255,13 +272,13 @@ export function CourseDialog({
         const { error } = await supabase
           .from('courses')
           .insert({
-            title: values.title,
-            description: values.description,
-            thumbnail_url: values.thumbnail_url,
-            banner_url: values.banner_url,
-            instructor_id: values.instructor_id || null,
-            subscription_required: values.subscription_required,
-            college_id: values.college_id || null, // Add college_id if present
+            title: sanitizedValues.title,
+            description: sanitizedValues.description,
+            thumbnail_url: sanitizedValues.thumbnail_url,
+            banner_url: sanitizedValues.banner_url,
+            instructor_id: sanitizedValues.instructor_id,
+            subscription_required: sanitizedValues.subscription_required,
+            college_id: sanitizedValues.college_id,
           });
 
         if (error) throw error;
