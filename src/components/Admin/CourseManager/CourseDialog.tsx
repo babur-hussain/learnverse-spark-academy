@@ -42,6 +42,7 @@ interface Course {
   thumbnail_url: string | null;
   instructor_id: string | null;
   subscription_required: boolean;
+  college_id?: string | null;
 }
 
 interface College {
@@ -60,9 +61,10 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   thumbnail_url: z.string().optional().nullable(),
-  banner_url: z.string().optional().nullable(), // Add banner_url
+  banner_url: z.string().optional().nullable(),
   instructor_id: z.string().optional().nullable(),
   subscription_required: z.boolean().default(false),
+  college_id: z.string().optional().nullable(),
 });
 
 export function CourseDialog({ 
@@ -84,6 +86,7 @@ export function CourseDialog({
       banner_url: '',
       instructor_id: '',
       subscription_required: false,
+      college_id: '',
     },
   });
 
@@ -110,6 +113,7 @@ export function CourseDialog({
           banner_url: course.banner_url || '',
           instructor_id: course.instructor_id || '',
           subscription_required: course.subscription_required ?? false,
+          college_id: course.college_id || '',
         });
       } else {
         // Reset to default values when creating a new course
@@ -120,6 +124,7 @@ export function CourseDialog({
           banner_url: '',
           instructor_id: '',
           subscription_required: false,
+          college_id: '',
         });
       }
     }
@@ -177,6 +182,54 @@ export function CourseDialog({
     toast({ title: 'Banner uploaded', description: 'Banner image uploaded successfully.' });
   };
 
+  // Thumbnail upload handler
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({ 
+        title: 'Invalid file type', 
+        description: 'Please select an image file (JPEG, PNG, GIF, etc.)', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ 
+        title: 'File too large', 
+        description: 'Please select an image smaller than 5MB', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
+    const fileExt = file.name.split('.').pop();
+    const fileName = `thumbnail_${Date.now()}.${fileExt}`;
+    const filePath = `thumbnails/${fileName}`;
+    
+    try {
+      const { error } = await supabase.storage.from('courses').upload(filePath, file, { upsert: true });
+      if (error) {
+        toast({ title: 'Thumbnail upload error', description: error.message, variant: 'destructive' });
+        return;
+      }
+      
+      const { data } = await supabase.storage.from('courses').getPublicUrl(filePath);
+      form.setValue('thumbnail_url', data?.publicUrl || '');
+      toast({ title: 'Thumbnail uploaded', description: 'Thumbnail image uploaded successfully.' });
+    } catch (error: any) {
+      toast({ 
+        title: 'Upload failed', 
+        description: error.message || 'Failed to upload thumbnail', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       if (isEditing && course) {
@@ -189,6 +242,7 @@ export function CourseDialog({
             banner_url: values.banner_url,
             instructor_id: values.instructor_id,
             subscription_required: values.subscription_required,
+            college_id: values.college_id || null,
           })
           .eq('id', course.id);
 
@@ -281,9 +335,55 @@ export function CourseDialog({
                 name="thumbnail_url"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Thumbnail URL</FormLabel>
+                    <FormLabel>Course Thumbnail</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ''} />
+                      <div className="flex flex-col gap-2">
+                        {field.value && (
+                          <div className="relative">
+                            <img 
+                              src={field.value} 
+                              alt="Thumbnail Preview" 
+                              className="w-full h-32 object-cover rounded border" 
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="absolute top-2 right-2 bg-white/90 hover:bg-white"
+                              onClick={() => {
+                                form.setValue('thumbnail_url', '');
+                                toast({ title: 'Thumbnail removed', description: 'Thumbnail has been removed.' });
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            type="file" 
+                            accept="image/*" 
+                            onChange={handleThumbnailUpload}
+                            className="flex-1"
+                          />
+                          {field.value && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                form.setValue('thumbnail_url', '');
+                                toast({ title: 'Thumbnail removed', description: 'Thumbnail has been removed.' });
+                              }}
+                            >
+                              Clear
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Upload a thumbnail image (JPEG, PNG, GIF). Max size: 5MB.
+                        </p>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
