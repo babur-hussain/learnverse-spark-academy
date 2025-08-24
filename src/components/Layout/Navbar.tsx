@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/use-user-role';
@@ -7,15 +7,7 @@ import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
-import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@/components/UI/navigation-menu";
+import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -29,9 +21,88 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
+  
+  // Custom dropdown state
+  const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
+  const [isCommunityDropdownOpen, setIsCommunityDropdownOpen] = useState(false);
+  const [isResourcesDropdownOpen, setIsResourcesDropdownOpen] = useState(false);
+  
+  // Refs for dropdown positioning
+  const classDropdownRef = useRef<HTMLDivElement>(null);
+  const communityDropdownRef = useRef<HTMLDivElement>(null);
+  const resourcesDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Timeout refs for smooth hover experience
+  const classTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const communityTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resourcesTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Hover-based dropdown handlers with delay
+  const handleClassDropdownHover = useCallback((isHovering: boolean) => {
+    if (classTimeoutRef.current) {
+      clearTimeout(classTimeoutRef.current);
+    }
+    
+    if (isHovering) {
+      setIsClassDropdownOpen(true);
+    } else {
+      classTimeoutRef.current = setTimeout(() => {
+        setIsClassDropdownOpen(false);
+      }, 150); // 150ms delay before closing
+    }
+  }, []);
+
+  const handleCommunityDropdownHover = useCallback((isHovering: boolean) => {
+    if (communityTimeoutRef.current) {
+      clearTimeout(communityTimeoutRef.current);
+    }
+    
+    if (isHovering) {
+      setIsCommunityDropdownOpen(true);
+    } else {
+      communityTimeoutRef.current = setTimeout(() => {
+        setIsCommunityDropdownOpen(false);
+      }, 150); // 150ms delay before closing
+    }
+  }, []);
+
+  const handleResourcesDropdownHover = useCallback((isHovering: boolean) => {
+    if (resourcesTimeoutRef.current) {
+      clearTimeout(resourcesTimeoutRef.current);
+    }
+    
+    if (isHovering) {
+      setIsResourcesDropdownOpen(true);
+    } else {
+      resourcesTimeoutRef.current = setTimeout(() => {
+        setIsResourcesDropdownOpen(false);
+      }, 150); // 150ms delay before closing
+    }
+  }, []);
+
+  // Close all dropdowns function
+  const closeAllDropdowns = useCallback(() => {
+    // Clear all timeouts
+    if (classTimeoutRef.current) clearTimeout(classTimeoutRef.current);
+    if (communityTimeoutRef.current) clearTimeout(communityTimeoutRef.current);
+    if (resourcesTimeoutRef.current) clearTimeout(resourcesTimeoutRef.current);
+    
+    setIsClassDropdownOpen(false);
+    setIsCommunityDropdownOpen(false);
+    setIsResourcesDropdownOpen(false);
+  }, []);
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (classTimeoutRef.current) clearTimeout(classTimeoutRef.current);
+      if (communityTimeoutRef.current) clearTimeout(communityTimeoutRef.current);
+      if (resourcesTimeoutRef.current) clearTimeout(resourcesTimeoutRef.current);
+    };
+  }, []);
 
   // Fetch active classes for Class dropdown
-  const { data: classes = [], isLoading: isLoadingClasses } = useQuery({
+  const { data: classes = [], isLoading: isLoadingClasses, error: classesError, refetch: refetchClasses } = useQuery({
     queryKey: ['active-classes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -40,17 +111,65 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
         .eq('is_active', true)
         .order('order_index', { ascending: true });
       if (error) throw error;
+      console.log('Navbar: Fetched classes:', data); // Debug log
       return data;
     },
+    retry: 3, // Retry up to 3 times
+    retryDelay: 1000, // Wait 1 second between retries
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   const selectedClassObj = classes.find(cls => cls.id === selectedClass);
 
-  const handleClassSelect = (classObj: any) => {
+  // Debug log for classes state
+  useEffect(() => {
+    console.log('Navbar: Classes state updated:', { classes, selectedClass, selectedClassObj, isLoadingClasses, classesError });
+  }, [classes, selectedClass, selectedClassObj, isLoadingClasses, classesError]);
+
+  // Auto-refetch classes if there's an error or no data
+  useEffect(() => {
+    if (classesError || (!isLoadingClasses && (!classes || classes.length === 0))) {
+      console.log('Navbar: Attempting to refetch classes due to error or empty data');
+      refetchClasses();
+    }
+  }, [classesError, classes, isLoadingClasses, refetchClasses]);
+
+  const handleClassSelect = useCallback((classObj: any) => {
     if (setSelectedClass) {
       setSelectedClass(classObj.id);
     }
-  };
+    setIsClassDropdownOpen(false);
+  }, [setSelectedClass]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      
+      // Check if click is outside all dropdown containers
+      if (!classDropdownRef.current?.contains(target) && 
+          !communityDropdownRef.current?.contains(target) && 
+          !resourcesDropdownRef.current?.contains(target)) {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [closeAllDropdowns]);
+
+  // Close dropdowns when pressing Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [closeAllDropdowns]);
 
   return (
     <>
@@ -63,164 +182,205 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass }) => {
 
           {!isMobile && (
             <div className="hidden md:flex items-center space-x-2">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {setSelectedClass && (
-                    <NavigationMenuItem>
-                      <NavigationMenuTrigger className="text-sm">
-                        {selectedClassObj ? selectedClassObj.name : 'Class'}
-                      </NavigationMenuTrigger>
-                      <NavigationMenuContent>
-                        <ul className="w-56 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-lg">
-                          {isLoadingClasses ? (
-                            <li className="p-2 text-center text-muted-foreground">Loading...</li>
-                          ) : (
-                            classes.map((cls) => (
-                              <li key={cls.id}>
-                                <button
-                                  className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
-                                  onClick={() => handleClassSelect(cls)}
-                                >
-                                  {cls.name}
-                                </button>
-                              </li>
-                            ))
-                          )}
-                        </ul>
-                      </NavigationMenuContent>
-                    </NavigationMenuItem>
+              {/* Custom Class Dropdown */}
+              {setSelectedClass && (
+                <div className="relative" ref={classDropdownRef}>
+                  <button
+                    onClick={handleClassDropdownHover}
+                    onMouseEnter={() => handleClassDropdownHover(true)}
+                    onMouseLeave={() => handleClassDropdownHover(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                    disabled={isLoadingClasses}
+                  >
+                    {isLoadingClasses ? 'Loading...' : (selectedClassObj ? selectedClassObj.name : 'Class')}
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isClassDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isClassDropdownOpen && (
+                    <div 
+                      className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                      onMouseEnter={() => handleClassDropdownHover(true)}
+                      onMouseLeave={() => handleClassDropdownHover(false)}
+                    >
+                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Class</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              refetchClasses();
+                            }}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            title="Refresh classes"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+                      <ul className="p-2">
+                        {isLoadingClasses ? (
+                          <li className="p-2 text-center text-muted-foreground">Loading classes...</li>
+                        ) : classesError ? (
+                          <li className="p-2 text-center text-red-500">
+                            <div>Error loading classes</div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                refetchClasses();
+                              }}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                            >
+                              Try again
+                            </button>
+                          </li>
+                        ) : classes && classes.length > 0 ? (
+                          classes.map((cls) => (
+                            <li key={cls.id}>
+                              <button
+                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
+                                onClick={() => handleClassSelect(cls)}
+                              >
+                                {cls.name}
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-center text-muted-foreground">No classes available</li>
+                        )}
+                      </ul>
+                    </div>
                   )}
+                </div>
+              )}
 
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-sm">Community</NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 bg-white dark:bg-gray-900 backdrop-blur-md">
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to="/forum"
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none flex items-center gap-2">
-                                <MessageCircle className="h-4 w-4" />
-                                Discussion Forum
-                              </div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Engage with other learners and share knowledge
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to="/peer-learning"
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Heart className="h-4 w-4" />
-                                Peer Learning
-                              </div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Study groups and collaborative learning
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
+              {/* Custom Community Dropdown */}
+              <div className="relative" ref={communityDropdownRef}>
+                <button
+                  onMouseEnter={() => handleCommunityDropdownHover(true)}
+                  onMouseLeave={() => handleCommunityDropdownHover(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                >
+                  Community
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCommunityDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isCommunityDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                    onMouseEnter={() => handleCommunityDropdownHover(true)}
+                    onMouseLeave={() => handleCommunityDropdownHover(false)}
+                  >
+                    <div className="grid gap-3 p-4 md:grid-cols-2">
+                      <Link
+                        to="/forum"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsCommunityDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <MessageCircle className="h-4 w-4" />
+                          Discussion Forum
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Engage with other learners and share knowledge
+                        </p>
+                      </Link>
+                      <Link
+                        to="/peer-learning"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsCommunityDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Heart className="h-4 w-4" />
+                          Peer Learning
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Study groups and collaborative learning
+                        </p>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                  <NavigationMenuItem>
-                    <NavigationMenuTrigger className="text-sm">Resources</NavigationMenuTrigger>
-                    <NavigationMenuContent>
-                      <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 bg-white dark:bg-gray-900 backdrop-blur-md">
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to="/notes"
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Book className="h-4 w-4" />
-                                Notes
-                              </div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Access and manage your study notes
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to="/personalized"
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Brain className="h-4 w-4" />
-                                Personalized Learning
-                              </div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Your customized learning path
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                        <li>
-                          <NavigationMenuLink asChild>
-                            <Link
-                              to="/career-guidance"
-                              className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                            >
-                              <div className="text-sm font-medium leading-none flex items-center gap-2">
-                                <Compass className="h-4 w-4" />
-                                Career Guidance
-                              </div>
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                                Explore career paths and get guidance
-                              </p>
-                            </Link>
-                          </NavigationMenuLink>
-                        </li>
-                      </ul>
-                    </NavigationMenuContent>
-                  </NavigationMenuItem>
+              {/* Custom Resources Dropdown */}
+              <div className="relative" ref={resourcesDropdownRef}>
+                <button
+                  onMouseEnter={() => handleResourcesDropdownHover(true)}
+                  onMouseLeave={() => handleResourcesDropdownHover(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                >
+                  Resources
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isResourcesDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isResourcesDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                    onMouseEnter={() => handleResourcesDropdownHover(true)}
+                    onMouseLeave={() => handleResourcesDropdownHover(false)}
+                  >
+                    <div className="grid gap-3 p-4 md:grid-cols-2">
+                      <Link
+                        to="/notes"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Book className="h-4 w-4" />
+                          Notes
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Access and manage your study notes
+                        </p>
+                      </Link>
+                      <Link
+                        to="/personalized"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Brain className="h-4 w-4" />
+                          Personalized Learning
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Your customized learning path
+                        </p>
+                      </Link>
+                      <Link
+                        to="/career-guidance"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Compass className="h-4 w-4" />
+                          Career Guidance
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Explore career paths and get guidance
+                        </p>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                        <ShoppingBag size={18} />
-                        <span>Stationary</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link to="/kids" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                        <Baby size={18} />
-                        <span>Kids</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                        <Headphones size={18} />
-                        <span>Audio</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem>
-                    <NavigationMenuLink asChild>
-                      <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                        <Coffee size={18} />
-                        <span>Cafes</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                </NavigationMenuList>
-              </NavigationMenu>
+              {/* Direct Links */}
+              <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <ShoppingBag size={18} />
+                <span>Stationary</span>
+              </Link>
+              <Link to="/kids" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Baby size={18} />
+                <span>Kids</span>
+              </Link>
+              <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Headphones size={18} />
+                <span>Audio</span>
+              </Link>
+              <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Coffee size={18} />
+                <span>Cafes</span>
+              </Link>
             </div>
           )}
 
