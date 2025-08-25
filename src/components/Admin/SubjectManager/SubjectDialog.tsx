@@ -40,6 +40,8 @@ interface Subject {
   icon?: string | null;
   thumbnail_url?: string | null;
   categories?: { id: string, name: string }[];
+  class_id?: string | null;
+  college_id?: string | null;
 }
 
 interface SubjectDialogProps {
@@ -58,26 +60,10 @@ const formSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
   icon: z.string().optional(),
-  thumbnail_url: z.string().optional().refine(
-    (val) => !val || val.startsWith('http://') || val.startsWith('https://'),
-    {
-      message: 'Thumbnail URL must start with http:// or https://',
-    }
-  ),
+  thumbnail_url: z.string().optional(),
   categoryIds: z.array(z.string()).optional(),
   classId: z.string().optional(),
   collegeId: z.string().optional(),
-}).refine((data) => {
-  // If college is selected, class is optional
-  // If no college is selected, class is required
-  if (data.collegeId && data.collegeId.trim() !== '') {
-    return true; // College selected, class optional
-  } else {
-    return data.classId && data.classId.trim() !== ''; // No college, class required
-  }
-}, {
-  message: "Class is required when no college is selected",
-  path: ["classId"]
 });
 
 // Utility to safely map over possibly undefined/null arrays
@@ -113,7 +99,12 @@ export function SubjectDialog({
       classId: '',
       collegeId: '',
     },
+    mode: 'onChange', // Enable real-time validation
   });
+
+  console.log('=== FORM INITIALIZED ===');
+  console.log('Form instance:', form);
+  console.log('Form state:', form.formState);
 
   const { data: colleges = [] } = useQuery({
     queryKey: ['colleges'],
@@ -129,24 +120,41 @@ export function SubjectDialog({
 
   useEffect(() => {
     if (open) {
+      console.log('=== DIALOG OPENED ===');
+      console.log('Subject:', subject);
+      console.log('Is editing:', isEditing);
+      
       fetchCategories();
       fetchClasses();
       if (subject) {
-        form.reset({
+        console.log('Setting up form for editing subject:', subject);
+        const formValues = {
           title: subject.title || '',
           description: subject.description || '',
           icon: subject.icon || '',
           thumbnail_url: subject.thumbnail_url || '',
           classId: subject.class_id || '',
           collegeId: subject.college_id || '',
-        });
+          categoryIds: [], // Will be populated by fetchSubjectCategories
+        };
+        console.log('Form values to set:', formValues);
+        
+        form.reset(formValues);
+        setSelectedClassId(subject.class_id || '');
+        setSelectedCollegeId(subject.college_id || '');
+        
         if (subject.icon) {
           setIconPreview(subject.icon);
         }
         fetchSubjectCategories(subject.id);
         fetchSubjectClass(subject.id);
+        
+        console.log('Form after reset:', form.getValues());
+        console.log('Selected class ID after reset:', subject.class_id);
+        console.log('Selected college ID after reset:', subject.college_id);
       } else {
-        form.reset({
+        console.log('Setting up form for new subject');
+        const defaultValues = {
           title: '',
           description: '',
           icon: '',
@@ -154,11 +162,16 @@ export function SubjectDialog({
           categoryIds: [],
           classId: '',
           collegeId: '',
-        });
+        };
+        console.log('Default form values:', defaultValues);
+        
+        form.reset(defaultValues);
         setSelectedCategoryIds([]);
         setSelectedClassId('');
         setIconPreview(null);
         setIconFile(null);
+        
+        console.log('Form after reset:', form.getValues());
       }
     }
   }, [subject, open, form]);
@@ -312,14 +325,76 @@ export function SubjectDialog({
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
+      console.log('=== FORM SUBMISSION STARTED ===');
+      console.log('Form values:', values);
+      console.log('Is editing:', isEditing);
+      console.log('Subject:', subject);
+      console.log('Form is valid:', form.formState.isValid);
+      console.log('Form errors:', form.formState.errors);
+      
+      // Basic validation
+      if (!values.title || values.title.trim() === '') {
+        toast({
+          title: 'Validation Error',
+          description: 'Subject title is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      // Log all form values for debugging
+      console.log('=== FORM VALUES DEBUG ===');
+      console.log('Title:', values.title);
+      console.log('Description:', values.description);
+      console.log('Icon:', values.icon);
+      console.log('Thumbnail URL:', values.thumbnail_url);
+      console.log('Category IDs:', values.categoryIds);
+      console.log('Class ID:', values.classId);
+      console.log('College ID:', values.collegeId);
+      console.log('Selected Class ID State:', selectedClassId);
+      console.log('Selected College ID State:', selectedCollegeId);
+      
+      // Ensure we have the latest values from the form state
+      const currentValues = form.getValues();
+      console.log('Current form values from form.getValues():', currentValues);
+      
+      // Use the current values if the passed values are empty
+      const finalValues = {
+        title: values.title || currentValues.title,
+        description: values.description || currentValues.description,
+        icon: values.icon || currentValues.icon,
+        thumbnail_url: values.thumbnail_url || currentValues.thumbnail_url,
+        categoryIds: values.categoryIds || currentValues.categoryIds || [],
+        classId: values.classId || currentValues.classId || selectedClassId,
+        collegeId: values.collegeId || currentValues.collegeId || selectedCollegeId,
+      };
+      
+      console.log('Final values for submission:', finalValues);
+      
+      // Validate form manually
+      const validationResult = formSchema.safeParse(finalValues);
+      console.log('Manual validation result:', validationResult);
+      
+      if (!validationResult.success) {
+        console.error('Form validation failed:', validationResult.error);
+        toast({
+          title: 'Validation Error',
+          description: 'Please check the form for errors',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
       setUploading(true);
-      console.log('Subject form submission started', values);
+      console.log('Subject form submission started with final values:', finalValues);
       
       // Upload icon if there is one
       let iconUrl = null;
       if (iconFile) {
+        console.log('Uploading icon file...');
         iconUrl = await uploadIcon();
         if (!iconUrl && iconFile) {
+          console.log('Icon upload failed, stopping submission');
           setUploading(false);
           return; // Stop if icon upload failed
         }
@@ -328,15 +403,22 @@ export function SubjectDialog({
       if (isEditing && subject) {
         // Update subject
         console.log('Updating subject:', subject.id);
+        console.log('Selected class ID:', finalValues.classId);
+        console.log('Selected college ID:', finalValues.collegeId);
+        console.log('Selected category IDs:', finalValues.categoryIds);
+        
+        const updateData = {
+          title: finalValues.title,
+          description: finalValues.description,
+          icon: iconUrl || finalValues.icon,
+          thumbnail_url: finalValues.thumbnail_url,
+          updated_at: new Date().toISOString()
+        };
+        console.log('Update data:', updateData);
+        
         const { error } = await supabase
           .from('subjects')
-          .update({
-            title: values.title,
-            description: values.description,
-            icon: iconUrl || values.icon,
-            thumbnail_url: values.thumbnail_url,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', subject.id);
 
         if (error) {
@@ -344,8 +426,11 @@ export function SubjectDialog({
           throw error;
         }
         
+        console.log('Subject updated successfully');
+        
         // Update categories mapping
-        if (values.categoryIds && values.categoryIds.length > 0) {
+        if (finalValues.categoryIds && finalValues.categoryIds.length > 0) {
+          console.log('Updating category mappings...');
           // Remove existing mappings
           const { error: deleteError } = await supabase
             .from('content_category_mappings')
@@ -358,7 +443,7 @@ export function SubjectDialog({
           }
           
           // Add new mappings
-          const mappings = values.categoryIds.map(categoryId => ({
+          const mappings = finalValues.categoryIds.map(categoryId => ({
             content_id: subject.id,
             category_id: categoryId,
             content_type: 'subject'
@@ -372,19 +457,22 @@ export function SubjectDialog({
             console.error('Error creating category mappings:', mappingError);
             throw mappingError;
           }
+          console.log('Category mappings updated successfully');
         }
 
         // Update class mapping (single class)
+        console.log('Updating class mapping...');
         await supabase
           .from('class_subjects')
           .delete()
           .eq('subject_id', subject.id);
-        if (values.classId) {
+        if (finalValues.classId) {
           await supabase.from('class_subjects').insert({
-            class_id: values.classId,
+            class_id: finalValues.classId,
             subject_id: subject.id
           });
         }
+        console.log('Class mapping updated successfully');
 
         toast({
           title: 'Subject updated',
@@ -396,11 +484,11 @@ export function SubjectDialog({
         const { data, error } = await supabase
           .from('subjects')
           .insert({
-            title: values.title,
-            description: values.description,
-            icon: iconUrl || values.icon,
-            thumbnail_url: values.thumbnail_url,
-            college_id: values.collegeId || null,
+            title: finalValues.title,
+            description: finalValues.description,
+            icon: iconUrl || finalValues.icon,
+            thumbnail_url: finalValues.thumbnail_url,
+            college_id: finalValues.collegeId || null,
           })
           .select();
 
@@ -412,11 +500,11 @@ export function SubjectDialog({
         console.log('Subject created successfully:', data);
         
         // Add category mappings if categories were selected
-        if (values.categoryIds && values.categoryIds.length > 0 && data && data.length > 0) {
+        if (finalValues.categoryIds && finalValues.categoryIds.length > 0 && data && data.length > 0) {
           const newSubjectId = data[0].id;
           console.log('Adding category mappings for new subject:', newSubjectId);
           
-          const mappings = values.categoryIds.map(categoryId => ({
+          const mappings = finalValues.categoryIds.map(categoryId => ({
             content_id: newSubjectId,
             category_id: categoryId,
             content_type: 'subject'
@@ -433,10 +521,10 @@ export function SubjectDialog({
         }
 
         // Add class mapping (single class)
-        if (values.classId && data && data.length > 0) {
+        if (finalValues.classId && data && data.length > 0) {
           const newSubjectId = data[0].id;
           const { error: classMapError } = await supabase.from('class_subjects').insert({
-            class_id: values.classId,
+            class_id: finalValues.classId,
             subject_id: newSubjectId
           });
           if (classMapError) {
@@ -447,7 +535,7 @@ export function SubjectDialog({
               variant: 'destructive',
             });
           } else {
-            console.log('Class-subject mapping created:', { class_id: values.classId, subject_id: newSubjectId });
+            console.log('Class-subject mapping created:', { class_id: finalValues.classId, subject_id: newSubjectId });
           }
         }
 
@@ -457,9 +545,11 @@ export function SubjectDialog({
         });
       }
       
+      console.log('=== FORM SUBMISSION SUCCESSFUL ===');
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
+      console.error('=== FORM SUBMISSION FAILED ===');
       console.error('Error creating/updating subject:', error);
       toast({
         title: 'Error',
@@ -468,18 +558,37 @@ export function SubjectDialog({
       });
     } finally {
       setUploading(false);
+      console.log('=== FORM SUBMISSION COMPLETED ===');
     }
   };
 
   const handleCategoryChange = (selected: string[]) => {
+    console.log('Categories changed to:', selected);
     setSelectedCategoryIds(selected);
     form.setValue('categoryIds', selected);
+    console.log('Form categoryIds after setValue:', form.getValues('categoryIds'));
   };
 
   const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
+    console.log('Class changed to:', value);
     setSelectedClassId(value);
     form.setValue('classId', value);
+    console.log('Form classId after setValue:', form.getValues('classId'));
+  };
+
+  const handleCollegeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    console.log('College changed to:', value);
+    setSelectedCollegeId(value);
+    form.setValue('collegeId', value);
+    console.log('Form collegeId after setValue:', form.getValues('collegeId'));
+    // Clear class selection when college is selected
+    if (value && value.trim() !== '') {
+      console.log('Clearing class selection due to college selection');
+      setSelectedClassId('');
+      form.setValue('classId', '');
+    }
   };
 
   return (
@@ -495,7 +604,34 @@ export function SubjectDialog({
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form 
+            onSubmit={(e) => {
+              e.preventDefault();
+              console.log('=== FORM ONSUBMIT EVENT ===');
+              console.log('Event:', e);
+              console.log('Form values:', form.getValues());
+              console.log('Form state:', form.formState);
+              
+              // Get current form values
+              const values = form.getValues();
+              console.log('Current form values:', values);
+              
+              // Check if form is valid
+              if (!form.formState.isValid) {
+                console.log('Form is not valid, errors:', form.formState.errors);
+                toast({
+                  title: 'Form Error',
+                  description: 'Please fix the form errors before submitting',
+                  variant: 'destructive',
+                });
+                return;
+              }
+              
+              // Call onSubmit directly
+              onSubmit(values);
+            }} 
+            className="space-y-4"
+          >
             <FormField
               control={form.control}
               name="title"
@@ -627,16 +763,7 @@ export function SubjectDialog({
               <select
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 value={selectedCollegeId}
-                onChange={e => {
-                  const value = e.target.value;
-                  setSelectedCollegeId(value);
-                  form.setValue('collegeId', value);
-                  // Clear class selection when college is selected
-                  if (value && value.trim() !== '') {
-                    setSelectedClassId('');
-                    form.setValue('classId', '');
-                  }
-                }}
+                onChange={handleCollegeChange}
               >
                 <option value="">Select a college</option>
                 {colleges.map(college => (
@@ -656,9 +783,81 @@ export function SubjectDialog({
               >
                 Cancel
               </Button>
+              
+              {/* Test button to manually trigger submission */}
+              <Button 
+                type="button" 
+                variant="secondary"
+                onClick={() => {
+                  console.log('=== MANUAL SUBMIT TEST ===');
+                  const values = form.getValues();
+                  console.log('Current form values:', values);
+                  console.log('Form state:', form.formState);
+                  console.log('Form errors:', form.formState.errors);
+                  console.log('Form is valid:', form.formState.isValid);
+                  console.log('Form is dirty:', form.formState.isDirty);
+                  
+                  // Try to submit manually
+                  form.handleSubmit(onSubmit)(new Event('submit') as any);
+                }}
+              >
+                Test Submit
+              </Button>
+              
+              {/* Simple test button */}
+              <Button 
+                type="button" 
+                variant="destructive"
+                onClick={() => {
+                  alert('Test button works!');
+                  console.log('=== TEST BUTTON CLICKED ===');
+                  console.log('Form values:', form.getValues());
+                  console.log('Form state:', form.formState);
+                }}
+              >
+                Test Button
+              </Button>
+              
+              {/* Show form state button */}
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => {
+                  const values = form.getValues();
+                  const state = form.formState;
+                  console.log('=== FORM STATE DEBUG ===');
+                  console.log('Form values:', values);
+                  console.log('Form state:', state);
+                  console.log('Form errors:', state.errors);
+                  console.log('Form is valid:', state.isValid);
+                  console.log('Form is dirty:', state.isDirty);
+                  console.log('Form is submitting:', state.isSubmitting);
+                  
+                  alert(`Form Debug:\nTitle: ${values.title}\nValid: ${state.isValid}\nErrors: ${Object.keys(state.errors).length}`);
+                }}
+              >
+                Debug Form
+              </Button>
+              
               <Button 
                 type="submit"
                 disabled={uploading}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('=== SUBMIT BUTTON CLICKED ===');
+                  console.log('Form state:', form.formState);
+                  console.log('Form values:', form.getValues());
+                  console.log('Form errors:', form.formState.errors);
+                  console.log('Form is valid:', form.formState.isValid);
+                  console.log('Form is dirty:', form.formState.isDirty);
+                  
+                  // Get current form values and submit
+                  const values = form.getValues();
+                  console.log('Current form values for submission:', values);
+                  
+                  // Call onSubmit directly
+                  onSubmit(values);
+                }}
               >
                 {uploading ? (
                   <>
