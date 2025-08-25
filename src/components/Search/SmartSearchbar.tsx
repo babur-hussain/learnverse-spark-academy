@@ -76,7 +76,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       // TEMPORARILY DISABLED: await handleStreamingSearch(newConversation);
       
       // TEMPORARY: Use simple response for testing
-      const response = await supabase.functions.invoke('deepseek-ai', {
+      const response = await supabase.functions.invoke('gemini-ai', {
         body: {
           query: query.trim(),
           fileData: fileContent,
@@ -138,7 +138,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     setIsStreaming(true);
     
     try {
-      const response = await supabase.functions.invoke('deepseek-ai', {
+      const response = await supabase.functions.invoke('gemini-ai', {
         body: {
           query: query.trim(),
           fileData: fileContent,
