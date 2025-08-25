@@ -73,8 +73,53 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       });
 
       // Always use streaming for live generation viewing
-      await handleStreamingSearch(newConversation);
+      // TEMPORARILY DISABLED: await handleStreamingSearch(newConversation);
       
+      // TEMPORARY: Use simple response for testing
+      const response = await supabase.functions.invoke('deepseek-ai', {
+        body: {
+          query: query.trim(),
+          fileData: fileContent,
+          mode,
+          followUp: conversation.length > 0 ? conversation : null,
+          language: 'en',
+          stream: false,
+        },
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message || 'Error connecting to AI service');
+      }
+
+      if (response.data && response.data.error) {
+        throw new Error(response.data.error);
+      }
+
+      if (!response.data) {
+        throw new Error('No response received from AI service');
+      }
+
+      const data = response.data as SearchResult;
+      
+      if (!data.answer) {
+        throw new Error('Invalid response format from AI service');
+      }
+      
+      newConversation.push({
+        role: 'assistant',
+        content: data.answer,
+      });
+      
+      setConversation(newConversation);
+      setResult(data);
+      setQuery('');
+      setUploadedFile(null);
+      setFileContent(null);
+      
+      toast({
+        title: "Search completed",
+        description: "Your question has been processed successfully",
+      });
     } catch (error) {
       console.error('Error in AI search:', error);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong";
