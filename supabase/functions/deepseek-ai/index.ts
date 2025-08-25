@@ -17,10 +17,11 @@ serve(async (req) => {
   }
 
   try {
-    const { query, fileData, mode, followUp, language } = await req.json();
+    const { query, fileData, mode, followUp, language, stream = false } = await req.json();
     
     console.log("Processing query:", query);
     console.log("Mode:", mode);
+    console.log("Stream mode:", stream);
     console.log("API Key available:", !!GEMINI_API_KEY);
 
     if (!GEMINI_API_KEY) {
@@ -68,25 +69,7 @@ serve(async (req) => {
 
     console.log("Sending request to Gemini API with", messages.length, "messages");
     
-    // TEMPORARILY COMMENTED OUT: DeepSeek API call
-    /*
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 2000,
-        stream: false
-      })
-    });
-    */
-
-    // NEW: Gemini API call
+    // NEW: Gemini API call with streaming support
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
       method: "POST",
       headers: {
@@ -112,19 +95,54 @@ serve(async (req) => {
     const data = await response.json();
     console.log("Gemini response received successfully");
 
-    // TEMPORARILY COMMENTED OUT: DeepSeek response processing
-    /*
-    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error("Invalid response format from DeepSeek API");
-    }
-    const answer = data.choices[0].message.content;
-    */
-
     // NEW: Gemini response processing
     if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
       throw new Error("Invalid response format from Gemini API");
     }
     const answer = data.candidates[0].content.parts[0].text;
+    
+    // If streaming is requested, return a streaming response
+    if (stream) {
+      const stream = new ReadableStream({
+        start(controller) {
+          // Send the full answer in chunks to simulate streaming
+          const words = answer.split(' ');
+          let index = 0;
+          
+          const sendChunk = () => {
+            if (index < words.length) {
+              const chunk = words.slice(0, index + 1).join(' ');
+              controller.enqueue(`data: ${JSON.stringify({ 
+                chunk, 
+                isComplete: false,
+                progress: Math.round(((index + 1) / words.length) * 100)
+              })}\n\n`);
+              index++;
+              setTimeout(sendChunk, 50 + Math.random() * 100); // Random delay for natural typing effect
+            } else {
+              // Send completion signal
+              controller.enqueue(`data: ${JSON.stringify({ 
+                chunk: answer, 
+                isComplete: true,
+                progress: 100
+              })}\n\n`);
+              controller.close();
+            }
+          };
+          
+          sendChunk();
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
     
     // Smart categorization based on content analysis
     const categories = [];
