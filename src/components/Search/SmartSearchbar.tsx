@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle, Type } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Card } from '@/components/UI/card';
@@ -41,7 +41,6 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [enableStreaming, setEnableStreaming] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -73,13 +72,8 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         content: query,
       });
 
-      if (enableStreaming) {
-        // Handle streaming response
-        await handleStreamingSearch(newConversation);
-      } else {
-        // Handle regular response
-        await handleRegularSearch(newConversation);
-      }
+      // Always use streaming for live generation viewing
+      await handleStreamingSearch(newConversation);
       
     } catch (error) {
       console.error('Error in AI search:', error);
@@ -146,6 +140,9 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         const processedResult = processAIResponse(fullAnswer);
         setResult(processedResult);
         setConversation(newConversation);
+        setQuery('');
+        setUploadedFile(null);
+        setFileContent(null);
         
         toast({
           title: "Search completed",
@@ -158,54 +155,6 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     } finally {
       setIsStreaming(false);
     }
-  };
-
-  const handleRegularSearch = async (newConversation: Message[]) => {
-    const response = await supabase.functions.invoke('deepseek-ai', {
-      body: {
-        query: query.trim(),
-        fileData: fileContent,
-        mode,
-        followUp: conversation.length > 0 ? conversation : null,
-        language: 'en',
-        stream: false,
-      },
-    });
-
-    console.log("Supabase function response:", response);
-
-    if (response.error) {
-      console.error("Supabase function error:", response.error);
-      throw new Error(response.error.message || 'Error connecting to AI service');
-    }
-
-    if (response.data && response.data.error) {
-      console.error("AI service error:", response.data.error);
-      throw new Error(response.data.error);
-    }
-
-    if (!response.data) {
-      throw new Error('No response received from AI service');
-    }
-
-    const data = response.data as SearchResult;
-    
-    if (!data.answer) {
-      throw new Error('Invalid response format from AI service');
-    }
-    
-    newConversation.push({
-      role: 'assistant',
-      content: data.answer,
-    });
-    
-    setConversation(newConversation);
-    setResult(data);
-    
-    toast({
-      title: "Search completed",
-      description: "Your question has been processed successfully",
-    });
   };
 
   const processAIResponse = (answer: string): SearchResult => {
@@ -344,241 +293,227 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     }
   };
 
-  const clearSearch = () => {
-    setQuery('');
-    setResult(null);
-    setError(null);
-    setConversation([]);
-    setStreamingText('');
-    setStreamingProgress(0);
-    setIsExpanded(false);
+  const handleFollowUpClick = (suggestion: string) => {
+    setQuery(suggestion);
   };
 
-  const renderResult = () => {
-    if (isStreaming) {
-      return (
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-            <Type className="h-4 w-4 animate-pulse" />
-            <span>AI is typing...</span>
-          </div>
-          
-          {/* Progress bar */}
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
-              style={{ width: `${streamingProgress}%` }}
-            />
-          </div>
-          
-          {/* Streaming text */}
-          <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap">
-              {streamingText}
-              {!streamingText.endsWith('.') && !streamingText.endsWith('!') && !streamingText.endsWith('?') && streamingText && (
-                <span className="inline-block w-2 h-4 bg-purple-500 ml-1 animate-pulse" />
-              )}
-            </div>
+  const handleModeChange = (newMode: 'normal' | 'explain' | 'detailed' | 'analyze') => {
+    setMode(newMode);
+    toast({
+      title: "Mode changed",
+      description: `Now using ${newMode} mode`,
+    });
+  };
+
+  const handleRetry = () => {
+    if (query.trim() || fileContent) {
+      handleSearch();
+    }
+  };
+
+  const renderStreamingResult = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+          <Type className="h-4 w-4 animate-pulse" />
+          <span>AI is typing...</span>
+        </div>
+        
+        {/* Progress bar */}
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${streamingProgress}%` }}
+          />
+        </div>
+        
+        {/* Streaming text */}
+        <div className="prose prose-sm max-w-none">
+          <div className="whitespace-pre-wrap">
+            {streamingText}
+            {!streamingText.endsWith('.') && !streamingText.endsWith('!') && !streamingText.endsWith('?') && streamingText && (
+              <span className="inline-block w-2 h-4 bg-purple-500 ml-1 animate-pulse" />
+            )}
           </div>
         </div>
-      );
-    }
-
-    if (result) {
-      return (
-        <div className="space-y-4">
-          {/* Categories */}
-          {result.categories.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {result.categories.map((category, index) => (
-                <span
-                  key={index}
-                  className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full"
-                >
-                  {category}
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Answer */}
-          <div className="prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap">{result.answer}</div>
-          </div>
-
-          {/* Follow-up suggestions */}
-          {result.followUpSuggestions.length > 0 && (
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-900">Suggested follow-up questions:</h4>
-              <div className="space-y-2">
-                {result.followUpSuggestions.map((suggestion, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setQuery(suggestion)}
-                    className="block w-full text-left p-3 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex items-center space-x-2 text-red-600">
-          <AlertCircle className="h-4 w-4" />
-          <span>{error}</span>
-        </div>
-      );
-    }
-
-    return null;
+      </div>
+    );
   };
 
   return (
-    <div className={cn("w-full max-w-4xl mx-auto", className)}>
-      <Card className="p-6 space-y-6">
-        {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-white rounded-sm" />
-            </div>
-            <span className="text-sm font-medium text-gray-600">AI-Powered Learning Assistant</span>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Learn Smarter with{' '}
-            <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              LearnVerse AI
-            </span>
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Ask any question, upload documents, or get help with concepts. Our AI-powered learning assistant provides instant, accurate answers to help you excel in your studies.
-          </p>
-        </div>
-
-        {/* Mode Selection */}
-        <div className="flex justify-center space-x-2">
-          {(['normal', 'explain', 'detailed', 'analyze'] as const).map((modeOption) => (
+    <div className={cn("w-full max-w-4xl mx-auto px-2 sm:px-4", className)}>
+      <div className="relative">
+        <div className="flex flex-wrap gap-2 justify-center mb-4 sm:mb-2 sm:justify-start">
+          <Tooltip content="Normal mode - balanced responses">
             <Button
-              key={modeOption}
-              variant={mode === modeOption ? "default" : "outline"}
+              variant={mode === 'normal' ? "default" : "outline"}
               size="sm"
-              onClick={() => setMode(modeOption)}
-              className={cn(
-                mode === modeOption && "bg-purple-600 hover:bg-purple-700"
-              )}
+              onClick={() => handleModeChange('normal')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
             >
-              {modeOption.charAt(0).toUpperCase() + modeOption.slice(1)}
+              Normal
             </Button>
-          ))}
+          </Tooltip>
+          <Tooltip content="Simple explanations for easy understanding">
+            <Button
+              variant={mode === 'explain' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('explain')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Simple
+            </Button>
+          </Tooltip>
+          <Tooltip content="Comprehensive detailed explanations">
+            <Button
+              variant={mode === 'detailed' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('detailed')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Detailed
+            </Button>
+          </Tooltip>
+          <Tooltip content="Analyze and extract key insights">
+            <Button
+              variant={mode === 'analyze' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleModeChange('analyze')}
+              className="h-6 text-xs px-2 rounded-full"
+              disabled={isLoading}
+            >
+              Analyze
+            </Button>
+          </Tooltip>
         </div>
-
-        {/* Streaming Toggle */}
-        <div className="flex items-center justify-center space-x-2">
-          <input
-            type="checkbox"
-            id="streaming-toggle"
-            checked={enableStreaming}
-            onChange={(e) => setEnableStreaming(e.target.checked)}
-            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-          />
-          <label htmlFor="streaming-toggle" className="text-sm text-gray-600">
-            Enable live AI typing (streaming responses)
-          </label>
-        </div>
-
-        {/* Search Input */}
-        <div className="flex space-x-2">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Paperclip className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileUpload}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+              type="text"
+              className="h-12 w-full rounded-full border border-input bg-background pl-10 pr-24 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Ask any question..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              disabled={isLoading}
             />
-            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              {uploadedFile && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6"
+                  onClick={removeFile}
+                  disabled={isLoading}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <Paperclip className="h-4 w-4" />
+              </Button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+              />
+            </div>
           </div>
-          
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Ask any question..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            disabled={isLoading}
-          />
           
           <Button
             onClick={handleSearch}
             disabled={isLoading || (!query.trim() && !fileContent)}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6"
+            className="h-12 px-4 rounded-full bg-primary hover:bg-primary/90"
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Search className="h-4 w-4" />
-            )}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUp className="h-4 w-4" />}
           </Button>
         </div>
-
-        {/* File Upload Display */}
+        
         {uploadedFile && (
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <File className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-700">{uploadedFile.name}</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={removeFile}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+            <File className="h-3 w-3" />
+            <span>{uploadedFile.name}</span>
           </div>
         )}
+      </div>
 
-        {/* Results */}
-        {isExpanded && (
-          <div className="min-h-[200px] p-4 border border-gray-200 rounded-lg bg-white">
-            {isLoading && !isStreaming ? (
-              <div className="flex flex-col items-center justify-center space-y-4 text-gray-500">
-                <Loader2 className="h-8 w-8 animate-spin" />
-                <p>Processing your question with AI... This may take a few moments</p>
+      {isExpanded && (
+        <Card className="mt-4 p-5 animate-fade-in">
+          {error ? (
+            <div className="text-center p-6">
+              <div className="flex items-center justify-center gap-2 text-destructive font-medium mb-2">
+                <AlertCircle className="h-5 w-5" />
+                Error Processing Request
               </div>
-            ) : (
-              renderResult()
-            )}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="text-center text-xs text-gray-500">
-          Supports PDF, Word docs, images and text files up to 5MB
-        </div>
-
-        {/* Clear Button */}
-        {isExpanded && (result || error || conversation.length > 0) && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={clearSearch}
-              className="text-gray-600 hover:text-gray-800"
-            >
-              Clear Search
-            </Button>
-          </div>
-        )}
-      </Card>
+              <p className="text-sm text-muted-foreground mb-4">{error}</p>
+              <Button onClick={handleRetry} variant="outline" size="sm">
+                Try Again
+              </Button>
+            </div>
+          ) : isStreaming ? (
+            renderStreamingResult()
+          ) : result ? (
+            <div>
+              <div className="flex flex-wrap gap-2 mb-3">
+                {result.categories.map((category, i) => (
+                  <span 
+                    key={i} 
+                    className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                  >
+                    {category}
+                  </span>
+                ))}
+              </div>
+              <div className="text-sm whitespace-pre-line text-foreground leading-relaxed">
+                {result.answer}
+              </div>
+              {result.followUpSuggestions && result.followUpSuggestions.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium mb-2 text-muted-foreground">Follow-up questions:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {result.followUpSuggestions.map((suggestion, i) => (
+                      <Button
+                        key={i}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs h-8 hover:bg-primary/10"
+                        onClick={() => handleFollowUpClick(suggestion)}
+                        disabled={isLoading}
+                      >
+                        {suggestion}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : isLoading ? (
+            <div className="flex flex-col items-center justify-center p-6">
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+              <p className="text-sm text-muted-foreground">Processing your question with AI...</p>
+              <p className="text-xs text-muted-foreground mt-1">This may take a few moments</p>
+            </div>
+          ) : (
+            <div className="text-center p-6">
+              <p className="text-sm text-muted-foreground">
+                Ask a question to get started with AI-powered learning assistance
+              </p>
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 };
