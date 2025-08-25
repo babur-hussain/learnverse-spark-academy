@@ -16,10 +16,9 @@ interface NavbarProps {
   setSelectedClass?: any;
   selectedCollege?: any;
   setSelectedCollege?: any;
-  setIsUserChange?: (value: boolean) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege, setIsUserChange }) => {
+const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
@@ -212,8 +211,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
 
   const handleClassSelect = useCallback((classObj: any) => {
     if (setSelectedClass) {
-      // Signal that this is a user-initiated change
-      if (setIsUserChange) setIsUserChange(true);
       setSelectedClass(classObj.id);
       // Auto-deselect college when class is selected
       if (setSelectedCollege) {
@@ -225,12 +222,11 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
       } catch {}
     }
     setIsClassDropdownOpen(false);
-  }, [setSelectedClass, setSelectedCollege, setIsUserChange]);
+  }, [setSelectedClass, setSelectedCollege]);
 
   const handleCollegeSelect = useCallback((collegeObj: any) => {
     if (setSelectedCollege) {
-      // Signal that this is a user-initiated change
-      if (setIsUserChange) setIsUserChange(true);
+
       setSelectedCollege(collegeObj.id);
       // Auto-deselect class when college is selected
       if (setSelectedClass) {
@@ -242,7 +238,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
       } catch {}
     }
     setIsCollegeDropdownOpen(false);
-  }, [setSelectedCollege, setSelectedClass, setIsUserChange]);
+  }, [setSelectedCollege, setSelectedClass]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -570,8 +566,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 onChange={e => {
                   const cls = classes.find(c => c.id === e.target.value);
                   if (cls) {
-                    // Signal that this is a user-initiated change
-                    if (setIsUserChange) setIsUserChange(true);
                     setSelectedClass(cls.id);
                     // Auto-deselect college when class is selected
                     if (setSelectedCollege) {
@@ -599,8 +593,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                                 onChange={e => {
                   const col = colleges.find(c => c.id === e.target.value);
                   if (col) {
-                    // Signal that this is a user-initiated change
-                    if (setIsUserChange) setIsUserChange(true);
                     setSelectedCollege(col.id);
                     // Auto-deselect class when college is selected
                     if (setSelectedClass) {

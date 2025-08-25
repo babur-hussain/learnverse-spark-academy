@@ -68,12 +68,11 @@ const Home = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // On mount or user change, load class and college from profile if logged in
+  // Simple approach: Load from profile on login, always keep in sync
   useEffect(() => {
     if (!user?.id) return;
     
-    console.log('Loading profile for user:', user.email, 'on device:', navigator.userAgent);
-    
+    // Load user's saved selection from database
     supabase
       .from('profiles')
       .select('class_id, college_id')
@@ -82,158 +81,79 @@ const Home = () => {
       .then(({ data, error }) => {
         if (error) {
           console.error('Failed to load profile:', error);
-          // Retry once after a short delay for network issues
-          setTimeout(() => {
-            console.log('Retrying profile load...');
-            supabase
-              .from('profiles')
-              .select('class_id, college_id')
-              .eq('id', user.id)
-              .single()
-              .then(({ data: retryData, error: retryError }) => {
-                if (retryError) {
-                  console.error('Profile load retry failed:', retryError);
-                } else {
-                  console.log('Profile load retry successful:', retryData);
-                  // Process the retry data
-                  const dbClass = retryData?.class_id || '';
-                  const dbCollege = retryData?.college_id || '';
-                  
-                  if (dbClass) {
-                    setSelectedClass(dbClass);
-                    localStorage.setItem('selectedClass', dbClass);
-                    setCookie('selectedClass', dbClass);
-                    console.log('✅ Cross-device sync (retry): Restored class from profile:', dbClass);
-                  }
-                  
-                  if (dbCollege) {
-                    setSelectedCollege(dbCollege);
-                    localStorage.setItem('selectedCollege', dbCollege);
-                    setCookie('selectedCollege', dbCollege);
-                    console.log('✅ Cross-device sync (retry): Restored college from profile:', dbCollege);
-                  }
-                }
-              });
-          }, 2000);
           return;
         }
         
         const dbClass = data?.class_id || '';
         const dbCollege = data?.college_id || '';
         
-        console.log('Profile loaded from DB:', { dbClass, dbCollege, userEmail: user.email });
+        console.log('Profile loaded:', { dbClass, dbCollege });
         
-        // Clear any existing local selections to ensure clean state
-        setSelectedClass('');
-        setSelectedCollege('');
-        
-        // Always prioritize database values (user's last explicit choice)
+        // Set state and localStorage from database
         if (dbClass) {
           setSelectedClass(dbClass);
           localStorage.setItem('selectedClass', dbClass);
-          setCookie('selectedClass', dbClass);
-          console.log('✅ Cross-device sync: Restored class from profile:', dbClass);
         }
         
         if (dbCollege) {
           setSelectedCollege(dbCollege);
           localStorage.setItem('selectedCollege', dbCollege);
-          setCookie('selectedCollege', dbCollege);
-          console.log('✅ Cross-device sync: Restored college from profile:', dbCollege);
-        }
-        
-        if (!dbClass && !dbCollege) {
-          console.log('ℹ️ No class/college selection found in profile for user:', user.email);
         }
       });
   }, [user]);
 
   // No default class/college selection. Persist only explicit user choices.
 
-  // Track if this is a user-initiated change vs. system restoration
-  const [isUserChange, setIsUserChange] = useState(false);
-
-  // On class change, update profile if logged in, else just localStorage
+  // Simple approach: When selection changes, update both localStorage and database
   useEffect(() => {
-    if (selectedClass && isUserChange) {
+    if (!selectedClass && !selectedCollege) return; // Skip if both are empty
+    
+    if (selectedClass) {
+      // Class selected - clear college and update database
       localStorage.setItem('selectedClass', selectedClass);
-      setCookie('selectedClass', selectedClass);
+      localStorage.removeItem('selectedCollege');
+      
       if (user?.id) {
         supabase
           .from('profiles')
-          .update({ class_id: selectedClass })
+          .update({ 
+            class_id: selectedClass, 
+            college_id: null 
+          })
           .eq('id', user.id)
           .then(({ error }) => {
             if (error) {
-              console.error('Failed to update profile class_id:', error);
+              console.error('Failed to update profile:', error);
             } else {
-              console.log('Profile updated: class_id =', selectedClass);
+              console.log('Profile updated: class =', selectedClass, 'college = null');
             }
           });
       }
-      // Auto-deselect college when class is selected (only on user change)
-      if (selectedCollege) {
-        setSelectedCollege('');
-        localStorage.removeItem('selectedCollege');
-        setCookie('selectedCollege', '', 0);
-        if (user?.id) {
-          supabase
-            .from('profiles')
-            .update({ college_id: null })
-            .eq('id', user.id)
-            .then(({ error }) => {
-              if (error) {
-                console.error('Failed to clear profile college_id:', error);
-              } else {
-                console.log('Profile updated: college_id cleared');
-              }
-            });
-        }
-      }
-      setIsUserChange(false); // Reset flag
     }
-  }, [selectedClass, user, selectedCollege, isUserChange]);
-
-  // On college change, update profile if logged in, else just localStorage
-  useEffect(() => {
-    if (selectedCollege && isUserChange) {
+    
+    if (selectedCollege) {
+      // College selected - clear class and update database
       localStorage.setItem('selectedCollege', selectedCollege);
-      setCookie('selectedCollege', selectedCollege);
+      localStorage.removeItem('selectedClass');
+      
       if (user?.id) {
         supabase
           .from('profiles')
-          .update({ college_id: selectedCollege })
+          .update({ 
+            class_id: null, 
+            college_id: selectedCollege 
+          })
           .eq('id', user.id)
           .then(({ error }) => {
             if (error) {
-              console.error('Failed to update profile college_id:', error);
+              console.error('Failed to update profile:', error);
             } else {
-              console.log('Profile updated: college_id =', selectedCollege);
+              console.log('Profile updated: class = null, college =', selectedCollege);
             }
           });
       }
-      // Auto-deselect class when college is selected (only on user change)
-      if (selectedClass) {
-        setSelectedClass('');
-        localStorage.removeItem('selectedClass');
-        setCookie('selectedClass', '', 0);
-        if (user?.id) {
-          supabase
-            .from('profiles')
-            .update({ class_id: null })
-            .eq('id', user.id)
-            .then(({ error }) => {
-              if (error) {
-                console.error('Failed to clear profile class_id:', error);
-              } else {
-                console.log('Profile updated: class_id cleared');
-              }
-            });
-        }
-      }
-      setIsUserChange(false); // Reset flag
     }
-  }, [selectedCollege, user, selectedClass, isUserChange]);
+  }, [selectedClass, selectedCollege, user]);
 
   // Debug function for cross-device sync verification (available in console)
   useEffect(() => {
@@ -272,7 +192,7 @@ const Home = () => {
   }, [user, selectedClass, selectedCollege]);
 
   return (
-    <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} setIsUserChange={setIsUserChange}>
+    <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
       <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />
       <div className="min-h-screen flex flex-col">
         <AIHero />
