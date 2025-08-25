@@ -11,12 +11,16 @@ const corsHeaders = {
 const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
 
 serve(async (req) => {
+  console.log("Function started");
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log("Handling CORS preflight");
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    console.log("Parsing request body");
     const { query, fileData, mode, followUp, language, stream = false } = await req.json();
     
     console.log("Processing query:", query);
@@ -26,6 +30,21 @@ serve(async (req) => {
 
     if (!GEMINI_API_KEY) {
       throw new Error("Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.");
+    }
+
+    // For now, let's return a simple response to test if the function works at all
+    if (query === 'hello') {
+      console.log("Returning test response for 'hello'");
+      return new Response(
+        JSON.stringify({
+          answer: "Hello! I'm your AI learning assistant. How can I help you today?",
+          categories: ["General"],
+          followUpSuggestions: ["What would you like to learn?", "Can you explain a concept?"]
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
     }
 
     // Construct the system message based on the mode
@@ -86,6 +105,8 @@ serve(async (req) => {
       })
     });
 
+    console.log("Gemini API response status:", response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
       console.error("Gemini API error:", response.status, errorText);
@@ -104,6 +125,7 @@ serve(async (req) => {
     // If streaming is requested, return a streaming response
     if (stream) {
       try {
+        console.log("Creating streaming response");
         const stream = new ReadableStream({
           start(controller) {
             // Send the full answer in chunks to simulate streaming
@@ -225,6 +247,7 @@ serve(async (req) => {
       followUpSuggestions.push("Can you provide an example?");
     }
 
+    console.log("Returning final response");
     return new Response(
       JSON.stringify({
         answer,
