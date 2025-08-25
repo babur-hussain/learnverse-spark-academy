@@ -3,11 +3,17 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS')?.split(',') || ['https://localhost:3000', 'https://localhost:8080'],
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
-const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
+// SECURITY FIX: Move API key to environment variable
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable not configured');
+}
 
 serve(async (req) => {
   console.log("Function started");
@@ -20,7 +26,24 @@ serve(async (req) => {
 
   try {
     console.log("Parsing request body");
-    const { query, fileData, mode, followUp, language, stream = false } = await req.json();
+    
+    // SECURITY FIX: Enhanced input validation with Zod-like schema
+    const requestBody = await req.json();
+    
+    // Validate required fields
+    if (!requestBody.query || typeof requestBody.query !== 'string') {
+      throw new Error('Query is required and must be a string');
+    }
+    
+    if (requestBody.query.length > 1000) {
+      throw new Error('Query too long (max 1000 characters)');
+    }
+    
+    if (requestBody.fileData && typeof requestBody.fileData === 'string' && requestBody.fileData.length > 50000) {
+      throw new Error('File data too large (max 50KB)');
+    }
+    
+    const { query, fileData, mode, followUp, language, stream = false } = requestBody;
     
     console.log("Processing query:", query);
     console.log("Mode:", mode);
@@ -28,7 +51,7 @@ serve(async (req) => {
     console.log("API Key available:", !!GEMINI_API_KEY);
 
     if (!GEMINI_API_KEY) {
-      throw new Error("Gemini API key is not configured.");
+      throw new Error("Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.");
     }
 
     // For now, let's return a simple response to test if the function works at all

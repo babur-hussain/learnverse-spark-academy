@@ -2,14 +2,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-// TEMPORARILY COMMENTED OUT: const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
-const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
-
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS')?.split(',') || ['https://localhost:3000', 'https://localhost:8080'],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
+
+// SECURITY FIX: Move API key to environment variable
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable not configured');
+}
 
 serve(async (req: Request) => {
   // Handle CORS preflight requests

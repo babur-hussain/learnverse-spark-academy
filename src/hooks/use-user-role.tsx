@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export type UserRole = 'admin' | 'teacher' | 'student';
@@ -25,21 +25,13 @@ export const useUserRole = () => {
         setIsLoading(true);
         setError(null);
         
-        // Special case: If user email is admin email from AuthContext, grant admin role
-        // This avoids any database lookup for the admin user
-        if (user.email && user.email.toLowerCase() === 'admin@sparkacademy.edu') {
-          console.log('Admin user detected via email, granting admin role');
-          setRole('admin');
-          setIsLoading(false);
-          return;
-        }
-        
-        // Direct query to user_roles table using service role client to avoid RLS recursion
-        // This is cleaner than the previous approach that triggered recursion
+        // SECURITY FIX: Remove email-based admin bypass and implement proper role verification
+        // Query user_roles table for proper role verification
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
-          .select('role')
+          .select('role, is_active, verified')
           .eq('user_id', user.id)
+          .eq('is_active', true)
           .maybeSingle();
           
         if (roleError) {
@@ -47,38 +39,40 @@ export const useUserRole = () => {
           throw roleError;
         }
           
-        if (roleData?.role === 'admin') {
+        // Only grant admin role if explicitly assigned and verified
+        if (roleData?.role === 'admin' && roleData?.verified === true) {
           setRole('admin');
-        } else if (roleData?.role === 'teacher') {
+        } else if (roleData?.role === 'teacher' && roleData?.is_active === true) {
           setRole('teacher');
         } else {
-          // Default to student if no role found
+          // Default to student if no role found or role not verified
           setRole('student');
         }
       } catch (e) {
         console.error('Error in useUserRole hook:', e);
-        setError(e as Error);
+        setError(e instanceof Error ? e : new Error('Unknown error occurred'));
         
-        // Fallback to admin check based on email
-        if (user.email && user.email.toLowerCase() === 'admin@sparkacademy.edu') {
-          console.log('Admin email detected after error, using fallback');
-          setRole('admin');
-        } else {
-          // Default to student role if we can't determine the role
-          setRole('student');
-        }
+        // Show user-friendly error message
+        toast({
+          title: "Role Verification Error",
+          description: "There was a problem verifying your role. Defaulting to student access.",
+          variant: "destructive"
+        });
+        
+        // Default to student role on error
+        setRole('student');
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     fetchUserRole();
   }, [user, toast]);
-  
+
   const isAdmin = role === 'admin';
-  const isTeacher = role === 'teacher' || role === 'admin'; // Admin can do everything a teacher can
-  const isStudent = role === 'student' || !role; // Default to student access if no role
-  
+  const isTeacher = role === 'teacher' || role === 'admin';
+  const isStudent = role === 'student';
+
   return {
     role,
     isAdmin,

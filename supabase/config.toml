@@ -4,4 +4,4 @@ project_id = "wdmzylggisbudnddcpfw"
 # TEMPORARILY COMMENTED OUT: DeepSeek API integration
 # NEW: This function now uses Google Gemini API
 [functions.deepseek-ai]
-verify_jwt = false
+verify_jwt = true
