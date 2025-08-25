@@ -16,9 +16,10 @@ interface NavbarProps {
   setSelectedClass?: any;
   selectedCollege?: any;
   setSelectedCollege?: any;
+  setIsUserChange?: (value: boolean) => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege }) => {
+const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege, setIsUserChange }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
@@ -211,25 +212,37 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
 
   const handleClassSelect = useCallback((classObj: any) => {
     if (setSelectedClass) {
+      // Signal that this is a user-initiated change
+      if (setIsUserChange) setIsUserChange(true);
       setSelectedClass(classObj.id);
       // Auto-deselect college when class is selected
       if (setSelectedCollege) {
-        setSelectedCollege(null);
+        setSelectedCollege('');
       }
+      try {
+        localStorage.setItem('selectedClass', classObj.id);
+        localStorage.removeItem('selectedCollege');
+      } catch {}
     }
     setIsClassDropdownOpen(false);
-  }, [setSelectedClass, setSelectedCollege]);
+  }, [setSelectedClass, setSelectedCollege, setIsUserChange]);
 
   const handleCollegeSelect = useCallback((collegeObj: any) => {
     if (setSelectedCollege) {
+      // Signal that this is a user-initiated change
+      if (setIsUserChange) setIsUserChange(true);
       setSelectedCollege(collegeObj.id);
       // Auto-deselect class when college is selected
       if (setSelectedClass) {
-        setSelectedClass(null);
+        setSelectedClass('');
       }
+      try {
+        localStorage.setItem('selectedCollege', collegeObj.id);
+        localStorage.removeItem('selectedClass');
+      } catch {}
     }
     setIsCollegeDropdownOpen(false);
-  }, [setSelectedCollege, setSelectedClass]);
+  }, [setSelectedCollege, setSelectedClass, setIsUserChange]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -557,11 +570,17 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 onChange={e => {
                   const cls = classes.find(c => c.id === e.target.value);
                   if (cls) {
+                    // Signal that this is a user-initiated change
+                    if (setIsUserChange) setIsUserChange(true);
                     setSelectedClass(cls.id);
                     // Auto-deselect college when class is selected
                     if (setSelectedCollege) {
-                      setSelectedCollege(null);
+                      setSelectedCollege('');
                     }
+                    try {
+                      localStorage.setItem('selectedClass', cls.id);
+                      localStorage.removeItem('selectedCollege');
+                    } catch {}
                   }
                 }}
               >
@@ -577,14 +596,20 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               <select
                 className="rounded-md border px-1 sm:px-2 py-1 text-xs sm:text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 max-w-[80px] sm:max-w-none"
                 value={selectedCollege || ''}
-                onChange={e => {
+                                onChange={e => {
                   const col = colleges.find(c => c.id === e.target.value);
                   if (col) {
+                    // Signal that this is a user-initiated change
+                    if (setIsUserChange) setIsUserChange(true);
                     setSelectedCollege(col.id);
                     // Auto-deselect class when college is selected
                     if (setSelectedClass) {
-                      setSelectedClass(null);
+                      setSelectedClass('');
                     }
+                    try {
+                      localStorage.setItem('selectedCollege', col.id);
+                      localStorage.removeItem('selectedClass');
+                    } catch {}
                   }
                 }}
               >

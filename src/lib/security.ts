@@ -166,6 +166,16 @@ interface RateLimitConfig {
   message: string;
 }
 
+// Lightweight React component to safely render limited HTML
+// Uses DOMPurify at runtime to sanitize rich content from users
+import DOMPurify from 'dompurify'
+import React from 'react'
+
+export const SanitizedHtml: React.FC<{ html: string }> = ({ html }) => {
+  const clean = React.useMemo(() => DOMPurify.sanitize(html || '', { ALLOWED_ATTR: ['href','target','rel','alt','title'], FORBID_TAGS: ['script','style','iframe','object','embed'] }), [html])
+  return <div dangerouslySetInnerHTML={{ __html: clean }} />
+}
+
 export const createRateLimiter = (config: RateLimitConfig) => {
   const requests = new Map<string, { count: number; resetTime: number }>();
   

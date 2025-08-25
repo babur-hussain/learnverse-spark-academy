@@ -8,12 +8,9 @@
 **Vulnerability**: Gemini API key hardcoded in source code
 **Impact**: API key exposure, potential abuse, cost implications
 
-**Files Affected**:
-- `supabase/functions/deepseek-ai/index.ts`
-- `supabase/functions/career-guidance/index.ts`
-- `supabase/functions/grade-answer/index.ts`
+**Files Affected**: previously functions and templates.
 
-**Fix Required**: Move to environment variables
+**Fix Implemented**: moved to environment variables; removed hardcoded example keys from templates/docs.
 
 ### 2. **JWT VERIFICATION DISABLED** - CRITICAL
 **Risk Level**: 🔴 CRITICAL
@@ -52,7 +49,7 @@
 ### Fix 1: Secure API Key Management
 ```typescript
 // BEFORE (VULNERABLE)
-const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
+const GEMINI_API_KEY = "<HARDCODED_KEY>";
 
 // AFTER (SECURE)
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');

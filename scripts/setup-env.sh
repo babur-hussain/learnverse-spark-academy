@@ -111,7 +111,7 @@ main() {
 # ============================================================================
 
 # Google Gemini API Key (REQUIRED)
-GEMINI_API_KEY=AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA
+GEMINI_API_KEY=YOUR_GEMINI_API_KEY
 
 # JWT Secret for authentication (REQUIRED)
 JWT_SECRET=$(generate_secret)
@@ -184,7 +184,7 @@ EOF
     
     # Gemini API Key
     print_status "Setting up Gemini API Key..."
-    prompt_with_default "Enter your Gemini API Key" "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA" "GEMINI_API_KEY"
+    prompt_with_default "Enter your Gemini API Key" "" "GEMINI_API_KEY"
     
     # JWT Secret
     print_status "Setting up JWT Secret..."

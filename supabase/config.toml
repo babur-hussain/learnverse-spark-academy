@@ -5,3 +5,24 @@ project_id = "wdmzylggisbudnddcpfw"
 # NEW: This function now uses Google Gemini API
 [functions.deepseek-ai]
 verify_jwt = true
+
+[functions.career-guidance]
+verify_jwt = true
+
+[functions.grade-answer]
+verify_jwt = true
+
+[functions.create-razorpay-order]
+verify_jwt = true
+
+[functions.verify-razorpay-payment]
+verify_jwt = true
+
+[functions.send-newsletter]
+verify_jwt = true
+
+[functions.check-live-access]
+verify_jwt = true
+
+[functions.increment-coupon-usage]
+verify_jwt = true

@@ -96,7 +96,9 @@ const PostsList = ({ posts, threadType, onAcceptAnswer, onVote }: PostsListProps
               </div>
             </div>
             
-            <div className="mt-2 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: post.content }} />
+            <div className="mt-2 prose prose-sm max-w-none">
+              <SanitizedHtml html={post.content} />
+            </div>
             
             <div className="mt-4 flex flex-wrap justify-between items-center">
               <div className="flex space-x-2">

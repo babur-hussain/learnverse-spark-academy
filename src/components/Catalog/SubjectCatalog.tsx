@@ -53,7 +53,16 @@ function SubjectCard({ subject, chapterCount, viewMode }: { subject: Subject, ch
           ) : (
             <div className="w-full h-full flex items-center justify-center absolute top-0 left-0">
               {subject.icon ? (
-                <span className="text-4xl text-primary opacity-80">{subject.icon}</span>
+                isUrl(subject.icon) ? (
+                  <img
+                    src={subject.icon}
+                    alt={subject.title}
+                    className="w-full h-full object-cover rounded-lg"
+                    onError={() => {/* hide if broken */}}
+                  />
+                ) : (
+                  <span className="text-4xl text-primary opacity-80">{subject.icon}</span>
+                )
               ) : (
                 <BookOpen size={40} className="text-primary opacity-80" />
               )}
@@ -97,7 +106,16 @@ function SubjectCard({ subject, chapterCount, viewMode }: { subject: Subject, ch
                   onError={() => setImageError(true)}
                 />
               ) : subject.icon ? (
-                <span className="text-2xl text-primary opacity-80">{subject.icon}</span>
+                isUrl(subject.icon) ? (
+                  <img
+                    src={subject.icon}
+                    alt={subject.title}
+                    className="w-full h-full object-cover rounded-lg"
+                    onError={() => {/* hide if broken */}}
+                  />
+                ) : (
+                  <span className="text-2xl text-primary opacity-80">{subject.icon}</span>
+                )
               ) : (
                 <BookOpen size={24} className="text-primary opacity-80" />
               )}

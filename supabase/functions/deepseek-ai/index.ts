@@ -2,12 +2,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('ALLOWED_ORIGINS')?.split(',') || ['https://localhost:3000', 'https://localhost:8080'],
+const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean)
+const baseHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
   'Access-Control-Max-Age': '86400',
-};
+} as const
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const headers: Record<string, string> = { ...baseHeaders }
+  if (origin && allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin
+  }
+  return headers
+}
 
 // SECURITY FIX: Move API key to environment variable
 const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
@@ -19,9 +27,10 @@ serve(async (req) => {
   console.log("Function started");
   
   // Handle CORS preflight requests
+  const origin = req.headers.get('Origin')
   if (req.method === 'OPTIONS') {
     console.log("Handling CORS preflight");
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: buildCorsHeaders(origin) });
   }
 
   try {
@@ -64,9 +73,25 @@ serve(async (req) => {
           followUpSuggestions: ["What would you like to learn?", "Can you explain a concept?"]
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" }
+          headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
         }
       );
+    }
+
+    // Basic per-IP rate limit (memory, per instance)
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || 'unknown'
+    const now = Date.now()
+    const windowMs = 60_000
+    const maxReq = 20
+    // globalThis.rates as in-memory map
+    const store = (globalThis as unknown as { rates?: Map<string, { count: number; reset: number }> })
+    if (!store.rates) store.rates = new Map()
+    const rec = store.rates.get(ip) || { count: 0, reset: now + windowMs }
+    if (now > rec.reset) { rec.count = 0; rec.reset = now + windowMs }
+    rec.count += 1
+    store.rates.set(ip, rec)
+    if (rec.count > maxReq) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: buildCorsHeaders(origin) })
     }
 
     // For other queries, try to use Gemini API
@@ -135,7 +160,7 @@ serve(async (req) => {
         followUpSuggestions
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
       }
     );
 
@@ -149,7 +174,7 @@ serve(async (req) => {
       }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" }
+        headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
       }
     );
   }

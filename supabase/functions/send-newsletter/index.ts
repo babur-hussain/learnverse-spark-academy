@@ -4,11 +4,18 @@ import { Resend } from "npm:resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const allowedOrigins = (Deno.env.get("ALLOWED_ORIGINS") || '').split(',').map(s => s.trim()).filter(Boolean)
+const baseHeaders = {
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+} as const
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const headers: Record<string, string> = { ...baseHeaders }
+  if (origin && allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin
+  }
+  return headers
+}
 
 interface NewsletterRequest {
   campaignId: string;
@@ -19,11 +26,41 @@ interface NewsletterRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
+  const origin = req.headers.get('Origin')
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: buildCorsHeaders(origin) });
   }
 
   try {
+    // Basic per-IP rate limit
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || 'unknown'
+    const now = Date.now()
+    const windowMs = 60_000
+    const maxReq = 5
+    const store = (globalThis as unknown as { ratesNewsletter?: Map<string, { count: number; reset: number }> })
+    if (!store.ratesNewsletter) store.ratesNewsletter = new Map()
+    const rec = store.ratesNewsletter.get(ip) || { count: 0, reset: now + windowMs }
+    if (now > rec.reset) { rec.count = 0; rec.reset = now + windowMs }
+    rec.count += 1
+    store.ratesNewsletter.set(ip, rec)
+    if (rec.count > maxReq) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: buildCorsHeaders(origin) })
+    }
+
+    // Require admin JWT
+    const auth = req.headers.get('Authorization')
+    if (!auth) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: buildCorsHeaders(origin) })
+
+    const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2.7.1')
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    )
+    const { data: { user } } = await supabase.auth.getUser(auth.replace('Bearer ', ''))
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: buildCorsHeaders(origin) })
+    const { data: roleRow } = await supabase.from('user_roles').select('role').eq('user_id', user.id).maybeSingle()
+    if (roleRow?.role !== 'admin') return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: buildCorsHeaders(origin) })
+
     const { campaignId, subject, content, recipients }: NewsletterRequest = await req.json();
 
     console.log(`Sending newsletter campaign ${campaignId} to ${recipients.length} recipients`);
@@ -37,6 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
       
       const batchPromises = batch.map(async (recipient) => {
         try {
+          const token = crypto.randomUUID()
           const emailResponse = await resend.emails.send({
             from: "LearnVerse <noreply@sparkacademy.edu>",
             to: [recipient.email],
@@ -56,7 +94,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
                       <p style="font-size: 14px; color: #64748b;">
                         You're receiving this email because you subscribed to LearnVerse newsletter.<br>
-                        <a href="${Deno.env.get('SITE_URL')}/unsubscribe?email=${encodeURIComponent(recipient.email)}" style="color: #64748b;">Unsubscribe</a>
+                        <a href="${Deno.env.get('SITE_URL')}/unsubscribe?token=${encodeURIComponent(token)}" style="color: #64748b;">Unsubscribe</a>
                       </p>
                     </div>
                   </div>
@@ -106,7 +144,7 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        ...corsHeaders,
+        ...buildCorsHeaders(origin),
       },
     });
   } catch (error: any) {
@@ -115,7 +153,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json", ...buildCorsHeaders(origin) },
       }
     );
   }

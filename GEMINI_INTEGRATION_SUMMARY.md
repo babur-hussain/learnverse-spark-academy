@@ -9,7 +9,7 @@ This document summarizes the temporary replacement of DeepSeek API with Google G
 
 #### 1.1 `supabase/functions/deepseek-ai/index.ts`
 - **DeepSeek API Key**: Commented out `DEEPSEEK_API_KEY` environment variable
-- **New Gemini API Key**: Added hardcoded `GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA"`
+- **Gemini API Key**: Use environment variable `GEMINI_API_KEY` (do not hardcode)
 - **API Endpoint**: Changed from `https://api.deepseek.com/v1/chat/completions` to `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`
 - **Request Format**: Updated from DeepSeek's `messages` format to Gemini's `contents` format with `parts` array
 - **Response Processing**: Changed from `data.choices[0].message.content` to `data.candidates[0].content.parts[0].text`
@@ -18,7 +18,7 @@ This document summarizes the temporary replacement of DeepSeek API with Google G
 
 #### 1.2 `supabase/functions/career-guidance/index.ts`
 - **DeepSeek API Key**: Commented out `DEEPSEEK_API_KEY` environment variable
-- **New Gemini API Key**: Added hardcoded `GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA"`
+- **Gemini API Key**: Use environment variable `GEMINI_API_KEY` (do not hardcode)
 - **Function Renaming**: Changed `callDeepSeekAPI` to `callGeminiAPI` (commented out old function)
 - **API Endpoint**: Updated to use Gemini API endpoint
 - **Request Format**: Modified to use Gemini's `contents` format
@@ -27,7 +27,7 @@ This document summarizes the temporary replacement of DeepSeek API with Google G
 
 #### 1.3 `supabase/functions/grade-answer/index.ts`
 - **DeepSeek API Key**: Commented out `DEEPSEEK_API_KEY` environment variable
-- **New Gemini API Key**: Added hardcoded `GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA"`
+- **Gemini API Key**: Use environment variable `GEMINI_API_KEY` (do not hardcode)
 - **API Endpoint**: Changed to Gemini API endpoint
 - **Request Format**: Updated to use Gemini's `contents` format with system and user messages
 - **Response Processing**: Modified to handle Gemini's `candidates` response structure
@@ -48,7 +48,7 @@ This document summarizes the temporary replacement of DeepSeek API with Google G
 
 ## API Key Details
 
-- **Gemini API Key**: `AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA`
+- **Gemini API Key**: set via environment variable; rotate if exposed
 - **Model**: `gemini-pro`
 - **Endpoint**: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent`
 

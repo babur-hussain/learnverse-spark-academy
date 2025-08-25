@@ -39,11 +39,11 @@ const loginSchema = z.object({
 });
 
 const registerSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
+  email: z.string().min(1, "Email is required").email({ message: "Please enter a valid email address." }),
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  username: z.string().min(3, { message: "Username must be at least 3 characters." }).optional(),
-  fullName: z.string().optional(),
-  role: z.enum(['student', 'teacher']),
+  username: z.string().min(3, { message: "Username must be at least 3 characters." }).optional().or(z.literal('')),
+  fullName: z.string().optional().or(z.literal('')),
+  role: z.enum(['student', 'teacher'], { required_error: "Please select a role" }),
 });
 
 const phoneSchema = z.object({
@@ -98,16 +98,23 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   });
 
   React.useEffect(() => {
-    if (activeTab === "login") {
-      loginForm.reset();
-    } else if (activeTab === "register") {
-      registerForm.reset();
-    } else {
-      phoneForm.reset();
+    try {
+      if (activeTab === "login") {
+        loginForm.reset();
+      } else if (activeTab === "register") {
+        registerForm.reset();
+      } else {
+        phoneForm.reset();
+      }
+      setAuthError(null);
+      setSuccessMessage(null);
+    } catch (error) {
+      console.error('Error resetting form:', error);
+      // Fallback: manually clear forms
+      setAuthError(null);
+      setSuccessMessage(null);
     }
-    setAuthError(null);
-    setSuccessMessage(null);
-  }, [activeTab]);
+  }, [activeTab, loginForm, registerForm, phoneForm]);
 
   const processReferralSignup = async (newUserId: string) => {
     if (!referralCode) return;
@@ -152,32 +159,59 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setIsSubmitting(true);
     setAuthError(null);
     setSuccessMessage(null);
+    
     try {
+      // Validate form data before submission
+      if (!data.email || !data.password || !data.role) {
+        setAuthError("Please fill in all required fields");
+        return;
+      }
+
       const response = await signUp(data.email, data.password, {
-        username: data.username,
-        full_name: data.fullName,
+        username: data.username || '',
+        full_name: data.fullName || '',
         role: data.role as UserRole,
       });
       
-      if (response && response.error) {
+      // Handle response with proper error checking
+      if (!response) {
+        setAuthError("Registration failed. Please try again.");
+        return;
+      }
+      
+      if (response.error) {
         setAuthError(response.error);
         
+        // Only auto-switch to login for specific errors
         if (response.error === "Account already exists") {
           setTimeout(() => {
             setActiveTab("login");
-          }, 2000);
+          }, 3000); // Increased delay for better UX
         }
-      } else {
-        // Process referral if code was provided
-        if (referralCode && response?.user?.id) {
-          await processReferralSignup(response.user.id);
-        }
-        
-        setSuccessMessage("Registration successful! You can now sign in.");
-        setTimeout(() => {
-          setActiveTab("login");
-        }, 2000);
+        return;
       }
+      
+      // Success case - process referral if provided
+      if (response.user && referralCode) {
+        try {
+          await processReferralSignup(response.user.id);
+        } catch (error) {
+          console.error('Referral processing failed:', error);
+          // Don't fail registration for referral issues
+        }
+      }
+      
+      // Show success message and let user choose when to switch
+      setSuccessMessage("Registration successful! You can now sign in.");
+      
+      // Don't auto-switch - let user decide
+      // setTimeout(() => {
+      //   setActiveTab("login");
+      // }, 2000);
+      
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      setAuthError(error.message || "Registration failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -476,6 +510,24 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                   </Button>
                 </form>
               </Form>
+
+              {/* Success message with manual tab switch */}
+              {successMessage && (
+                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-center gap-2 text-green-800">
+                    <Check className="h-4 w-4" />
+                    <span className="text-sm font-medium">{successMessage}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 w-full"
+                    onClick={() => setActiveTab("login")}
+                  >
+                    Go to Sign In
+                  </Button>
+                </div>
+              )}
 
               <div className="mt-4 space-y-4">
                 <Separator className="relative">

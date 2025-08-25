@@ -33,7 +33,8 @@ const ThreadView = ({ thread, onVotePoll }: ThreadViewProps) => {
   return (
     <div className="space-y-6">
       {/* Thread content */}
-      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: thread.content }} />
+      {/* Sanitize HTML to prevent XSS */}
+      <SanitizedHtml html={thread.content} />
       
       {/* Poll display */}
       {thread.poll && (
