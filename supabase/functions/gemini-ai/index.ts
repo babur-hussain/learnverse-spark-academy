@@ -62,36 +62,6 @@ serve(async (req) => {
     console.log("Mode:", mode);
     console.log("Stream mode:", stream);
 
-    // Test response for simple queries
-    if (query.toLowerCase() === 'hello' || query.toLowerCase() === 'hi') {
-      console.log("Returning test response for greeting");
-      return new Response(
-        JSON.stringify({
-          answer: "Hello! I'm your AI learning assistant. How can I help you today?",
-          categories: ["General"],
-          followUpSuggestions: ["What would you like to learn?", "Can you explain a concept?"]
-        }),
-        {
-          headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
-        }
-      );
-    }
-
-    // Test response for longer queries to debug
-    if (query.toLowerCase().includes('class 8 science ncert') || query.toLowerCase().includes('chapters')) {
-      console.log("Returning test response for chapter query");
-      return new Response(
-        JSON.stringify({
-          answer: "Here are the NCERT Class 8 Science chapters:\n\n1. Crop Production and Management\n2. Microorganisms: Friend and Foe\n3. Synthetic Fibres and Plastics\n4. Materials: Metals and Non-Metals\n5. Coal and Petroleum\n6. Combustion and Flame\n7. Conservation of Plants and Animals\n8. Cell Structure and Functions\n9. Reproduction in Animals\n10. Reaching the Age of Adolescence\n11. Force and Pressure\n12. Friction\n13. Sound\n14. Chemical Effects of Electric Current\n15. Some Natural Phenomena\n16. Light\n17. Stars and the Solar System\n18. Pollution of Air and Water\n\nThis is a test response to help debug the AI search functionality.",
-          categories: ["Science", "Education"],
-          followUpSuggestions: ["Which chapter would you like to learn more about?", "Can you explain any specific concept?", "What are the key topics in these chapters?"]
-        }),
-        {
-          headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
-        }
-      );
-    }
-
     // Basic rate limiting
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || 'unknown'
     const now = Date.now()
@@ -126,28 +96,69 @@ serve(async (req) => {
     ];
 
     try {
+      console.log("Making Gemini API request...");
+      
+      const requestBody = {
+        contents: [{
+          parts: [{
+            text: `${systemMessage}\n\nUser question: ${query}`
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 4000,
+          topP: 0.8,
+          topK: 40
+        },
+        safetySettings: [
+          {
+            category: "HARM_CATEGORY_HARASSMENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_HATE_SPEECH",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          },
+          {
+            category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+            threshold: "BLOCK_MEDIUM_AND_ABOVE"
+          }
+        ]
+      };
+
+      console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          contents: messages.map(msg => ({
-            parts: [{ text: msg.content }]
-          })),
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2000,
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log("Gemini API response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Gemini API error:", response.status, errorText);
-        throw new Error(`AI service error: ${response.status} - ${errorText}`);
+        
+        // Try to parse error details
+        let errorDetails = errorText;
+        try {
+          const errorJson = JSON.parse(errorText);
+          if (errorJson.error && errorJson.error.message) {
+            errorDetails = errorJson.error.message;
+          }
+        } catch (e) {
+          // Keep original error text if parsing fails
+        }
+        
+        throw new Error(`Gemini API error (${response.status}): ${errorDetails}`);
       }
 
       const data = await response.json();
@@ -156,7 +167,7 @@ serve(async (req) => {
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
         console.error("Invalid response structure:", JSON.stringify(data, null, 2));
-        throw new Error("Invalid response format from AI service");
+        throw new Error("Invalid response format from Gemini API");
       }
       
       const answer = data.candidates[0].content.parts[0].text;
