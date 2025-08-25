@@ -27,11 +27,11 @@ export const useUserRole = () => {
         
         // SECURITY FIX: Remove email-based admin bypass and implement proper role verification
         // Query user_roles table for proper role verification
+        // Note: Using existing schema without is_active and verified columns
         const { data: roleData, error: roleError } = await supabase
           .from('user_roles')
-          .select('role, is_active, verified')
+          .select('role')
           .eq('user_id', user.id)
-          .eq('is_active', true)
           .maybeSingle();
           
         if (roleError) {
@@ -39,13 +39,13 @@ export const useUserRole = () => {
           throw roleError;
         }
           
-        // Only grant admin role if explicitly assigned and verified
-        if (roleData?.role === 'admin' && roleData?.verified === true) {
+        // Grant admin role if explicitly assigned in database
+        if (roleData?.role === 'admin') {
           setRole('admin');
-        } else if (roleData?.role === 'teacher' && roleData?.is_active === true) {
+        } else if (roleData?.role === 'teacher') {
           setRole('teacher');
         } else {
-          // Default to student if no role found or role not verified
+          // Default to student if no role found
           setRole('student');
         }
       } catch (e) {

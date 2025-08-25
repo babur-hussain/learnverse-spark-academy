@@ -12,9 +12,11 @@
     "security:test": "node scripts/security-test.js",
     "security:audit": "npm audit && npm run security:test",
     "security:fix": "npm audit fix && npm run security:test",
+    "setup:env": "./scripts/setup-env.sh",
     "build:android": "npm run build && npx cap sync android",
     "build:android-apk": "npm run build:android && cd android && ./gradlew assembleDebug",
-    "serve:android-web": "npm run build && npx vite preview --port 8888 --host"
+    "build:ios": "npm run build && npx cap sync ios",
+    "build:ios-app": "npm run build:ios && cd ios && xcodebuild -workspace App.xcworkspace -scheme App -configuration Release -destination generic/platform=iOS -archivePath App.xcarchive archive && xcodebuild -archivePath App.xcarchive -exportArchive -exportOptionsPlist exportOptions.plist -exportPath ./build"
   },
   "dependencies": {
     "@capacitor/android": "^7.2.0",
