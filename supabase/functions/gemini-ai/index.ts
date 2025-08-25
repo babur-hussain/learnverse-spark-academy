@@ -77,6 +77,21 @@ serve(async (req) => {
       );
     }
 
+    // Test response for longer queries to debug
+    if (query.toLowerCase().includes('class 8 science ncert') || query.toLowerCase().includes('chapters')) {
+      console.log("Returning test response for chapter query");
+      return new Response(
+        JSON.stringify({
+          answer: "Here are the NCERT Class 8 Science chapters:\n\n1. Crop Production and Management\n2. Microorganisms: Friend and Foe\n3. Synthetic Fibres and Plastics\n4. Materials: Metals and Non-Metals\n5. Coal and Petroleum\n6. Combustion and Flame\n7. Conservation of Plants and Animals\n8. Cell Structure and Functions\n9. Reproduction in Animals\n10. Reaching the Age of Adolescence\n11. Force and Pressure\n12. Friction\n13. Sound\n14. Chemical Effects of Electric Current\n15. Some Natural Phenomena\n16. Light\n17. Stars and the Solar System\n18. Pollution of Air and Water\n\nThis is a test response to help debug the AI search functionality.",
+          categories: ["Science", "Education"],
+          followUpSuggestions: ["Which chapter would you like to learn more about?", "Can you explain any specific concept?", "What are the key topics in these chapters?"]
+        }),
+        {
+          headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
+        }
+      );
+    }
+
     // Basic rate limiting
     const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || 'unknown'
     const now = Date.now()
@@ -101,6 +116,8 @@ serve(async (req) => {
 
     // Call Gemini API
     console.log("Calling Gemini API");
+    console.log("Query length:", query.length);
+    console.log("Query content:", query);
     
     const systemMessage = "You are an educational AI assistant designed to help students learn effectively. Provide clear, helpful explanations and examples when appropriate.";
     const messages = [
@@ -108,39 +125,49 @@ serve(async (req) => {
       { role: "user", content: query }
     ];
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: messages.map(msg => ({
-          parts: [{ text: msg.content }]
-        })),
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2000,
-        }
-      })
-    });
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: messages.map(msg => ({
+            parts: [{ text: msg.content }]
+          })),
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 2000,
+          }
+        })
+      });
 
-    console.log("Gemini API response status:", response.status);
+      console.log("Gemini API response status:", response.status);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
-      throw new Error(`AI service error: ${response.status}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Gemini API error:", response.status, errorText);
+        throw new Error(`AI service error: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log("Gemini response received successfully");
+      console.log("Response data keys:", Object.keys(data));
+
+      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+        console.error("Invalid response structure:", JSON.stringify(data, null, 2));
+        throw new Error("Invalid response format from AI service");
+      }
+      
+      const answer = data.candidates[0].content.parts[0].text;
+      console.log("Answer length:", answer.length);
+      console.log("Answer preview:", answer.substring(0, 100) + "...");
+      
+    } catch (apiError) {
+      console.error("Gemini API call failed:", apiError);
+      throw new Error(`Gemini API call failed: ${apiError.message}`);
     }
 
-    const data = await response.json();
-    console.log("Gemini response received successfully");
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-      throw new Error("Invalid response format from AI service");
-    }
-    
-    const answer = data.candidates[0].content.parts[0].text;
-    
     // Simple categorization
     const categories = ["General"];
     if (answer.toLowerCase().includes("math") || answer.toLowerCase().includes("formula") || answer.toLowerCase().includes("equation")) {
