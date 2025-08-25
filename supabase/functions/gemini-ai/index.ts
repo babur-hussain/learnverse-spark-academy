@@ -90,11 +90,7 @@ serve(async (req) => {
     console.log("Query content:", query);
     
     const systemMessage = "You are an educational AI assistant designed to help students learn effectively. Provide clear, helpful explanations and examples when appropriate.";
-    const messages = [
-      { role: "system", content: systemMessage },
-      { role: "user", content: query }
-    ];
-
+    
     try {
       console.log("Making Gemini API request...");
       
