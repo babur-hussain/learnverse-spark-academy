@@ -91,6 +91,8 @@ serve(async (req) => {
     
     const systemMessage = "You are an educational AI assistant designed to help students learn effectively. Provide clear, helpful explanations and examples when appropriate.";
     
+    let answer: string;
+    
     try {
       console.log("Making Gemini API request...");
       
@@ -166,7 +168,7 @@ serve(async (req) => {
         throw new Error("Invalid response format from Gemini API");
       }
       
-      const answer = data.candidates[0].content.parts[0].text;
+      answer = data.candidates[0].content.parts[0].text;
       console.log("Answer length:", answer.length);
       console.log("Answer preview:", answer.substring(0, 100) + "...");
       
