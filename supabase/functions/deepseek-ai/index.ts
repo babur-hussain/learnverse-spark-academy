@@ -103,45 +103,74 @@ serve(async (req) => {
     
     // If streaming is requested, return a streaming response
     if (stream) {
-      const stream = new ReadableStream({
-        start(controller) {
-          // Send the full answer in chunks to simulate streaming
-          const words = answer.split(' ');
-          let index = 0;
-          
-          const sendChunk = () => {
-            if (index < words.length) {
-              const chunk = words.slice(0, index + 1).join(' ');
-              controller.enqueue(`data: ${JSON.stringify({ 
-                chunk, 
-                isComplete: false,
-                progress: Math.round(((index + 1) / words.length) * 100)
-              })}\n\n`);
-              index++;
-              setTimeout(sendChunk, 50 + Math.random() * 100); // Random delay for natural typing effect
-            } else {
-              // Send completion signal
-              controller.enqueue(`data: ${JSON.stringify({ 
-                chunk: answer, 
-                isComplete: true,
-                progress: 100
-              })}\n\n`);
-              controller.close();
-            }
-          };
-          
-          sendChunk();
-        }
-      });
+      try {
+        const stream = new ReadableStream({
+          start(controller) {
+            // Send the full answer in chunks to simulate streaming
+            const words = answer.split(' ');
+            let index = 0;
+            
+            const sendChunk = () => {
+              if (index < words.length) {
+                const chunk = words.slice(0, index + 1).join(' ');
+                const chunkData = `data: ${JSON.stringify({ 
+                  chunk, 
+                  isComplete: false,
+                  progress: Math.round(((index + 1) / words.length) * 100)
+                })}\n\n`;
+                
+                try {
+                  controller.enqueue(new TextEncoder().encode(chunkData));
+                  index++;
+                  setTimeout(sendChunk, 50 + Math.random() * 100); // Random delay for natural typing effect
+                } catch (e) {
+                  console.error("Error enqueueing chunk:", e);
+                  controller.close();
+                }
+              } else {
+                // Send completion signal
+                const finalData = `data: ${JSON.stringify({ 
+                  chunk: answer, 
+                  isComplete: true,
+                  progress: 100
+                })}\n\n`;
+                
+                try {
+                  controller.enqueue(new TextEncoder().encode(finalData));
+                  controller.close();
+                } catch (e) {
+                  console.error("Error enqueueing final chunk:", e);
+                  controller.close();
+                }
+              }
+            };
+            
+            sendChunk();
+          }
+        });
 
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache',
-          'Connection': 'keep-alive',
-        },
-      });
+        return new Response(stream, {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive',
+          },
+        });
+      } catch (streamError) {
+        console.error("Streaming error:", streamError);
+        // Fallback to regular response if streaming fails
+        return new Response(
+          JSON.stringify({
+            answer,
+            categories: [],
+            followUpSuggestions: []
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" }
+          }
+        );
+      }
     }
     
     // Smart categorization based on content analysis
