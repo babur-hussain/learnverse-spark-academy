@@ -65,6 +65,19 @@ const formSchema = z.object({
     }
   ),
   categoryIds: z.array(z.string()).optional(),
+  classId: z.string().optional(),
+  collegeId: z.string().optional(),
+}).refine((data) => {
+  // If college is selected, class is optional
+  // If no college is selected, class is required
+  if (data.collegeId && data.collegeId.trim() !== '') {
+    return true; // College selected, class optional
+  } else {
+    return data.classId && data.classId.trim() !== ''; // No college, class required
+  }
+}, {
+  message: "Class is required when no college is selected",
+  path: ["classId"]
 });
 
 // Utility to safely map over possibly undefined/null arrays
@@ -97,6 +110,8 @@ export function SubjectDialog({
       icon: '',
       thumbnail_url: '',
       categoryIds: [],
+      classId: '',
+      collegeId: '',
     },
   });
 
@@ -122,6 +137,8 @@ export function SubjectDialog({
           description: subject.description || '',
           icon: subject.icon || '',
           thumbnail_url: subject.thumbnail_url || '',
+          classId: subject.class_id || '',
+          collegeId: subject.college_id || '',
         });
         if (subject.icon) {
           setIconPreview(subject.icon);
@@ -135,6 +152,8 @@ export function SubjectDialog({
           icon: '',
           thumbnail_url: '',
           categoryIds: [],
+          classId: '',
+          collegeId: '',
         });
         setSelectedCategoryIds([]);
         setSelectedClassId('');
@@ -360,9 +379,9 @@ export function SubjectDialog({
           .from('class_subjects')
           .delete()
           .eq('subject_id', subject.id);
-        if (selectedClassId) {
+        if (values.classId) {
           await supabase.from('class_subjects').insert({
-            class_id: selectedClassId,
+            class_id: values.classId,
             subject_id: subject.id
           });
         }
@@ -381,7 +400,7 @@ export function SubjectDialog({
             description: values.description,
             icon: iconUrl || values.icon,
             thumbnail_url: values.thumbnail_url,
-            college_id: selectedCollegeId || null,
+            college_id: values.collegeId || null,
           })
           .select();
 
@@ -414,10 +433,10 @@ export function SubjectDialog({
         }
 
         // Add class mapping (single class)
-        if (selectedClassId && data && data.length > 0) {
+        if (values.classId && data && data.length > 0) {
           const newSubjectId = data[0].id;
           const { error: classMapError } = await supabase.from('class_subjects').insert({
-            class_id: selectedClassId,
+            class_id: values.classId,
             subject_id: newSubjectId
           });
           if (classMapError) {
@@ -428,7 +447,7 @@ export function SubjectDialog({
               variant: 'destructive',
             });
           } else {
-            console.log('Class-subject mapping created:', { class_id: selectedClassId, subject_id: newSubjectId });
+            console.log('Class-subject mapping created:', { class_id: values.classId, subject_id: newSubjectId });
           }
         }
 
@@ -458,7 +477,9 @@ export function SubjectDialog({
   };
 
   const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedClassId(e.target.value);
+    const value = e.target.value;
+    setSelectedClassId(value);
+    form.setValue('classId', value);
   };
 
   return (
@@ -585,7 +606,6 @@ export function SubjectDialog({
                   className="w-full border rounded-md px-3 py-2 text-sm"
                   value={selectedClassId}
                   onChange={handleClassChange}
-                  required
                 >
                   <option value="">Select a class</option>
                   {classes.map(cls => (
@@ -595,6 +615,11 @@ export function SubjectDialog({
               ) : (
                 <div className="p-2 text-center text-muted-foreground text-sm">Loading classes...</div>
               )}
+              {!form.watch('collegeId') && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  Class selection is required when no college is selected
+                </div>
+              )}
             </div>
 
             <div>
@@ -602,13 +627,25 @@ export function SubjectDialog({
               <select
                 className="w-full border rounded-md px-3 py-2 text-sm"
                 value={selectedCollegeId}
-                onChange={e => setSelectedCollegeId(e.target.value)}
+                onChange={e => {
+                  const value = e.target.value;
+                  setSelectedCollegeId(value);
+                  form.setValue('collegeId', value);
+                  // Clear class selection when college is selected
+                  if (value && value.trim() !== '') {
+                    setSelectedClassId('');
+                    form.setValue('classId', '');
+                  }
+                }}
               >
                 <option value="">Select a college</option>
                 {colleges.map(college => (
                   <option key={college.id} value={college.id}>{college.name}</option>
                 ))}
               </select>
+              <div className="text-xs text-muted-foreground mt-1">
+                When a college is selected, class selection becomes optional
+              </div>
             </div>
 
             <DialogFooter>
