@@ -60,6 +60,8 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         content: query,
       });
 
+      // TEMPORARILY COMMENTED OUT: DeepSeek API call
+      // NEW: Now using Gemini API through the same function endpoint
       const response = await supabase.functions.invoke('deepseek-ai', {
         body: {
           query: query.trim(),

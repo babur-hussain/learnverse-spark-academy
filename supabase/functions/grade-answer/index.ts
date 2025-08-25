@@ -2,7 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY')!;
+// TEMPORARILY COMMENTED OUT: const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY')!;
+const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,6 +53,8 @@ Provide your response in this exact JSON format:
   "missingPoints": [<list of key points missed>]
 }`;
 
+    // TEMPORARILY COMMENTED OUT: DeepSeek API call
+    /*
     const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -74,13 +77,46 @@ Provide your response in this exact JSON format:
         max_tokens: 1000
       }),
     });
+    */
+
+    // NEW: Gemini API call
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: 'You are an expert exam grader. Provide detailed feedback and fair scoring.' }]
+          },
+          {
+            parts: [{ text: prompt }]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.3, // Lower temperature for more consistent grading
+          maxOutputTokens: 1000
+        }
+      }),
+    });
 
     if (!response.ok) {
-      throw new Error(`DeepSeek API error: ${response.statusText}`);
+      throw new Error(`Gemini API error: ${response.statusText}`);
     }
 
     const data = await response.json();
+    
+    // TEMPORARILY COMMENTED OUT: DeepSeek response processing
+    /*
     const aiResponse = data.choices[0].message.content;
+    */
+    
+    // NEW: Gemini response processing
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      throw new Error("Invalid response format from Gemini API");
+    }
+    const aiResponse = data.candidates[0].content.parts[0].text;
     
     let parsedResponse;
     try {

@@ -2,7 +2,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
-const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
+// TEMPORARILY COMMENTED OUT: const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
+const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -54,6 +55,8 @@ serve(async (req: Request) => {
   }
 });
 
+// TEMPORARILY COMMENTED OUT: DeepSeek API function
+/*
 async function callDeepSeekAPI(messages: any[], temperature: number = 0.7) {
   if (!DEEPSEEK_API_KEY) {
     throw new Error("DEEPSEEK_API_KEY is not configured");
@@ -83,6 +86,46 @@ async function callDeepSeekAPI(messages: any[], temperature: number = 0.7) {
   } catch (error) {
     console.error("DeepSeek API call failed:", error);
     throw new Error(`Failed to call DeepSeek API: ${error.message}`);
+  }
+}
+*/
+
+// NEW: Gemini API function
+async function callGeminiAPI(messages: any[], temperature: number = 0.7) {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+  
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: messages.map(msg => ({
+          parts: [{ text: msg.content }]
+        })),
+        generationConfig: {
+          temperature: temperature,
+        }
+      }),
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(`Gemini API Error: ${result.error?.message || JSON.stringify(result)}`);
+    }
+    
+    if (!result.candidates || !result.candidates[0] || !result.candidates[0].content || !result.candidates[0].content.parts || !result.candidates[0].content.parts[0]) {
+      throw new Error("Invalid response format from Gemini API");
+    }
+    
+    return result.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error("Gemini API call failed:", error);
+    throw new Error(`Failed to call Gemini API: ${error.message}`);
   }
 }
 
@@ -127,7 +170,8 @@ async function analyzeAptitude(data: any) {
   ];
 
   try {
-    const analysisResult = await callDeepSeekAPI(messages, 0.3);
+    // TEMPORARILY COMMENTED OUT: const analysisResult = await callDeepSeekAPI(messages, 0.3);
+    const analysisResult = await callGeminiAPI(messages, 0.3);
     // Parse the result to ensure it's valid JSON
     const parsedResult = JSON.parse(analysisResult);
     
@@ -176,7 +220,8 @@ async function generateCareerMatches(data: any) {
   ];
 
   try {
-    const matchesResult = await callDeepSeekAPI(messages, 0.3);
+    // TEMPORARILY COMMENTED OUT: const matchesResult = await callDeepSeekAPI(messages, 0.3);
+    const matchesResult = await callGeminiAPI(messages, 0.3);
     const parsedResult = JSON.parse(matchesResult);
     
     return new Response(JSON.stringify(parsedResult), {
@@ -253,7 +298,8 @@ async function generateRoadmap(data: any) {
   ];
 
   try {
-    const roadmapResult = await callDeepSeekAPI(messages, 0.5);
+    // TEMPORARILY COMMENTED OUT: const roadmapResult = await callDeepSeekAPI(messages, 0.5);
+    const roadmapResult = await callGeminiAPI(messages, 0.5);
     const parsedResult = JSON.parse(roadmapResult);
     
     return new Response(JSON.stringify(parsedResult), {
@@ -317,7 +363,8 @@ async function recommendCourses(data: any) {
   ];
 
   try {
-    const recommendationsResult = await callDeepSeekAPI(messages, 0.3);
+    // TEMPORARILY COMMENTED OUT: const recommendationsResult = await callDeepSeekAPI(messages, 0.3);
+    const recommendationsResult = await callGeminiAPI(messages, 0.3);
     const parsedResult = JSON.parse(recommendationsResult);
     
     return new Response(JSON.stringify(parsedResult), {
@@ -371,7 +418,8 @@ async function adaptProgress(data: any) {
   ];
 
   try {
-    const adaptationResult = await callDeepSeekAPI(messages, 0.4);
+    // TEMPORARILY COMMENTED OUT: const adaptationResult = await callDeepSeekAPI(messages, 0.4);
+    const adaptationResult = await callGeminiAPI(messages, 0.4);
     const parsedResult = JSON.parse(adaptationResult);
     
     return new Response(JSON.stringify(parsedResult), {
@@ -414,7 +462,8 @@ async function handleChat(data: any) {
   ];
 
   try {
-    const chatResult = await callDeepSeekAPI(messages, 0.7);
+    // TEMPORARILY COMMENTED OUT: const chatResult = await callDeepSeekAPI(messages, 0.7);
+    const chatResult = await callGeminiAPI(messages, 0.7);
     
     return new Response(JSON.stringify({ response: chatResult }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" }

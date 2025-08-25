@@ -7,7 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+// TEMPORARILY COMMENTED OUT: const DEEPSEEK_API_KEY = Deno.env.get('DEEPSEEK_API_KEY');
+const GEMINI_API_KEY = "AIzaSyBFBBJQd-L8X9sgD2xgCY1ePxqOrTRWqQA";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -20,10 +21,10 @@ serve(async (req) => {
     
     console.log("Processing query:", query);
     console.log("Mode:", mode);
-    console.log("API Key available:", !!DEEPSEEK_API_KEY);
+    console.log("API Key available:", !!GEMINI_API_KEY);
 
-    if (!DEEPSEEK_API_KEY) {
-      throw new Error("DeepSeek API key is not configured. Please add DEEPSEEK_API_KEY to your environment variables.");
+    if (!GEMINI_API_KEY) {
+      throw new Error("Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.");
     }
 
     // Construct the system message based on the mode
@@ -65,8 +66,10 @@ serve(async (req) => {
     // Add the current query
     messages.push({ role: "user", content: query });
 
-    console.log("Sending request to DeepSeek API with", messages.length, "messages");
+    console.log("Sending request to Gemini API with", messages.length, "messages");
     
+    // TEMPORARILY COMMENTED OUT: DeepSeek API call
+    /*
     const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -81,22 +84,47 @@ serve(async (req) => {
         stream: false
       })
     });
+    */
+
+    // NEW: Gemini API call
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: messages.map(msg => ({
+          parts: [{ text: msg.content }]
+        })),
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        }
+      })
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("DeepSeek API error:", response.status, errorText);
-      throw new Error(`DeepSeek API responded with status ${response.status}: ${errorText}`);
+      console.error("Gemini API error:", response.status, errorText);
+      throw new Error(`Gemini API responded with status ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log("DeepSeek response received successfully");
+    console.log("Gemini response received successfully");
 
+    // TEMPORARILY COMMENTED OUT: DeepSeek response processing
+    /*
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       throw new Error("Invalid response format from DeepSeek API");
     }
-
-    // Process the response
     const answer = data.choices[0].message.content;
+    */
+
+    // NEW: Gemini response processing
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      throw new Error("Invalid response format from Gemini API");
+    }
+    const answer = data.candidates[0].content.parts[0].text;
     
     // Smart categorization based on content analysis
     const categories = [];
@@ -162,7 +190,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Error in deepseek-ai function:", error);
+    console.error("Error in gemini-ai function:", error);
     
     return new Response(
       JSON.stringify({ 
