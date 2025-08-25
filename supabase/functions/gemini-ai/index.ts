@@ -98,6 +98,10 @@ serve(async (req) => {
       };
 
       console.log("6. Gemini API request prepared");
+      console.log("6a. API Key length:", GEMINI_API_KEY.length);
+      console.log("6b. API Key preview:", GEMINI_API_KEY.substring(0, 10) + "...");
+      console.log("6c. Request body:", JSON.stringify(requestBody, null, 2));
+      console.log("6d. API URL:", `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY.substring(0, 10)}...`);
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
         method: "POST",
@@ -108,23 +112,28 @@ serve(async (req) => {
       });
 
       console.log("7. Gemini API response status:", response.status);
+      console.log("7a. Response headers:", Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Gemini API error:", response.status, errorText);
+        console.error("7b. Gemini API error response:", errorText);
         throw new Error(`Gemini API error (${response.status}): ${errorText}`);
       }
 
       const data = await response.json();
       console.log("8. Gemini response received successfully");
+      console.log("8a. Response data keys:", Object.keys(data));
+      console.log("8b. Response data preview:", JSON.stringify(data, null, 2).substring(0, 500) + "...");
 
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-        console.error("Invalid response structure from Gemini");
+        console.error("8c. Invalid response structure from Gemini");
+        console.error("8d. Full response:", JSON.stringify(data, null, 2));
         throw new Error("Invalid response format from Gemini API");
       }
       
       const answer = data.candidates[0].content.parts[0].text;
       console.log("9. Answer extracted, length:", answer.length);
+      console.log("9a. Answer preview:", answer.substring(0, 100) + "...");
 
       // Simple categorization
       const categories = ["General"];
