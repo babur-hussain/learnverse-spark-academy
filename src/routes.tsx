@@ -178,6 +178,14 @@ export const router = createBrowserRouter([
     element: <AllCoursesPage />,
   },
   {
+    path: '/notes',
+    element: <Notes />,
+  },
+  {
+    path: '/paid-notes',
+    element: <PaidNotes />,
+  },
+  {
     path: '*',
     element: <ComingSoon />,
   },
