@@ -81,8 +81,10 @@ serve(async (req) => {
     console.log("5. Starting Gemini API call...");
     
     try {
-      const systemMessage = "You are an educational AI assistant designed to help students learn effectively. Provide clear, helpful explanations and examples when appropriate.";
-      
+      const systemMessage = "You are an educational AI assistant designed to help students learn effectively. Provide clear, friendly, and culturally sensitive explanations with examples when appropriate.";
+
+      const model = "gemini-1.5-flash-latest";
+
       const requestBody = {
         contents: [{
           parts: [{
@@ -94,19 +96,26 @@ serve(async (req) => {
           maxOutputTokens: 4000,
           topP: 0.8,
           topK: 40
-        }
-      };
+        },
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+        ]
+      } as Record<string, unknown>;
 
       console.log("6. Gemini API request prepared");
       console.log("6a. API Key length:", GEMINI_API_KEY.length);
       console.log("6b. API Key preview:", GEMINI_API_KEY.substring(0, 10) + "...");
       console.log("6c. Request body:", JSON.stringify(requestBody, null, 2));
-      console.log("6d. API URL:", `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY.substring(0, 10)}...`);
+      console.log("6d. API URL:", `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`);
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "x-goog-api-key": GEMINI_API_KEY,
         },
         body: JSON.stringify(requestBody)
       });
@@ -125,9 +134,31 @@ serve(async (req) => {
       console.log("8a. Response data keys:", Object.keys(data));
       console.log("8b. Response data preview:", JSON.stringify(data, null, 2).substring(0, 500) + "...");
 
+      // Handle prompt feedback blocks gracefully
+      if (data.promptFeedback && data.promptFeedback.blockReason) {
+        console.warn("8c. Prompt was blocked:", data.promptFeedback);
+        const reason = data.promptFeedback.blockReason;
+        const msg = `Your request was blocked by safety filters (${reason}). Please rephrase and try again.`;
+        return new Response(
+          JSON.stringify({
+            answer: msg,
+            categories: ["General"],
+            followUpSuggestions: [
+              "Rephrase without sensitive terms",
+              "Ask for a general explanation",
+              "Try a shorter version of your question"
+            ]
+          }),
+          {
+            status: 200,
+            headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
+          }
+        );
+      }
+
       if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-        console.error("8c. Invalid response structure from Gemini");
-        console.error("8d. Full response:", JSON.stringify(data, null, 2));
+        console.error("8d. Invalid response structure from Gemini");
+        console.error("8e. Full response:", JSON.stringify(data, null, 2));
         throw new Error("Invalid response format from Gemini API");
       }
       

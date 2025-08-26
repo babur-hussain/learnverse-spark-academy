@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle, Type } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Card } from '@/components/UI/card';
@@ -6,6 +6,8 @@ import { Tooltip } from '@/components/UI/tooltip';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { AiChatService, AiChatMessageRow, AiChatSessionRow } from '@/services/AiChatService';
 
 interface SmartSearchbarProps {
   className?: string;
@@ -29,6 +31,7 @@ interface StreamingChunk {
 }
 
 const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
+  const { user } = useAuth();
   const [query, setQuery] = useState<string>('');
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -38,11 +41,129 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [mode, setMode] = useState<'normal' | 'explain' | 'detailed' | 'analyze'>('normal');
   const [conversation, setConversation] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<AiChatSessionRow[]>([]);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [sessionMessages, setSessionMessages] = useState<AiChatMessageRow[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileContent, setFileContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [showAllSessions, setShowAllSessions] = useState(false);
+
+  // Load sessions on auth ready
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? localStorage.getItem('currentChatSessionId') : null;
+    if (stored) {
+      setCurrentSessionId(stored);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    (async () => {
+      const list = await AiChatService.listSessions(user.id);
+      setSessions(list);
+      const sessionId = currentSessionId || list[0]?.id || null;
+      if (!currentSessionId && sessionId) setCurrentSessionId(sessionId);
+      if (sessionId) {
+        await loadSession(sessionId);
+      }
+    })();
+  }, [user?.id]);
+
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem('currentChatSessionId', currentSessionId);
+    }
+  }, [currentSessionId]);
+
+  async function ensureSession(): Promise<string | null> {
+    if (!user?.id) {
+      toast({ title: 'Sign in required', description: 'Please sign in to save chats', variant: 'destructive' });
+      return null;
+    }
+    if (currentSessionId) return currentSessionId;
+    const created = await AiChatService.createSession(user.id, 'New chat');
+    if (created) {
+      setSessions(prev => [created, ...prev]);
+      setCurrentSessionId(created.id);
+      return created.id;
+    }
+    return null;
+  }
+
+  async function loadSession(sessionId: string) {
+    if (!user?.id) return;
+    const msgs = await AiChatService.listMessages(sessionId);
+    setSessionMessages(msgs);
+    // Map to local conversation for continuity
+    const mapped: Message[] = msgs.map(m => ({ role: m.role as 'user' | 'assistant' | 'system', content: m.content }));
+    setConversation(mapped);
+    // Set last assistant message as result
+    const lastAssistant = [...msgs].reverse().find(m => m.role === 'assistant');
+    if (lastAssistant) {
+      setResult(processAIResponse(lastAssistant.content));
+      setIsExpanded(true);
+    }
+  }
+
+  async function startNewChat() {
+    if (!user?.id) {
+      toast({ title: 'Sign in required', description: 'Please sign in to create chats', variant: 'destructive' });
+      return;
+    }
+    const created = await AiChatService.createSession(user.id, 'New chat');
+    if (created) {
+      setSessions(prev => [created, ...prev]);
+      setCurrentSessionId(created.id);
+      setConversation([]);
+      setSessionMessages([]);
+      setResult(null);
+      setQuery('');
+      setIsExpanded(false);
+    }
+  }
+
+  async function deleteCurrentChat() {
+    if (!currentSessionId) return;
+    const ok = await AiChatService.deleteSession(currentSessionId);
+    if (ok) {
+      const remaining = sessions.filter(s => s.id !== currentSessionId);
+      setSessions(remaining);
+      const next = remaining[0]?.id || null;
+      setCurrentSessionId(next);
+      setConversation([]);
+      setSessionMessages([]);
+      setResult(null);
+      if (next) {
+        await loadSession(next);
+      }
+      toast({ title: 'Chat deleted', description: 'The chat has been removed.' });
+    } else {
+      toast({ title: 'Delete failed', description: 'Could not delete chat', variant: 'destructive' });
+    }
+  }
+
+  function sanitizeTitle(raw: string): string {
+    const title = (raw || '').replace(/^\"|\"$/g, '').replace(/^'|'$/g, '').trim();
+    const clipped = title.length > 60 ? title.slice(0, 60) : title;
+    if (!clipped) return 'New chat';
+    return clipped.charAt(0).toUpperCase() + clipped.slice(1);
+  }
+
+  async function generateAutoTitleFromAI(userQuery: string, aiAnswer?: string): Promise<string | null> {
+    try {
+      const instruction = `Create a short, clear 3-6 word title for this chat. No punctuation, no quotes.\nQuestion: ${userQuery}${aiAnswer ? `\nAnswer: ${aiAnswer}` : ''}`;
+      const response = await supabase.functions.invoke('gemini-ai', {
+        body: { query: instruction, stream: false, mode: 'normal' },
+      });
+      if (response.error || !response.data?.answer) return null;
+      return sanitizeTitle((response.data.answer as string).split('\n')[0]);
+    } catch {
+      return null;
+    }
+  }
 
   const handleSearch = async () => {
     if (!query.trim() && !fileContent) {
@@ -65,12 +186,21 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     try {
       console.log("Starting AI search with query:", query);
       
+      // Ensure a session exists
+      const sessionId = await ensureSession();
+      if (!sessionId) throw new Error('No chat session');
+
       const newConversation = [...conversation];
       
       newConversation.push({
         role: 'user',
         content: query,
       });
+
+      // Persist user message
+      if (user?.id) {
+        await AiChatService.saveMessage({ sessionId, userId: user.id, role: 'user', content: query });
+      }
 
       // Always use streaming for live generation viewing
       // TEMPORARILY DISABLED: await handleStreamingSearch(newConversation);
@@ -109,12 +239,27 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
         role: 'assistant',
         content: data.answer,
       });
+
+      // Persist assistant message
+      if (user?.id) {
+        await AiChatService.saveMessage({ sessionId, userId: user.id, role: 'assistant', content: data.answer });
+      }
+
+      // If the session title is default, update it to first question
+      const current = sessions.find(s => s.id === sessionId);
+      if (current && (current.title === 'New chat' || current.title.trim() === '')) {
+        let title = await generateAutoTitleFromAI(query, data.answer);
+        if (!title) title = sanitizeTitle(query.split(" ").slice(0, 6).join(" "));
+        await supabase.from('ai_chat_sessions').update({ title }).eq('id', sessionId);
+        setSessions(prev => prev.map(s => (s.id === sessionId ? { ...s, title } : s)));
+      }
       
       setConversation(newConversation);
       setResult(data);
       setQuery('');
       setUploadedFile(null);
       setFileContent(null);
+      setCurrentSessionId(sessionId);
       
       toast({
         title: "Search completed",
@@ -433,6 +578,30 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
               Analyze
             </Button>
           </Tooltip>
+
+          {/* Chat controls */}
+          <div className="ml-auto flex items-center gap-2 w-full sm:w-auto sm:ml-4">
+            <select
+              className="h-7 text-xs px-2 border rounded-md bg-background"
+              value={currentSessionId || ''}
+              onChange={async (e) => {
+                const id = e.target.value || null;
+                setCurrentSessionId(id);
+                if (id) await loadSession(id);
+              }}
+            >
+              <option value="">Select chat</option>
+              {sessions.map(s => (
+                <option key={s.id} value={s.id}>{s.title || 'Untitled chat'}</option>
+              ))}
+            </select>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={startNewChat} disabled={isLoading}>
+              New chat
+            </Button>
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={deleteCurrentChat} disabled={isLoading || !currentSessionId}>
+              Delete
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -486,6 +655,77 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
           </Button>
         </div>
         
+        {/* Horizontal sessions bar */}
+        {sessions.length > 0 && (
+          <div className="mt-2 -mx-1 px-1 flex items-center gap-2 overflow-x-auto whitespace-nowrap">
+            {sessions.slice(0, 12).map((s) => (
+              <button
+                key={s.id}
+                onClick={async () => {
+                  setCurrentSessionId(s.id);
+                  await loadSession(s.id);
+                }}
+                className={cn(
+                  "text-xs px-3 py-1 rounded-full border inline-flex items-center",
+                  currentSessionId === s.id ? "bg-primary/10 border-primary text-primary" : "hover:bg-muted"
+                )}
+                title={s.title}
+              >
+                {s.title || 'Untitled chat'}
+              </button>
+            ))}
+            <button
+              onClick={() => setShowAllSessions(true)}
+              className="text-xs px-3 py-1 rounded-full border inline-flex items-center hover:bg-muted"
+            >
+              All sessions
+            </button>
+          </div>
+        )}
+
+        {showAllSessions && (
+          <Card className="mt-2 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium">All sessions</div>
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowAllSessions(false)}>Close</Button>
+            </div>
+            <div className="max-h-64 overflow-y-auto space-y-1">
+              {sessions.map(s => (
+                <div key={s.id} className="flex items-center justify-between gap-2">
+                  <button
+                    className="text-left text-sm flex-1 truncate hover:underline"
+                    title={s.title}
+                    onClick={async () => { setCurrentSessionId(s.id); await loadSession(s.id); setShowAllSessions(false); }}
+                  >
+                    {s.title || 'Untitled chat'}
+                  </button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs"
+                    onClick={async () => {
+                      const ok = await AiChatService.deleteSession(s.id);
+                      if (ok) {
+                        setSessions(prev => prev.filter(x => x.id !== s.id));
+                        if (currentSessionId === s.id) {
+                          setCurrentSessionId(null);
+                          setConversation([]);
+                          setResult(null);
+                        }
+                      }
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </div>
+              ))}
+              {sessions.length === 0 && (
+                <div className="text-xs text-muted-foreground">No sessions yet</div>
+              )}
+            </div>
+          </Card>
+        )}
+
         {uploadedFile && (
           <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
             <File className="h-3 w-3" />
