@@ -83,6 +83,13 @@
     padding-top: env(safe-area-inset-top, 32px);
   }
   
+  /* Make media fully responsive by default */
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  
   /* Enhanced mobile-specific styles */
   .mobile {
     font-size: 16px; /* Prevent zoom on iOS */
@@ -450,6 +457,11 @@ html {
   .container {
     padding-left: 1rem;
     padding-right: 1rem;
+  }
+  /* Improve readability and prevent overflow on tiny screens */
+  body, input, button, textarea, select {
+    word-break: break-word;
+    overflow-wrap: anywhere;
   }
 }
 
