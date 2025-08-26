@@ -7,15 +7,17 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    allowNavigation: ['*.lovable.app', '*.github.io'],
-    cleartext: true
+    allowNavigation: [],
+    cleartext: false
   },
   android: {
     useLegacyBridge: false
   },
   ios: {
-    contentInset: 'automatic',
-    preferredContentMode: 'mobile'
+    contentInset: 'always',
+    preferredContentMode: 'mobile',
+    scrollEnabled: true,
+    allowsInlineMediaPlayback: true
   },
   plugins: {
     SplashScreen: {
@@ -34,6 +36,11 @@ const config: CapacitorConfig = {
       resize: true,
       style: 'DARK',
       resizeOnFullScreen: true
+    },
+    StatusBar: {
+      overlaysWebView: false,
+      style: 'DEFAULT',
+      backgroundColor: '#FFFFFF'
     }
   }
 };

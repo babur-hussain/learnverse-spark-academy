@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/UI/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
-import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen } from 'lucide-react';
+import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen, HardDrive } from 'lucide-react';
 import AuthDialog from '@/components/Auth/AuthDialog';
 import { Button } from '@/components/UI/button';
 
@@ -105,6 +105,13 @@ const UserMenu = () => {
               <Settings className="mr-2 h-4 w-4" />
               <span>Settings</span>
             </DropdownMenuItem>
+            <DropdownMenuItem 
+              className="cursor-pointer" 
+              onClick={() => navigate('/downloaded-pdfs')}
+            >
+              <HardDrive className="mr-2 h-4 w-4" />
+              <span>Downloaded PDFs</span>
+            </DropdownMenuItem>
             
             {(isAdmin || isTeacher) && (
               <>
@@ -150,12 +157,12 @@ const UserMenu = () => {
     <>
       <Button 
         onClick={() => setAuthDialogOpen(true)} 
-        className="gradient-primary text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 h-7 sm:h-9"
+        className="gradient-primary px-1.5 py-0.5 h-6"
         size="sm"
+        style={{ fontSize: '10px' }}
       >
-        <User className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-        <span className="hidden sm:inline">Sign In</span>
-        <span className="sm:hidden">Sign</span>
+        <User className="h-2.5 w-2.5 mr-0.5" />
+        <span>Sign</span>
       </Button>
       
       <AuthDialog 

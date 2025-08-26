@@ -33,6 +33,9 @@
     --ring: 262.1 83.3% 57.8%;
 
     --radius: 0.75rem;
+
+    /* Safe area vars */
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
   }
 
   .dark {
@@ -80,7 +83,8 @@
     width: 100%;
     overflow-x: hidden;
     scroll-behavior: smooth;
-    padding-top: env(safe-area-inset-top, 32px);
+    position: relative;
+    -webkit-overflow-scrolling: touch;
   }
   
   /* Make media fully responsive by default */
@@ -279,6 +283,9 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
+
+  /* Safe-area padding utilities */
+  .pt-safe { padding-top: var(--safe-area-inset-top); }
 }
 
 /* Enhanced keyframe animations */
@@ -384,6 +391,165 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Android-specific status bar height fallback */
+.capacitor.android .pt-safe {
+  padding-top: max(env(safe-area-inset-top, 0px), 8px);
+}
+
+/* Force minimum status bar height on Android devices */
+@media screen and (max-width: 768px) {
+  .capacitor.android nav {
+    padding-top: max(env(safe-area-inset-top, 0px), 8px) !important;
+    min-height: calc(48px + max(env(safe-area-inset-top, 0px), 8px));
+  }
+  
+  .capacitor.android .main-content {
+    margin-top: calc(48px + max(env(safe-area-inset-top, 0px), 8px)) !important;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Ensure all common content wrappers have enough space above bottom nav */
+  .capacitor.android main,
+  .capacitor.android body,
+  .capacitor.android #root,
+  .capacitor.android .container {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  
+  /* Add visible bottom spacing for scrollable content */
+  .capacitor.android .main-content > div {
+    margin-bottom: 40px !important;
+  }
+  
+  /* Add extra bottom spacing to footer on Android */
+  .capacitor.android footer {
+    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
+/* Navbar refinements for proper layout */
+nav .flex.items-center.justify-between {
+  min-height: 56px;
+}
+
+/* iOS and Capacitor app styling */
+.ios, .capacitor {
+  background-color: var(--background);
+}
+
+.ios body, .capacitor body {
+  background-color: var(--background);
+}
+
+/* Unified layout container */
+.layout-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: colors 300ms;
+  overflow-x: hidden;
+}
+
+.main-content {
+  flex-grow: 1;
+  transition: all 300ms;
+}
+
+/* iOS-specific layout fixes */
+.ios .layout-container {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+  overflow: hidden;
+}
+
+.ios nav {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 50;
+}
+
+.ios .main-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Android-specific layout fixes */
+.android .layout-container {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.android nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: var(--background);
+}
+
+.android .main-content {
+  flex-grow: 1;
+}
+
+/* Web/default layout */
+.layout-container:not(.ios):not(.android) {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.layout-container:not(.ios):not(.android) nav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    background-color: var(--background) !important;
+  }
+  
+  body {
+    -webkit-overflow-scrolling: touch;
+    position: relative !important;
+  }
+}
+
+/* Ensure proper header background theming */
+.capacitor nav {
+  background: hsl(var(--background) / 0.95) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Fix select dropdown backgrounds to match theme */
+.capacitor select,
+.capacitor select option {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  border-color: hsl(var(--border)) !important;
+}
+
+/* Ensure dropdowns and sidebars match theme */
+.capacitor .bg-white {
+  background: hsl(var(--background)) !important;
+}
+
+.capacitor .dark\\:bg-gray-900 {
+  background: hsl(var(--background)) !important;
+}
+
+.capacitor .text-gray-900 {
+  color: hsl(var(--foreground)) !important;
+}
+
+.capacitor .dark\\:text-white {
+  color: hsl(var(--foreground)) !important;
+}
+
 /* Improved Capacitor web view fixes */
 @supports (-webkit-touch-callout: none) {
   .h-screen {
@@ -404,6 +570,13 @@
 html {
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
+}
+
+/* Lightweight iOS tweaks */
+@supports (-webkit-touch-callout: none) {
+  .ios .main-content {
+    -webkit-overflow-scrolling: touch;
+  }
 }
 
 /* Enhanced custom scrollbar */
@@ -487,4 +660,24 @@ html {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
+}
+
+/* React PDF Styles */
+.react-pdf__Page {
+  margin: 0 auto !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.react-pdf__Page__canvas {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+.react-pdf__Document {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }

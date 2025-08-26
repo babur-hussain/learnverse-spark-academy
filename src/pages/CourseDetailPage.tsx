@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Card, CardContent, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Folder as FolderIcon, File as FileIcon, FileText, FileImage, FileVideo, BookOpen } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import Navbar from '@/components/Layout/Navbar';
 import { Dialog, DialogContent } from '@/components/UI/dialog';
 
@@ -59,7 +60,16 @@ const ResourceTile: React.FC<{ node: ResourceNode }> = ({ node }) => {
   return (
     <Card
       className="bg-white rounded-lg shadow p-4 flex flex-col items-center justify-center transition hover:shadow-lg cursor-pointer group h-36"
-      onClick={() => node.type === 'file' && node.url ? window.open(node.url, '_blank') : undefined}
+      onClick={() => {
+        if (node.type === 'file' && node.url) {
+          if (node.url.toLowerCase().includes('.pdf')) {
+            // PDF will be handled by PDFLink component
+            return;
+          } else {
+            window.open(node.url, '_blank');
+          }
+        }
+      }}
       tabIndex={0}
       role="button"
       title={node.name}
@@ -69,7 +79,18 @@ const ResourceTile: React.FC<{ node: ResourceNode }> = ({ node }) => {
       </div>
       <div className="font-medium text-center text-xs break-all w-full" title={node.name}>{node.name}</div>
       {node.type === 'file' && node.url && (
-        <div className="mt-2 text-xs text-indigo-600 group-hover:underline">View Online</div>
+        node.url.toLowerCase().includes('.pdf') ? (
+          <div className="mt-2">
+            <PDFLink 
+              url={node.url}
+              title={node.name}
+              variant="button"
+              showDownloadButton={true}
+            />
+          </div>
+        ) : (
+          <div className="mt-2 text-xs text-indigo-600 group-hover:underline">View Online</div>
+        )
       )}
     </Card>
   );
@@ -147,9 +168,20 @@ const CourseDetailPage: React.FC = () => {
                   </div>
                   <div className="font-medium text-center text-xs break-all w-full" title={node.name}>{node.name}</div>
                   {node.type === 'file' && node.url && (
-                    <div className="mt-1 text-xs text-indigo-600 group-hover:underline">
-                      <button onClick={() => window.open(node.url, '_blank')}>View Online</button>
-                    </div>
+                    node.url.toLowerCase().includes('.pdf') ? (
+                      <div className="mt-1">
+                        <PDFLink 
+                          url={node.url}
+                          title={node.name}
+                          variant="button"
+                          showDownloadButton={true}
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-xs text-indigo-600 group-hover:underline">
+                        <button onClick={() => window.open(node.url, '_blank')}>View Online</button>
+                      </div>
+                    )
                   )}
                 </div>
               ))}

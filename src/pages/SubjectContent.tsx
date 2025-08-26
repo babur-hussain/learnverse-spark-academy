@@ -14,6 +14,7 @@ import MobileFooter from '@/components/Layout/MobileFooter';
 import { FileUpload } from '@/components/Admin/SubjectManager/FileUpload';
 import ResourcesList from '@/components/Admin/SubjectManager/ResourcesList';
 import { ArrowLeft, File, Trash2, ExternalLink } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserRole } from '@/hooks/use-user-role';
 import { 
@@ -446,15 +447,24 @@ const SubjectContent = () => {
                               <TableCell className="text-right">
                                 <div className="flex justify-end space-x-2">
                                   {file.file_url && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => window.open(file.file_url, '_blank')}
-                                      title="Open file"
-                                      className="text-blue-600 hover:text-blue-800"
-                                    >
-                                      <ExternalLink className="h-4 w-4" />
-                                    </Button>
+                                    file.file_url.toLowerCase().includes('.pdf') ? (
+                                      <PDFLink 
+                                        url={file.file_url}
+                                        title={file.file_name}
+                                        variant="button"
+                                        showDownloadButton={true}
+                                      />
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => window.open(file.file_url, '_blank')}
+                                        title="Open file"
+                                        className="text-blue-600 hover:text-blue-800"
+                                      >
+                                        <ExternalLink className="h-4 w-4" />
+                                      </Button>
+                                    )
                                   )}
                                   <AlertDialog>
                                     <AlertDialogTrigger asChild>
@@ -609,17 +619,26 @@ const SubjectContent = () => {
                             </div>
                           </div>
                           {file.file_url ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                console.log('Opening file URL:', file.file_url);
-                                window.open(file.file_url, '_blank');
-                              }}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
+                            file.file_url.toLowerCase().includes('.pdf') ? (
+                              <PDFLink 
+                                url={file.file_url}
+                                title={file.title || file.file_name}
+                                variant="button"
+                                showDownloadButton={true}
+                              />
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  console.log('Opening file URL:', file.file_url);
+                                  window.open(file.file_url, '_blank');
+                                }}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Download
+                              </Button>
+                            )
                           ) : (
                             <span className="text-sm text-muted-foreground">No download available</span>
                           )}

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/UI/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/UI/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { Plus, Pencil, Trash2, Upload, Download, BookOpen, FolderOpen, FileText, ExternalLink } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import { CollegeSubjectDialog } from '@/components/Admin/CollegeManager/CollegeSubjectDialog';
 import { CollegeChapterDialog } from '@/components/Admin/CollegeManager/CollegeChapterDialog';
 import { CollegeResourceDialog } from '@/components/Admin/CollegeManager/CollegeResourceDialog';
@@ -461,13 +462,22 @@ const CollegeManagement = () => {
                               <Pencil className="h-3 w-3" />
                             </Button>
                             {resource.file_url && (
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                onClick={() => window.open(resource.file_url, '_blank')}
-                              >
-                                <Download className="h-3 w-3" />
-                              </Button>
+                              resource.file_url.toLowerCase().includes('.pdf') ? (
+                                <PDFLink 
+                                  url={resource.file_url}
+                                  title={resource.title}
+                                  variant="button"
+                                  showDownloadButton={true}
+                                />
+                              ) : (
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  onClick={() => window.open(resource.file_url, '_blank')}
+                                >
+                                  <Download className="h-3 w-3" />
+                                </Button>
+                              )
                             )}
                             {resource.external_url && (
                               <Button 
@@ -580,13 +590,22 @@ const CollegeManagement = () => {
                           <Pencil className="h-3 w-3" />
                         </Button>
                         {resource.file_url && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => window.open(resource.file_url, '_blank')}
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
+                          resource.file_url.toLowerCase().includes('.pdf') ? (
+                            <PDFLink 
+                              url={resource.file_url}
+                              title={resource.title}
+                              variant="button"
+                              showDownloadButton={true}
+                            />
+                          ) : (
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => window.open(resource.file_url, '_blank')}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                          )
                         )}
                       </div>
                     </CardContent>
@@ -597,27 +616,36 @@ const CollegeManagement = () => {
             
             <TabsContent value="notes" className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <h3 className="text-lg font-semibold mb-4">Notes for {selectedCollege.name}</h3>
-              <div className="flex gap-4 mb-4">
-                <Input type="file" onChange={e => setNoteFile(e.target.files?.[0] || null)} />
-                <Input placeholder="Note Title" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} />
-                <Input placeholder="Description (optional)" value={noteDescription} onChange={e => setNoteDescription(e.target.value)} />
-                <Button onClick={() => uploadNote.mutate()} disabled={!noteFile || !noteTitle || uploading}>{uploading ? 'Uploading...' : 'Upload Note'}</Button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {collegeNotes.length === 0 ? (
-                  <div>No notes found for this college.</div>
-                ) : collegeNotes.map(note => (
-                  <Card key={note.id}>
-                    <CardHeader>
-                      <CardTitle>{note.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <a href={note.file_path} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View/Download</a>
-                      <div className="text-xs text-gray-500 mt-2">{note.description}</div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+          <div className="flex gap-4 mb-4">
+            <Input type="file" onChange={e => setNoteFile(e.target.files?.[0] || null)} />
+            <Input placeholder="Note Title" value={noteTitle} onChange={e => setNoteTitle(e.target.value)} />
+            <Input placeholder="Description (optional)" value={noteDescription} onChange={e => setNoteDescription(e.target.value)} />
+            <Button onClick={() => uploadNote.mutate()} disabled={!noteFile || !noteTitle || uploading}>{uploading ? 'Uploading...' : 'Upload Note'}</Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {collegeNotes.length === 0 ? (
+              <div>No notes found for this college.</div>
+            ) : collegeNotes.map(note => (
+              <Card key={note.id}>
+                <CardHeader>
+                  <CardTitle>{note.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {note.file_path && note.file_path.toLowerCase().includes('.pdf') ? (
+                    <PDFLink 
+                      url={note.file_path}
+                      title={note.title}
+                      variant="link"
+                      showDownloadButton={true}
+                    />
+                  ) : (
+                    <a href={note.file_path} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">View/Download</a>
+                  )}
+                  <div className="text-xs text-gray-500 mt-2">{note.description}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
             </TabsContent>
           </Tabs>
         </div>

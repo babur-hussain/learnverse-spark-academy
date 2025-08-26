@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { FolderPlus, Upload, File as FileIcon, Folder as FolderIcon, Loader2, X, Trash2, Pencil, Download, Move, Upload as UploadIcon, FilePlus, FileText, FileImage, FileVideo, FileAudio, FileArchive, BookOpen } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogContent } from '@/components/UI/dialog';
 import { Card } from '@/components/UI/card';
@@ -400,7 +401,12 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   // Download handler
   const handleDownload = (node: ResourceNode) => {
     if (node.url) {
-      window.open(node.url, '_blank');
+      if (node.url.toLowerCase().includes('.pdf')) {
+        // PDF will be handled by PDFLink component
+        return;
+      } else {
+        window.open(node.url, '_blank');
+      }
     }
   };
 

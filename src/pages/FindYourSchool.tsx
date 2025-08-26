@@ -63,7 +63,7 @@ const FindYourSchool: React.FC = () => {
 
   return (
     <MainLayout>
-      <div className="relative min-h-screen flex flex-col items-center justify-start overflow-x-hidden">
+      <div className="relative min-h-screen flex flex-col items-center justify-start overflow-x-hidden pb-safe">
         {/* Animated Gradient Background */}
         <div className="absolute inset-0 -z-10 animate-gradient-move bg-gradient-to-br from-blue-200 via-white to-blue-300 dark:from-gray-900 dark:via-gray-950 dark:to-blue-900">
           {/* Subtle floating shapes */}
@@ -95,8 +95,8 @@ const FindYourSchool: React.FC = () => {
           </div>
         </div>
         {/* Table */}
-        <div className={`flex-1 w-full px-2 pb-8 overflow-auto transition-opacity duration-700 ${showTable ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
-          <div className="rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 bg-white/80 dark:bg-gray-900/80 overflow-auto" style={{ maxHeight: '70vh' }}>
+        <div className={`flex-1 w-full px-2 pb-32 overflow-auto transition-opacity duration-700 ${showTable ? 'opacity-100 animate-fade-in' : 'opacity-0'}`}>
+          <div className="rounded-xl shadow-2xl border border-blue-200 dark:border-blue-800 bg-white/80 dark:bg-gray-900/80 overflow-auto" style={{ maxHeight: '65vh', marginBottom: '120px' }}>
             <div style={{ minWidth: '1200px', overflow: 'auto' }}>
               <table className="min-w-full text-sm text-left">
                 <thead>

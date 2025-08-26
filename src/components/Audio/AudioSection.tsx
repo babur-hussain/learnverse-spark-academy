@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/UI/input';
 import SearchBar from '@/components/UI/SearchBar';
 import { Headphones, Calendar, Star, Share2, Download } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

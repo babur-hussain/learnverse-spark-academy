@@ -6,8 +6,8 @@ import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { BookOpen, FileText, Video, Users, Play, Plus, Pencil, Trash2, Upload, FolderOpen, ExternalLink } from 'lucide-react';
+import PDFLink from '@/components/UI/PDFLink';
 import { supabase } from '@/integrations/supabase/client';
-import Navbar from '@/components/Layout/Navbar';
 import useIsMobile from '@/hooks/use-mobile';
 import MobileFooter from '@/components/Layout/MobileFooter';
 import { useToast } from '@/hooks/use-toast';
@@ -189,7 +189,12 @@ const SubjectDetails = () => {
     if (resource.external_url) {
       window.open(resource.external_url, '_blank');
     } else if (resource.file_url) {
-      window.open(resource.file_url, '_blank');
+      if (resource.file_url.toLowerCase().includes('.pdf')) {
+        // PDF will be handled by PDFLink component
+        return;
+      } else {
+        window.open(resource.file_url, '_blank');
+      }
     } else {
       toast({
         title: "No URL available",
@@ -219,7 +224,6 @@ const SubjectDetails = () => {
   if (subjectLoading) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
         <div className="flex-1 flex items-center justify-center pt-16">
           <div>Loading...</div>
         </div>
@@ -230,7 +234,6 @@ const SubjectDetails = () => {
   if (!subject) {
     return (
       <div className="min-h-screen flex flex-col">
-        <Navbar />
         <div className="flex-1 flex items-center justify-center pt-16">
           <div>Subject not found</div>
         </div>
@@ -240,7 +243,6 @@ const SubjectDetails = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8 pt-20 md:pt-24">
         <div className="max-w-6xl mx-auto">
@@ -337,13 +339,22 @@ const SubjectDetails = () => {
                             <span className="text-xs text-muted-foreground">
                               {resource.chapter_id ? 'In Chapter' : 'General'}
                             </span>
-                            <Button 
-                              size="sm" 
-                              variant="outline"
-                              onClick={() => handleOpenResource(resource)}
-                            >
-                              <Play className="h-3 w-3" />
-                            </Button>
+                            {resource.file_url && resource.file_url.toLowerCase().includes('.pdf') ? (
+                              <PDFLink 
+                                url={resource.file_url}
+                                title={resource.title}
+                                variant="button"
+                                showDownloadButton={true}
+                              />
+                            ) : (
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                onClick={() => handleOpenResource(resource)}
+                              >
+                                <Play className="h-3 w-3" />
+                              </Button>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
@@ -461,15 +472,25 @@ const SubjectDetails = () => {
                                   <h5 className="text-sm font-medium mb-2">Chapter Resources:</h5>
                                   <div className="flex flex-wrap gap-2">
                                     {chapterResources.slice(0, 3).map((resource) => (
-                                      <Badge 
-                                        key={resource.id} 
-                                        variant="secondary" 
-                                        className="text-xs cursor-pointer hover:bg-secondary/80"
-                                        onClick={() => handleOpenResource(resource)}
-                                      >
-                                        {getResourceIcon(resource.resource_type)}
-                                        <span className="ml-1">{resource.title}</span>
-                                      </Badge>
+                                      resource.file_url && resource.file_url.toLowerCase().includes('.pdf') ? (
+                                        <PDFLink 
+                                          key={resource.id}
+                                          url={resource.file_url}
+                                          title={resource.title}
+                                          variant="badge"
+                                          showDownloadButton={true}
+                                        />
+                                      ) : (
+                                        <Badge 
+                                          key={resource.id} 
+                                          variant="secondary" 
+                                          className="text-xs cursor-pointer hover:bg-secondary/80"
+                                          onClick={() => handleOpenResource(resource)}
+                                        >
+                                          {getResourceIcon(resource.resource_type)}
+                                          <span className="ml-1">{resource.title}</span>
+                                        </Badge>
+                                      )
                                     ))}
                                     {chapterResources.length > 3 && (
                                       <Badge variant="outline" className="text-xs">

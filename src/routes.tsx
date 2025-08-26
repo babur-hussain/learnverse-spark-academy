@@ -18,6 +18,8 @@ import CourseManagement from './pages/CourseManagement';
 import VideoManagement from './pages/VideoManagement';
 import TestManagement from './pages/TestManagement';
 import StudyClass from './pages/StudyClass';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import AdminClassesPage from './pages/AdminClasses';
 import FindYourSchool from './pages/FindYourSchool';
 import CourseResourcePage from './pages/CourseResourcePage';
@@ -36,6 +38,7 @@ const Checkout = React.lazy(() => import('./pages/Checkout'));
 const Order = React.lazy(() => import('./pages/Order'));
 const Audio = React.lazy(() => import('./pages/Audio'));
 const CollegeManagement = React.lazy(() => import('./pages/CollegeManagement'));
+const DownloadedPDFs = React.lazy(() => import('./pages/DownloadedPDFs'));
 
 export const router = createBrowserRouter([
   {
@@ -184,6 +187,18 @@ export const router = createBrowserRouter([
   {
     path: '/paid-notes',
     element: <PaidNotes />,
+  },
+  {
+    path: '/downloaded-pdfs',
+    element: <DownloadedPDFs />,
+  },
+  {
+    path: '/privacy-policy',
+    element: <PrivacyPolicy />,
+  },
+  {
+    path: '/terms-of-service',
+    element: <TermsOfService />,
   },
   {
     path: '*',

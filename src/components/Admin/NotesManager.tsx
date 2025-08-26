@@ -23,6 +23,7 @@ import {
   DialogTrigger,
   DialogClose
 } from '@/components/UI/dialog';
+import PDFLink from '@/components/UI/PDFLink';
 import {
   Select,
   SelectContent,
@@ -792,13 +793,22 @@ const NotesManager: React.FC<NotesManagerProps> = ({
                 <TableCell>{new Date(note.updated_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => window.open(note.file_path, '_blank')}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
+                    {note.file_path && note.file_path.toLowerCase().includes('.pdf') ? (
+                      <PDFLink 
+                        url={note.file_path}
+                        title={note.title}
+                        variant="button"
+                        showDownloadButton={true}
+                      />
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => window.open(note.file_path, '_blank')}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"

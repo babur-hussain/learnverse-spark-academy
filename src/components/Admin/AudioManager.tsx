@@ -22,6 +22,7 @@ import {
   DialogTrigger,
   DialogClose
 } from '@/components/UI/dialog';
+import PDFLink from '@/components/UI/PDFLink';
 import {
   Select,
   SelectContent,

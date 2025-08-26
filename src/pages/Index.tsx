@@ -25,7 +25,6 @@ import NewsletterSection from '@/components/Home/NewsletterSection';
 import useIsMobile from '@/hooks/use-mobile';
 import MainLayout from '@/components/Layout/MainLayout';
 import ClassSubjectsGrid from '@/components/Home/ClassSubjectsGrid';
-import Navbar from '@/components/Layout/Navbar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import FindSchoolSection from '@/components/Home/FindSchoolSection';
@@ -193,7 +192,6 @@ const Home = () => {
 
   return (
     <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
-      <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />
       <div className="min-h-screen flex flex-col">
         <AIHero />
         <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />

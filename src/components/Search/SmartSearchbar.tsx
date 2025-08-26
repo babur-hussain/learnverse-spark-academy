@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle, Type } from 'lucide-react';
+import { Search, File, ArrowUp, Paperclip, X, Loader2, AlertCircle, Type, User, Sparkles, Lock } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Card } from '@/components/UI/card';
 import { Tooltip } from '@/components/UI/tooltip';
@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { AiChatService, AiChatMessageRow, AiChatSessionRow } from '@/services/AiChatService';
+import AuthDialog from '@/components/Auth/AuthDialog';
 
 interface SmartSearchbarProps {
   className?: string;
@@ -50,6 +51,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [showAllSessions, setShowAllSessions] = useState(false);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
 
   // Load sessions on auth ready
   useEffect(() => {
@@ -80,7 +82,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
 
   async function ensureSession(): Promise<string | null> {
     if (!user?.id) {
-      toast({ title: 'Sign in required', description: 'Please sign in to save chats', variant: 'destructive' });
+      setAuthDialogOpen(true);
       return null;
     }
     if (currentSessionId) return currentSessionId;
@@ -110,7 +112,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
 
   async function startNewChat() {
     if (!user?.id) {
-      toast({ title: 'Sign in required', description: 'Please sign in to create chats', variant: 'destructive' });
+      setAuthDialogOpen(true);
       return;
     }
     const created = await AiChatService.createSession(user.id, 'New chat');
@@ -188,7 +190,11 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       
       // Ensure a session exists
       const sessionId = await ensureSession();
-      if (!sessionId) throw new Error('No chat session');
+      if (!sessionId) {
+        // User needs to sign in - don't show error, just return
+        setIsLoading(false);
+        return;
+      }
 
       const newConversation = [...conversation];
       
@@ -269,11 +275,14 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
       console.error('Error in AI search:', error);
       const errorMessage = error instanceof Error ? error.message : "Something went wrong";
       setError(errorMessage);
-      toast({
-        title: "Search failed",
-        description: errorMessage,
-        variant: "destructive",
-      });
+      // Only show toast for actual errors, not authentication issues
+      if (!errorMessage.includes('No chat session')) {
+        toast({
+          title: "Search failed",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -501,6 +510,53 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
     }
   };
 
+  const renderSignInPrompt = () => {
+    return (
+      <div className="text-center p-4 sm:p-8">
+        <div className="flex flex-col items-center space-y-4 max-w-sm mx-auto">
+          <div className="relative">
+            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+              <Lock className="h-8 w-8 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+              <Sparkles className="h-3 w-3 text-white" />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold text-foreground">
+              Unlock AI-Powered Learning
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Sign in to access personalized AI assistance, save your chat history, and get the most out of your learning experience.
+            </p>
+          </div>
+          
+          <div className="flex flex-col gap-3 w-full">
+            <Button 
+              onClick={() => setAuthDialogOpen(true)}
+              className="gradient-primary px-3 py-2 h-10 w-full text-sm"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Sign In to Continue
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setQuery('')}
+              className="px-3 py-2 h-10 w-full text-sm"
+            >
+              Try Demo Mode
+            </Button>
+          </div>
+          
+          <div className="text-xs text-muted-foreground">
+            <p>✨ Free to sign up • 🔒 Secure & private • 🚀 Instant access</p>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderStreamingResult = () => {
     return (
       <div className="space-y-4">
@@ -609,7 +665,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
             <input
               type="text"
               className="h-12 w-full rounded-full border border-input bg-background pl-10 pr-24 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              placeholder="Ask any question..."
+              placeholder={user ? "Ask any question..." : "Sign in to start chatting with AI..."}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -736,7 +792,9 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
 
       {isExpanded && (
         <Card className="mt-4 p-5 animate-fade-in">
-          {error ? (
+          {!user ? (
+            renderSignInPrompt()
+          ) : error ? (
             <div className="text-center p-6">
               <div className="flex items-center justify-center gap-2 text-destructive font-medium mb-2">
                 <AlertCircle className="h-5 w-5" />
@@ -799,6 +857,11 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
           )}
         </Card>
       )}
+      
+      <AuthDialog 
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+      />
     </div>
   );
 };
