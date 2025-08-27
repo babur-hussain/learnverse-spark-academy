@@ -31,7 +31,7 @@ import {
   DialogTrigger
 } from '@/components/UI/dialog';
 import { TestTube, Plus, Clock, Users, CheckCircle, Search, MoreHorizontal, Edit, Trash2, Eye, BookOpen } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { TestCreationDialog } from '@/components/TestManagement/TestCreationDialog';
 
 interface Test {

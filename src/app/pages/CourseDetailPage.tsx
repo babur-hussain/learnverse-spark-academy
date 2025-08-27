@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
-import { Folder as FolderIcon, File as FileIcon, FileText, FileImage, FileVideo, BookOpen } from 'lucide-react';
+import { Folder as FolderIcon, File as FileIcon, FileText, FileImage, FileVideo, BookOpen, ArrowLeft } from 'lucide-react';
 import PDFLink from '@/components/UI/PDFLink';
 import Navbar from '@/components/Layout/Navbar';
 import { Dialog, DialogContent } from '@/components/UI/dialog';
@@ -139,6 +139,19 @@ const CourseDetailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-pink-100 to-white">
       <Navbar />
+      
+      {/* Back Button */}
+      <div className="pt-4 md:pt-6 px-4">
+        <Button
+          variant="ghost"
+          onClick={() => window.history.back()}
+          className="mb-4 hover:bg-white/80"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
+      
       <div className="relative w-full h-64 flex items-end justify-start bg-gradient-to-r from-indigo-500 to-pink-400 rounded-b-3xl overflow-hidden mb-8">
         {course.banner_url && (
           <img src={course.banner_url} alt="Course Banner" className="absolute inset-0 w-full h-full object-cover opacity-60" />

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, DragEvent } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { FolderPlus, Upload, File as FileIcon, Folder as FolderIcon, Loader2, X, Trash2, Pencil, Download, Move, Upload as UploadIcon, FilePlus, FileText, FileImage, FileVideo, FileAudio, FileArchive, BookOpen } from 'lucide-react';

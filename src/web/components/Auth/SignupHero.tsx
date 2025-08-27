@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from '@/components/UI/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/UI/input-otp';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Gift } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/UI/badge';
 
 const SignupHero = () => {

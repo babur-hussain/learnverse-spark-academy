@@ -4,11 +4,12 @@ import { Button } from '@/components/UI/button';
 import { Card } from '@/components/UI/card';
 import { Tooltip } from '@/components/UI/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { AiChatService, AiChatMessageRow, AiChatSessionRow } from '@/services/AiChatService';
 import AuthDialog from '@/components/Auth/AuthDialog';
+import { useNavigate } from 'react-router-dom';
 
 interface SmartSearchbarProps {
   className?: string;
@@ -52,6 +53,7 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
   const { toast } = useToast();
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   // Load sessions on auth ready
   useEffect(() => {
@@ -534,18 +536,12 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
           
           <div className="flex flex-col gap-3 w-full">
             <Button 
-              onClick={() => setAuthDialogOpen(true)}
-              className="gradient-primary px-3 py-2 h-10 w-full text-sm"
+              variant="default" 
+              onClick={() => navigate('/auth/signin')}
+              className="px-3 py-2 h-10 w-full text-sm"
             >
               <User className="h-4 w-4 mr-2" />
               Sign In to Continue
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => setQuery('')}
-              className="px-3 py-2 h-10 w-full text-sm"
-            >
-              Try Demo Mode
             </Button>
           </div>
           

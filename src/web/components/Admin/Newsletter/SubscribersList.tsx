@@ -6,7 +6,7 @@ import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Badge } from '@/components/UI/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Search, Download, UserX, Mail } from 'lucide-react';
 
 export const SubscribersList: React.FC = () => {

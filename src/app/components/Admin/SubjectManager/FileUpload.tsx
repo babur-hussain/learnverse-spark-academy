@@ -6,7 +6,7 @@ import { Input } from '@/components/UI/input';
 import { Label } from '@/components/UI/label';
 import { Loader2, Upload, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FileUploadProps {
   subjectId: string;

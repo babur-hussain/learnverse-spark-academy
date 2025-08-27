@@ -35,7 +35,7 @@ import { NewsletterManager } from '@/components/Admin/Newsletter/NewsletterManag
 import KidsManager from '@/components/Admin/KidsManager';
 import AudioManager from '@/components/Admin/AudioManager';
 import CollegeManagement from './CollegeManagement';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminPage = () => {
   const isMobile = useIsMobile();

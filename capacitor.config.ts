@@ -9,8 +9,8 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
     allowNavigation: ['*'],
     cleartext: true,
-    url: process.env.VITE_DEV_URL,
-    hostname: '0.0.0.0'
+    url: 'http://localhost:8080',
+    hostname: 'localhost'
   },
   android: {
     useLegacyBridge: false

@@ -10,7 +10,7 @@ import {
   DialogDescription
 } from '@/components/UI/dialog';
 import { Button } from '@/components/UI/button';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { 

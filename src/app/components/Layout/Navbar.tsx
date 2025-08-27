@@ -11,6 +11,19 @@ import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Com
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+type ClassItem = {
+  id: string;
+  name: string;
+  order_index?: number;
+  is_active?: boolean;
+};
+
+type CollegeItem = {
+  id: string;
+  name: string;
+  description?: string | null;
+};
+
 interface NavbarProps {
   selectedClass?: any;
   setSelectedClass?: any;
@@ -124,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   }, []);
 
   // Fetch active classes for Class dropdown
-  const { data: classes = [], isLoading: isLoadingClasses, error: classesError, refetch: refetchClasses } = useQuery({
+  const { data: classes = [], isLoading: isLoadingClasses, error: classesError, refetch: refetchClasses } = useQuery<ClassItem[]>({
     queryKey: ['active-classes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -134,16 +147,16 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
         .order('order_index', { ascending: true });
       if (error) throw error;
       console.log('Navbar: Fetched classes:', data); // Debug log
-      return data;
+      return (data || []) as ClassItem[];
     },
     retry: 3, // Retry up to 3 times
     retryDelay: 1000, // Wait 1 second between retries
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
   // Fetch colleges for College dropdown
-  const { data: colleges = [], isLoading: isLoadingColleges, error: collegesError, refetch: refetchColleges } = useQuery({
+  const { data: colleges = [], isLoading: isLoadingColleges, error: collegesError, refetch: refetchColleges } = useQuery<CollegeItem[]>({
     queryKey: ['colleges'],
     queryFn: async () => {
       console.log('Navbar: Fetching colleges...'); // Debug log
@@ -161,7 +174,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
         console.log('Navbar: Fetched colleges successfully:', data); // Debug log
         console.log('Navbar: Colleges count:', data?.length || 0); // Debug log
         
-        return data || [];
+        return (data || []) as CollegeItem[];
       } catch (err) {
         console.error('Navbar: Exception in colleges query:', err); // Debug log
         throw err;
@@ -170,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
     retry: 3, // Retry up to 3 times
     retryDelay: 1000, // Wait 1 second between retries
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    cacheTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
@@ -552,7 +565,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               </Link>
               <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
                 <Coffee size={18} />
-                <span>Cafes</span>
+                <span>Internet Cafe</span>
               </Link>
             </div>
           )}

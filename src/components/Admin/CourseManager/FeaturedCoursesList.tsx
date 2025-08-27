@@ -8,7 +8,7 @@ import { Badge } from '@/components/UI/badge';
 import { Input } from '@/components/UI/input';
 import { Textarea } from '@/components/UI/textarea';
 import { Edit, Trash2, Plus, Star, ChevronUp, ChevronDown } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Dialog,

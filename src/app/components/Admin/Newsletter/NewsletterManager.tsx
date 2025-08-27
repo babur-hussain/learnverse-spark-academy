@@ -7,7 +7,7 @@ import { SubscribersList } from './SubscribersList';
 import { CampaignsList } from './CampaignsList';
 import { CreateCampaign } from './CreateCampaign';
 import { NewsletterStats } from './NewsletterStats';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Mail, Users, Send, BarChart3 } from 'lucide-react';
 
 export const NewsletterManager: React.FC = () => {

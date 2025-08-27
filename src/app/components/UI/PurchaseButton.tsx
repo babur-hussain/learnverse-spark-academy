@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/UI/button';
 import { useToast } from '@/hooks/use-toast';
 import { initializeRazorpay, createRazorpayOrder, verifyPayment } from '@/lib/razorpay';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Loader2, IndianRupee } from 'lucide-react';
 import { CouponInput } from './CouponInput';
 

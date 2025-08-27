@@ -1,6 +1,6 @@
 
 import { toast } from 'sonner';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { LearningProfile, LearningPath, LearningPathResource, SkillLevel } from '@/types/learning';
 
 export interface RecommendedResource {

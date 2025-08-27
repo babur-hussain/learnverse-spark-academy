@@ -103,56 +103,53 @@ const Home = () => {
 
   // No default class/college selection. Persist only explicit user choices.
 
-  // Simple approach: When selection changes, update both localStorage and database
-  useEffect(() => {
-    if (!selectedClass && !selectedCollege) return; // Skip if both are empty
+  // Controlled approach: Only update database when explicitly triggered, not on every state change
+  const updateProfileInDatabase = React.useCallback(async (newClass?: string, newCollege?: string) => {
+    if (!user?.id) return;
     
-    if (selectedClass) {
-      // Class selected - clear college and update database
-      localStorage.setItem('selectedClass', selectedClass);
-      localStorage.removeItem('selectedCollege');
+    try {
+      const updates: any = {};
       
-      if (user?.id) {
-        supabase
-          .from('profiles')
-          .update({ 
-            class_id: selectedClass, 
-            college_id: null 
-          })
-          .eq('id', user.id)
-          .then(({ error }) => {
-            if (error) {
-              console.error('Failed to update profile:', error);
-            } else {
-              console.log('Profile updated: class =', selectedClass, 'college = null');
-            }
-          });
+      if (newClass) {
+        updates.class_id = newClass;
+        updates.college_id = null;
+      } else if (newCollege) {
+        updates.class_id = null;
+        updates.college_id = newCollege;
       }
-    }
-    
-    if (selectedCollege) {
-      // College selected - clear class and update database
-      localStorage.setItem('selectedCollege', selectedCollege);
-      localStorage.removeItem('selectedClass');
       
-      if (user?.id) {
-        supabase
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
           .from('profiles')
-          .update({ 
-            class_id: null, 
-            college_id: selectedCollege 
-          })
-          .eq('id', user.id)
-          .then(({ error }) => {
-            if (error) {
-              console.error('Failed to update profile:', error);
-            } else {
-              console.log('Profile updated: class = null, college =', selectedCollege);
-            }
-          });
+          .update(updates)
+          .eq('id', user.id);
+        
+        if (error) {
+          console.error('Failed to update profile:', error);
+        } else {
+          console.log('Profile updated:', updates);
+        }
       }
+    } catch (error) {
+      console.error('Error updating profile:', error);
     }
-  }, [selectedClass, selectedCollege, user]);
+  }, [user?.id]);
+  
+  // Handle class selection changes
+  const handleClassChange = React.useCallback((newClass: string) => {
+    setSelectedClass(newClass);
+    localStorage.setItem('selectedClass', newClass);
+    localStorage.removeItem('selectedCollege');
+    updateProfileInDatabase(newClass);
+  }, [updateProfileInDatabase]);
+  
+  // Handle college selection changes
+  const handleCollegeChange = React.useCallback((newCollege: string) => {
+    setSelectedCollege(newCollege);
+    localStorage.setItem('selectedCollege', newCollege);
+    localStorage.removeItem('selectedClass');
+    updateProfileInDatabase(undefined, newCollege);
+  }, [updateProfileInDatabase]);
 
   // Debug function for cross-device sync verification (available in console)
   useEffect(() => {
@@ -191,7 +188,7 @@ const Home = () => {
   }, [user, selectedClass, selectedCollege]);
 
   return (
-    <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
+    <MainLayout selectedClass={selectedClass} setSelectedClass={handleClassChange} selectedCollege={selectedCollege} setSelectedCollege={handleCollegeChange}>
       <div className="min-h-screen flex flex-col">
         <AIHero />
         <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />

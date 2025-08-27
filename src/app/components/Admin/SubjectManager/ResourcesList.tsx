@@ -4,7 +4,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Plus, Pencil, Trash2, FileText, Video, Link as LinkIcon, File } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ResourceDialog } from './ResourceDialog';
 import { 

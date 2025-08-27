@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { ForumCategory, ForumPost, ForumThread, ThreadType, VoteType, ForumFilter, ForumPoll, ForumCategoryType, ThreadStatus } from '@/types/forum';
 
 export class ForumService {

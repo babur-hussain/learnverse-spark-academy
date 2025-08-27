@@ -5,7 +5,7 @@ import { Label } from '@/components/UI/label';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Check, X, Gift } from 'lucide-react';
 
 interface ReferralInputProps {

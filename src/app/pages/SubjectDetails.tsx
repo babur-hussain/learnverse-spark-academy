@@ -60,6 +60,8 @@ interface Resource {
 }
 
 const SubjectDetails = () => {
+  console.log('🎯🎯🎯 APP SubjectDetails component rendered - FLUTTER-STYLE DESIGN ACTIVE');
+  console.log('Component loaded at:', new Date().toISOString());
   const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
   const isMobile = useIsMobile();

@@ -6,6 +6,7 @@ import SubjectDetails from './pages/SubjectDetails';
 import CourseDetailPage from './pages/CourseDetailPage';
 import StudyClass from './pages/StudyClass';
 import ChapterContentManagement from './pages/ChapterContentManagement';
+import AdminNotificationsPage from './pages/AdminNotifications';
 
 const kebab = (s: string) => s
   .replace(/([a-z])([A-Z])/g, '$1-$2')
@@ -53,6 +54,9 @@ export default function WebRoutes() {
         <Route path="/subject-management/subject/:subjectId/chapter/:chapterId" element={<ChapterContentManagement />} />
         <Route path="/catalog/subject/:subjectId" element={<SubjectDetails />} />
         <Route path="/catalog/course/:courseId" element={<CourseDetailPage />} />
+        {/* Admin notifications (support both spellings) */}
+        <Route path="/admin-notifications" element={<AdminNotificationsPage />} />
+        <Route path="/admin-notification" element={<AdminNotificationsPage />} />
         {routeEntries.map(({ path, Component }) => (
           <Route key={path} path={path} element={<Component />} />
         ))}

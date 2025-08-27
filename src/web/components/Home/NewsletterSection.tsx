@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Mail, Bell, BookOpen, Users, CheckCircle } from 'lucide-react';
 
 const NewsletterSection = () => {

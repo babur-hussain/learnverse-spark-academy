@@ -112,7 +112,7 @@ const LiveStreamDashboard = () => {
     };
     
     fetchSessionData();
-  }, [sessionId, toast]);
+  }, [sessionId]); // Remove toast dependency to prevent infinite loops
   
   // Update stream duration when live
   useEffect(() => {

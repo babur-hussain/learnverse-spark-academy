@@ -1,5 +1,5 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type { Badge, UserBadge, UserXP, UserStreak, ActivityLog, BadgeType, BadgeTier } from '@/types/gamification';
 import { toast } from 'sonner';
 

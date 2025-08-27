@@ -5,7 +5,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Button } from '@/components/UI/button';
 import { Switch } from '@/components/UI/switch';
 import { Edit, Trash2, MoveUp, MoveDown, Loader2, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { FeaturedSubjectDialog } from './FeaturedSubjectsDialog';
 import { 

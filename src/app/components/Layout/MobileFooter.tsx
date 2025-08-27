@@ -13,7 +13,7 @@ const MobileFooter = () => {
     { icon: ShoppingBag, label: 'Stationary', path: '/stationary' },
     { icon: Baby, label: 'Kids', path: '/kids' },
     { icon: Headphones, label: 'Audio', path: '/audio' },
-    { icon: Coffee, label: 'Cafes', path: '/cafes' },
+    { icon: Coffee, label: 'Internet Cafe', path: '/cafes' },
   ];
 
   return (

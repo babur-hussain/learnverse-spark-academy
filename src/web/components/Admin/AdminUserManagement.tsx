@@ -41,7 +41,7 @@ import {
   Calendar,
   Activity
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UserProfile {
   id: string;

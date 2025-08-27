@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Folder as FolderIcon, File as FileIcon, FileText, FileImage, FileVideo, BookOpen } from 'lucide-react';

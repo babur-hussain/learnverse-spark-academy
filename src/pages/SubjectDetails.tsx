@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { BookOpen, FileText, Video, Users, Play, Plus, Pencil, Trash2, Upload, FolderOpen, ExternalLink } from 'lucide-react';
+import { BookOpen, FileText, Video, Users, Play, Plus, Pencil, Trash2, Upload, FolderOpen, ExternalLink, ArrowLeft } from 'lucide-react';
 import PDFLink from '@/components/UI/PDFLink';
 import { supabase } from '@/integrations/supabase/client';
 import useIsMobile from '@/hooks/use-mobile';
@@ -242,198 +242,200 @@ const SubjectDetails = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Back Button */}
+      <div className="pt-20 md:pt-24 px-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(-1)}
+          className="mb-4 hover:bg-white/80"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
       
-      <main className="flex-1 container mx-auto px-4 py-8 pt-20 md:pt-24">
-        <div className="max-w-6xl mx-auto">
-          {/* Subject Header */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-4xl font-bold">{subject.title}</h1>
+      <main className="flex-1 container mx-auto px-4 pb-8">
+        <div className="max-w-4xl mx-auto">
+          {/* Subject Hero Section */}
+          <div className="bg-white rounded-3xl shadow-lg p-6 mb-8">
+            {/* Subject Thumbnail */}
+            <div className="relative w-full h-48 md:h-64 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-2xl mb-6 flex items-center justify-center overflow-hidden">
+              {subject.thumbnail_url ? (
+                <img 
+                  src={subject.thumbnail_url} 
+                  alt={subject.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="text-center">
+                  <BookOpen className="h-24 w-24 text-indigo-400 mx-auto mb-4" />
+                  <div className="text-2xl font-bold text-indigo-600">{subject.title}</div>
+                </div>
+              )}
+              {/* Play Button Overlay */}
+              <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <Play className="h-8 w-8 text-indigo-600 ml-1" />
+                </div>
+              </div>
             </div>
+
+            {/* Subject Info */}
+            <div className="text-center mb-6">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{subject.title}</h1>
             {subject.description && (
-              <p className="text-lg text-muted-foreground mb-6">{subject.description}</p>
+                <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+                  {subject.description}
+                </p>
             )}
+            </div>
             
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Chapters</p>
-                      <p className="text-2xl font-bold">{chapters.length}</p>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="bg-indigo-50 rounded-xl p-4">
+                <div className="text-2xl font-bold text-indigo-600">{chapters.length}</div>
+                <div className="text-sm text-indigo-500">Chapters</div>
                     </div>
+              <div className="bg-purple-50 rounded-xl p-4">
+                <div className="text-2xl font-bold text-purple-600">{resources.length}</div>
+                <div className="text-sm text-purple-500">Resources</div>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <FileText className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Resources</p>
-                      <p className="text-2xl font-bold">{resources.length}</p>
-                    </div>
+              <div className="bg-pink-50 rounded-xl p-4">
+                <div className="text-2xl font-bold text-pink-600">0</div>
+                <div className="text-sm text-pink-500">Students</div>
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-5 w-5 text-primary" />
-                    <div>
-                      <p className="text-sm text-muted-foreground">Students</p>
-                      <p className="text-2xl font-bold">0</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
           </div>
 
           {/* Content Tabs */}
-          <Tabs defaultValue="chapters" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="content-files">Content Files</TabsTrigger>
-              <TabsTrigger value="resources">Resources</TabsTrigger>
-              <TabsTrigger value="chapters">Chapters</TabsTrigger>
+          <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+            <Tabs defaultValue="resources" className="w-full">
+              <TabsList className="grid grid-cols-2 w-full rounded-none bg-gray-50 p-1">
+                <TabsTrigger 
+                  value="resources" 
+                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-xl"
+                >
+                  Resources
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="videos" 
+                  className="data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm rounded-xl"
+                >
+                  Videos
+                </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="content-files">
-              <Card>
-                <CardContent className="p-6">
-                  <p className="text-muted-foreground">Content files will be displayed here.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            
-            <TabsContent value="resources">
-              <Card>
-                <CardContent className="p-6">
+              <TabsContent value="resources" className="p-6">
+                <div className="space-y-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold">All Resources</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">Available Resources</h3>
                     {isAdmin && (
-                      <Button onClick={() => handleAddResource()}>
+                      <Button onClick={() => handleAddResource()} className="bg-indigo-600 hover:bg-indigo-700">
                         <Plus className="h-4 w-4 mr-2" />
                         Add Resource
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  
+                  {resources.length === 0 ? (
+                    <div className="text-center py-12">
+                      <FileText className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">No resources available yet</p>
+                      <p className="text-gray-400 text-sm">Resources will appear here once they're added</p>
+                    </div>
+                  ) : (
+                    <div className="grid gap-4">
                     {resources.map((resource) => (
-                      <Card key={resource.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardContent className="p-4">
-                          <div className="flex items-start justify-between mb-2">
-                            <div className="flex items-center space-x-2">
+                        <div key={resource.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                          <div className="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center">
                               {getResourceIcon(resource.resource_type)}
-                              <h4 className="font-medium">{resource.title}</h4>
-                            </div>
-                            <Badge variant="outline">{resource.resource_type}</Badge>
                           </div>
-                          {resource.description && (
-                            <p className="text-sm text-muted-foreground mb-3">{resource.description}</p>
-                          )}
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-muted-foreground">
-                              {resource.chapter_id ? 'In Chapter' : 'General'}
-                            </span>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900">{resource.title}</h4>
+                            {resource.description && (
+                              <p className="text-sm text-gray-500 mt-1">{resource.description}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                {resource.resource_type}
+                              </Badge>
+                              {resource.chapter_id && (
+                                <Badge variant="outline" className="text-xs">
+                                  Chapter Resource
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
                             {resource.file_url && resource.file_url.toLowerCase().includes('.pdf') ? (
                               <PDFLink 
                                 url={resource.file_url}
                                 title={resource.title}
                                 variant="button"
                                 showDownloadButton={true}
+                                className="bg-indigo-600 hover:bg-indigo-700"
                               />
                             ) : (
                               <Button 
                                 size="sm" 
-                                variant="outline"
+                                variant="default"
                                 onClick={() => handleOpenResource(resource)}
+                                className="bg-indigo-600 hover:bg-indigo-700"
                               >
-                                <Play className="h-3 w-3" />
+                                <Play className="h-3 w-3 mr-1" />
+                                Open
                               </Button>
                             )}
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
             </TabsContent>
             
-            <TabsContent value="chapters">
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold">Subject Chapters</h3>
+              <TabsContent value="videos" className="p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold text-gray-900">Video Lessons</h3>
                     {isAdmin && (
-                      <Button onClick={handleAddChapter}>
+                      <Button onClick={handleAddChapter} className="bg-indigo-600 hover:bg-indigo-700">
                         <Plus className="h-4 w-4 mr-2" />
                         Add Chapter
                       </Button>
                     )}
                   </div>
 
-                  {chaptersLoading ? (
-                    <div className="text-center py-8">
-                      <p>Loading chapters...</p>
-                    </div>
-                  ) : chapters.length === 0 ? (
-                    <div className="text-center py-8">
-                      <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">No chapters created yet</p>
-                      {isAdmin && (
-                        <Button onClick={handleAddChapter}>
-                          Create First Chapter
-                        </Button>
-                      )}
+                  {chapters.length === 0 ? (
+                    <div className="text-center py-12">
+                      <Video className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                      <p className="text-gray-500 text-lg">No video lessons available yet</p>
+                      <p className="text-gray-400 text-sm">Chapters and videos will appear here once they're added</p>
                     </div>
                   ) : (
-                    <div className="space-y-4">
-                      {chapters.map((chapter) => {
-                        const chapterResources = getResourcesByChapter(chapter.id);
-                        return (
-                          <Card key={chapter.id}>
-                            <CardContent className="p-6">
-                              <div className="flex items-start justify-between">
+                    <div className="space-y-3">
+                      {chapters.map((chapter) => (
+                        <div key={chapter.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                          <div className="h-12 w-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                            <Play className="h-6 w-6 text-indigo-600" />
+                          </div>
                                 <div className="flex-1">
-                                  <div className="flex items-center space-x-3 mb-2">
-                                    <span className="bg-primary text-primary-foreground px-2 py-1 rounded text-sm font-medium">
-                                      {chapter.order_index + 1}
-                                    </span>
-                                    <h4 className="text-lg font-semibold">{chapter.title}</h4>
-                                  </div>
+                            <h4 className="font-medium text-gray-900">{chapter.title}</h4>
                                   {chapter.description && (
-                                    <p className="text-muted-foreground mb-3">{chapter.description}</p>
-                                  )}
-                                  <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                                    <span className="flex items-center space-x-1">
-                                      <FileText className="h-4 w-4" />
-                                      <span>{chapterResources.length} resources</span>
+                              <p className="text-sm text-gray-500 mt-1">{chapter.description}</p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Chapter {chapter.order_index + 1}
+                              </Badge>
+                              <span className="text-xs text-gray-500">
+                                {getResourcesByChapter(chapter.id).length} resources
                                     </span>
                                   </div>
                                 </div>
                                 {isAdmin && (
-                                  <div className="flex items-center space-x-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleAddResource(chapter.id)}
-                                    >
-                                      <Upload className="h-4 w-4 mr-1" />
-                                      Add Resource
-                                    </Button>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => handleManageChapterContent(chapter.id)}
-                                    >
-                                      <FolderOpen className="h-4 w-4 mr-1" />
-                                      Manage
-                                    </Button>
+                            <div className="flex items-center gap-2">
                                     <Button
                                       variant="ghost"
                                       size="sm"
@@ -441,75 +443,23 @@ const SubjectDetails = () => {
                                     >
                                       <Pencil className="h-4 w-4" />
                                     </Button>
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="sm">
-                                          <Trash2 className="h-4 w-4 text-red-500" />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAddResource(chapter.id)}
+                              >
+                                <Upload className="h-4 w-4" />
                                         </Button>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Delete Chapter</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            Are you sure you want to delete "{chapter.title}"? This action cannot be undone.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                          <AlertDialogAction onClick={() => handleDeleteChapter(chapter.id)}>
-                                            Delete
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
                                   </div>
                                 )}
                               </div>
-
-                              {/* Chapter Resources Preview */}
-                              {chapterResources.length > 0 && (
-                                <div className="mt-4 pt-4 border-t">
-                                  <h5 className="text-sm font-medium mb-2">Chapter Resources:</h5>
-                                  <div className="flex flex-wrap gap-2">
-                                    {chapterResources.slice(0, 3).map((resource) => (
-                                      resource.file_url && resource.file_url.toLowerCase().includes('.pdf') ? (
-                                        <PDFLink 
-                                          key={resource.id}
-                                          url={resource.file_url}
-                                          title={resource.title}
-                                          variant="badge"
-                                          showDownloadButton={true}
-                                        />
-                                      ) : (
-                                        <Badge 
-                                          key={resource.id} 
-                                          variant="secondary" 
-                                          className="text-xs cursor-pointer hover:bg-secondary/80"
-                                          onClick={() => handleOpenResource(resource)}
-                                        >
-                                          {getResourceIcon(resource.resource_type)}
-                                          <span className="ml-1">{resource.title}</span>
-                                        </Badge>
-                                      )
-                                    ))}
-                                    {chapterResources.length > 3 && (
-                                      <Badge variant="outline" className="text-xs">
-                                        +{chapterResources.length - 3} more
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        );
-                      })}
+                      ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
             </TabsContent>
           </Tabs>
+          </div>
         </div>
       </main>
 

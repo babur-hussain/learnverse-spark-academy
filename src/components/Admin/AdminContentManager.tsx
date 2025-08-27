@@ -35,7 +35,7 @@ import {
   Star,
   Clock
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Course {
   id: string;

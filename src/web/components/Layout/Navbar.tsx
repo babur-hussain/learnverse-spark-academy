@@ -552,7 +552,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               </Link>
               <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
                 <Coffee size={18} />
-                <span>Cafes</span>
+                <span>Internet Cafe</span>
               </Link>
             </div>
           )}

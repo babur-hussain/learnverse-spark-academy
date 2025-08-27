@@ -6,7 +6,7 @@ import { Button } from '@/components/UI/button';
 import { Switch } from '@/components/UI/switch';
 import { Badge } from '@/components/UI/badge';
 import { Edit, Trash2, Copy, Eye, EyeOff, Book, Tag, Folder } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CourseDialog } from './CourseDialog';
 import { 

@@ -9,6 +9,16 @@ import { Toaster } from '@/components/UI/toaster';
 import { EducationalLoader } from '@/components/UI/educational-loader';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { useAuth } from '@/contexts/AuthContext';
+import { NotificationsService } from './services/NotificationsService';
+
+function PushTokenRegistrar() {
+  const { user } = useAuth();
+  useEffect(() => {
+    NotificationsService.registerDeviceToken(user?.id ?? null).catch(() => {});
+  }, [user]);
+  return null;
+}
 
 export default function AppRoot() {
   useEffect(() => {
@@ -48,11 +58,14 @@ export default function AppRoot() {
     };
   }, []);
 
+  // push registration handled inside PushTokenRegistrar within providers
+
   return (
     <SafeErrorBoundary>
       <ToastProvider>
         <AuthProvider>
           <GuardianProvider>
+            <PushTokenRegistrar />
             <Suspense fallback={<div className="flex items-center justify-center h-screen"><EducationalLoader message="Loading..." /></div>}>
               <AppRoutes />
             </Suspense>

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LiveChatPanelProps {
   sessionId: string;
@@ -280,7 +280,7 @@ const LiveChatPanel: React.FC<LiveChatPanelProps> = ({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [sessionId, toast]);
+  }, [sessionId]); // Remove toast dependency to prevent infinite loops
   
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();

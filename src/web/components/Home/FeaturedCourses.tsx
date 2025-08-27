@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { Star, Clock, Users, BookOpen } from 'lucide-react';
 import { Progress } from '@/components/UI/progress';

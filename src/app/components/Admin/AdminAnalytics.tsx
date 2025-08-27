@@ -36,7 +36,7 @@ import {
   Monitor
 } from 'lucide-react';
 import { Badge } from '@/components/UI/badge';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminAnalytics = () => {
   const [realTimeData, setRealTimeData] = useState({

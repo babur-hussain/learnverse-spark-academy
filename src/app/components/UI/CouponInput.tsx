@@ -4,7 +4,7 @@ import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Badge } from '@/components/UI/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Check, X, Tag } from 'lucide-react';
 
 interface CouponInputProps {

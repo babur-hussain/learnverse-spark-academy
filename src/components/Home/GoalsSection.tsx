@@ -5,7 +5,7 @@ import { Input } from '@/components/UI/input';
 import { Card } from '@/components/UI/card';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 const GoalsSection = () => {
   const [searchQuery, setSearchQuery] = useState('');

@@ -16,6 +16,7 @@ const isUrl = (str?: string | null) => {
   return !!str && (str.startsWith('http://') || str.startsWith('https://'));
 };
 
+// Hot reload test - Class Subjects Grid Component
 const ClassSubjectsGrid: React.FC<{ selectedClass: string; selectedCollege: string }> = ({ selectedClass, selectedCollege }) => {
   const navigate = useNavigate();
 
@@ -54,7 +55,7 @@ const ClassSubjectsGrid: React.FC<{ selectedClass: string; selectedCollege: stri
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
+      <div className="flex justify-center py-2">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-learn-purple"></div>
       </div>
     );
@@ -62,7 +63,7 @@ const ClassSubjectsGrid: React.FC<{ selectedClass: string; selectedCollege: stri
 
   if (error) {
     return (
-      <div className="text-center text-muted-foreground py-8">Failed to load subjects.</div>
+      <div className="text-center text-muted-foreground py-2">Failed to load subjects.</div>
     );
   }
 
@@ -71,29 +72,29 @@ const ClassSubjectsGrid: React.FC<{ selectedClass: string; selectedCollege: stri
       ? "No subjects mapped to this class yet."
       : "No subjects available for this college yet.";
     return (
-      <div className="text-center text-muted-foreground py-8">{message}</div>
+      <div className="text-center text-muted-foreground py-2">{message}</div>
     );
   }
 
   const sectionTitle = selectedClass ? "Class Subjects" : "College Subjects";
 
   return (
-    <section className="w-full py-8 bg-white dark:bg-gray-950">
+    <section className="w-full pt-1 pb-2 bg-white dark:bg-gray-950">
       <div className="max-w-5xl mx-auto px-4">
-        <div className="mb-6 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">{sectionTitle}</h2>
+        <div className="mb-2 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white mb-1">{sectionTitle}</h2>
           <div className="flex justify-center">
-            <div className="w-16 h-1 rounded-full bg-primary mb-4"></div>
+            <div className="w-16 h-1 rounded-full bg-primary mb-2"></div>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {subjects.map((subject: Subject) => (
             <div
               key={subject.id}
               className="flex flex-col items-center cursor-pointer group"
               onClick={() => navigate(`/subject/${subject.id}`)}
             >
-              <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/30 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center mb-3">
+              <div className="w-20 h-20 rounded-full overflow-hidden bg-gradient-to-br from-primary/10 to-primary/30 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center mb-1">
                 {subject.thumbnail_url ? (
                   <img
                     src={subject.thumbnail_url}

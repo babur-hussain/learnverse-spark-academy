@@ -7,7 +7,7 @@ import { Input } from '@/components/UI/input';
 import { Textarea } from '@/components/UI/textarea';
 import { Label } from '@/components/UI/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Send, Save, Eye } from 'lucide-react';
 
 export const CreateCampaign: React.FC = () => {

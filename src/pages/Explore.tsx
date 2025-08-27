@@ -2,7 +2,7 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import CourseCard from '@/components/UI/CourseCard';
 import { Card } from '@/components/UI/card';
 import { EducationalLoader } from '@/components/UI/educational-loader';

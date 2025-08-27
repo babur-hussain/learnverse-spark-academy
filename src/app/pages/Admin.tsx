@@ -35,7 +35,7 @@ import { NewsletterManager } from '@/components/Admin/Newsletter/NewsletterManag
 import KidsManager from '@/components/Admin/KidsManager';
 import AudioManager from '@/components/Admin/AudioManager';
 import CollegeManagement from './CollegeManagement';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminPage = () => {
   const isMobile = useIsMobile();
@@ -164,6 +164,13 @@ const AdminPage = () => {
       icon: <MessageSquare className="h-6 w-6" />,
       link: "/simple-content",
       color: "bg-teal-500"
+    },
+    {
+      title: "Notifications",
+      description: "Send push notifications to app users",
+      icon: <Mail className="h-6 w-6" />,
+      link: "/admin-notification",
+      color: "bg-indigo-500"
     }
   ];
 
@@ -248,7 +255,9 @@ const AdminPage = () => {
                     <CardContent>
                       <p className="text-gray-600 dark:text-gray-400 mb-4">{tool.description}</p>
                         <Link to={tool.link}>
-                        <Button className={`${tool.color} text-white w-full`}>Manage {tool.title.split(' ')[0]}</Button>
+                        <Button className={`${tool.color} text-white w-full`}>
+                          {tool.title === 'Notifications' ? 'Manage Notifications' : `Manage ${tool.title.split(' ')[0]}`}
+                        </Button>
                         </Link>
                     </CardContent>
                   </Card>

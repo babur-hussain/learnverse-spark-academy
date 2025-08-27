@@ -7,7 +7,7 @@ import { Label } from '@/components/UI/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/UI/select';
 import { Textarea } from '@/components/UI/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Plus, Edit } from 'lucide-react';
 
 interface Coupon {

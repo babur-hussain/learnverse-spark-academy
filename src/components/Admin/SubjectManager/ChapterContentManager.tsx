@@ -8,7 +8,7 @@ import { Textarea } from '@/components/UI/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { Badge } from '@/components/UI/badge';
 import { Plus, FileText, Video, Link as LinkIcon, Upload, Pencil, Trash2 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ResourceDialog } from './ResourceDialog';
 import { 
