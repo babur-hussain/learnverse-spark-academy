@@ -1,0 +1,13 @@
+@import url('../index.css');
+
+/* Web-specific overrides */
+html, body, #root {
+  background: hsl(var(--background)) !important;
+}
+
+/* Offset for fixed navbar on web when needed (duplicated in layout via mt-12) */
+body.has-fixed-navbar .main-content {
+  margin-top: 3rem; /* 48px */
+}
+
+

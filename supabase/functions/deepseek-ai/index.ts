@@ -1,0 +1,181 @@
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+
+const allowedOrigins = (Deno.env.get('ALLOWED_ORIGINS') || '').split(',').map(s => s.trim()).filter(Boolean)
+const baseHeaders = {
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+} as const
+
+function buildCorsHeaders(origin: string | null): Record<string, string> {
+  const headers: Record<string, string> = { ...baseHeaders }
+  if (origin && allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin
+  }
+  return headers
+}
+
+// SECURITY FIX: Move API key to environment variable
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+if (!GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY environment variable not configured');
+}
+
+serve(async (req) => {
+  console.log("Function started");
+  
+  // Handle CORS preflight requests
+  const origin = req.headers.get('Origin')
+  if (req.method === 'OPTIONS') {
+    console.log("Handling CORS preflight");
+    return new Response(null, { headers: buildCorsHeaders(origin) });
+  }
+
+  try {
+    console.log("Parsing request body");
+    
+    // SECURITY FIX: Enhanced input validation with Zod-like schema
+    const requestBody = await req.json();
+    
+    // Validate required fields
+    if (!requestBody.query || typeof requestBody.query !== 'string') {
+      throw new Error('Query is required and must be a string');
+    }
+    
+    if (requestBody.query.length > 1000) {
+      throw new Error('Query too long (max 1000 characters)');
+    }
+    
+    if (requestBody.fileData && typeof requestBody.fileData === 'string' && requestBody.fileData.length > 50000) {
+      throw new Error('File data too large (max 50KB)');
+    }
+    
+    const { query, fileData, mode, followUp, language, stream = false } = requestBody;
+    
+    console.log("Processing query:", query);
+    console.log("Mode:", mode);
+    console.log("Stream mode:", stream);
+    console.log("API Key available:", !!GEMINI_API_KEY);
+
+    if (!GEMINI_API_KEY) {
+      throw new Error("Gemini API key is not configured. Please add GEMINI_API_KEY to your environment variables.");
+    }
+
+    // For now, let's return a simple response to test if the function works at all
+    if (query === 'hello') {
+      console.log("Returning test response for 'hello'");
+      return new Response(
+        JSON.stringify({
+          answer: "Hello! I'm your AI learning assistant. How can I help you today?",
+          categories: ["General"],
+          followUpSuggestions: ["What would you like to learn?", "Can you explain a concept?"]
+        }),
+        {
+          headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    // Basic per-IP rate limit (memory, per instance)
+    const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || req.headers.get('x-real-ip') || 'unknown'
+    const now = Date.now()
+    const windowMs = 60_000
+    const maxReq = 20
+    // globalThis.rates as in-memory map
+    const store = (globalThis as unknown as { rates?: Map<string, { count: number; reset: number }> })
+    if (!store.rates) store.rates = new Map()
+    const rec = store.rates.get(ip) || { count: 0, reset: now + windowMs }
+    if (now > rec.reset) { rec.count = 0; rec.reset = now + windowMs }
+    rec.count += 1
+    store.rates.set(ip, rec)
+    if (rec.count > maxReq) {
+      return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), { status: 429, headers: buildCorsHeaders(origin) })
+    }
+
+    // For other queries, try to use Gemini API
+    console.log("Attempting Gemini API call");
+    
+    const systemMessage = "You are an educational AI assistant designed to help students learn effectively. ";
+    const messages = [
+      { role: "system", content: systemMessage },
+      { role: "user", content: query }
+    ];
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: messages.map(msg => ({
+          parts: [{ text: msg.content }]
+        })),
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        }
+      })
+    });
+
+    console.log("Gemini API response status:", response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Gemini API error:", response.status, errorText);
+      throw new Error(`Gemini API responded with status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Gemini response received successfully");
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      throw new Error("Invalid response format from Gemini API");
+    }
+    
+    const answer = data.candidates[0].content.parts[0].text;
+    
+    // Simple categorization
+    const categories = ["General"];
+    if (answer.toLowerCase().includes("math") || answer.toLowerCase().includes("formula")) {
+      categories.push("Mathematics");
+    }
+    if (answer.toLowerCase().includes("science")) {
+      categories.push("Science");
+    }
+
+    // Simple follow-up suggestions
+    const followUpSuggestions = [
+      "Can you explain this further?",
+      "What are practical applications?",
+      "Can you provide an example?"
+    ];
+
+    console.log("Returning final response");
+    return new Response(
+      JSON.stringify({
+        answer,
+        categories,
+        followUpSuggestions
+      }),
+      {
+        headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
+      }
+    );
+
+  } catch (error) {
+    console.error("Error in gemini-ai function:", error);
+    
+    return new Response(
+      JSON.stringify({ 
+        error: error.message || "An unexpected error occurred while processing your request.",
+        details: error.stack
+      }),
+      {
+        status: 500,
+        headers: { ...buildCorsHeaders(origin), "Content-Type": "application/json" }
+      }
+    );
+  }
+});
