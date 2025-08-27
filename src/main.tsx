@@ -13,6 +13,8 @@ if (document.querySelector('meta[name="viewport"]')) {
   );
 }
 
+
+
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
     <Root />

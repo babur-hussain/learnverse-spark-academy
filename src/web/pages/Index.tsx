@@ -194,6 +194,7 @@ const Home = () => {
     <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
       <div className="min-h-screen flex flex-col">
         <AIHero />
+        
         <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />
         <Hero />
         <FindSchoolSection />

@@ -9,11 +9,16 @@ import { GamificationStats } from '@/components/Profile/GamificationStats';
 import { RecommendedCourses } from '@/components/Profile/RecommendedCourses';
 import { ReferralDashboard } from '@/components/Profile/ReferralDashboard';
 import { useProfileData } from '@/hooks/use-profile-data';
-import { User, BookOpen, BarChart3, Trophy, Gift } from 'lucide-react';
+import { User, BookOpen, BarChart3, Trophy, Gift, LogOut, HelpCircle, FileText, ShieldCheck, RotateCcw, Phone, Edit2, Crown } from 'lucide-react';
 import MainLayout from '@/components/Layout/MainLayout';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
+import { Button } from '@/components/UI/button';
+import { useNavigate } from 'react-router-dom';
+import { isApp } from '@/utils/platform';
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const {
     profile,
     courseProgress,
@@ -54,7 +59,104 @@ const Profile = () => {
     );
   }
 
-  // Get completed course IDs for recommendations
+  // If running inside the Capacitor app, render a mobile-optimized profile screen
+  if (isApp) {
+    const fullName = profile?.full_name || (user.email?.split('@')[0] ?? 'Learner');
+    const phone = profile?.phone || '';
+
+    return (
+      <MainLayout>
+        <div className="px-4 py-6 max-w-xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={profile?.avatar_url || ''} />
+              <AvatarFallback>{fullName?.[0]?.toUpperCase() ?? 'U'}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="text-xl font-semibold">{fullName}</div>
+              <div className="text-sm text-muted-foreground">
+                {phone || user.email}
+              </div>
+              <button
+                onClick={() => navigate('/profile/edit')}
+                className="mt-1 inline-flex items-center gap-1 text-sm text-primary hover:underline"
+              >
+                <Edit2 className="h-4 w-4" /> Edit Profile
+              </button>
+            </div>
+          </div>
+
+          {/* Subscription */}
+          <Card className="mt-6 overflow-hidden">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Subscription Plan</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="flex items-center justify-between">
+                <span className="text-sm rounded-full px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                  Not Purchased
+                </span>
+                <Button
+                  className="rounded-full"
+                  variant="default"
+                  onClick={() => navigate('/catalog')}
+                >
+                  <Crown className="h-4 w-4 mr-2" /> Upgrade
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick actions */}
+          <div className="mt-6 space-y-3">
+            <button onClick={() => navigate('/support')}
+              className="w-full flex items-center justify-between rounded-xl border bg-background px-4 py-4">
+              <div className="flex items-center gap-3">
+                <HelpCircle className="h-5 w-5" />
+                <span>Help & Support</span>
+              </div>
+              <Phone className="h-4 w-4 opacity-60" />
+            </button>
+
+            <button onClick={() => navigate('/terms-of-service')}
+              className="w-full flex items-center justify-between rounded-xl border bg-background px-4 py-4">
+              <div className="flex items-center gap-3">
+                <FileText className="h-5 w-5" />
+                <span>Terms & Conditions</span>
+              </div>
+            </button>
+
+            <button onClick={() => navigate('/privacy-policy')}
+              className="w-full flex items-center justify-between rounded-xl border bg-background px-4 py-4">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-5 w-5" />
+                <span>Privacy Policy</span>
+              </div>
+            </button>
+
+            <button onClick={() => navigate('/refund-policy')}
+              className="w-full flex items-center justify-between rounded-xl border bg-background px-4 py-4">
+              <div className="flex items-center gap-3">
+                <RotateCcw className="h-5 w-5" />
+                <span>Refund Policy</span>
+              </div>
+            </button>
+
+            <Button
+              variant="destructive"
+              onClick={() => { logout(); navigate('/auth'); }}
+              className="w-full rounded-xl mt-2"
+            >
+              <LogOut className="h-4 w-4 mr-2" /> Log Out
+            </Button>
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  // Web experience (unchanged)
   const completedCourses = courseProgress
     .filter(course => course.status === 'completed')
     .map(course => course.course_id);

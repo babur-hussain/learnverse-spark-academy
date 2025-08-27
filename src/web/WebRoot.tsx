@@ -2,7 +2,6 @@ import React, { Suspense, useEffect } from 'react';
 import WebRoutes from './routes';
 import './index.css';
 import './App.css';
-import { router } from '@/routes';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { GuardianProvider } from '@/contexts/GuardianContext';
 import { Toaster } from '@/components/UI/toaster';

@@ -14,6 +14,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
 import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen, HardDrive } from 'lucide-react';
 import AuthDialog from '@/components/Auth/AuthDialog';
+import { isApp } from '@/utils/platform';
 import { Button } from '@/components/UI/button';
 
 const UserMenu = () => {
@@ -68,6 +69,18 @@ const UserMenu = () => {
         navigate('/instructor/videos');
       }
     };
+
+    // In the Capacitor app, clicking avatar should go straight to Profile
+    if (isApp) {
+      return (
+        <button onClick={() => navigate('/profile')} className="focus:outline-none flex-shrink-0" aria-label="Open profile">
+          <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+            <AvatarImage src={user?.user_metadata?.avatar_url || ''} />
+            <AvatarFallback className="text-xs sm:text-sm">{getInitials()}</AvatarFallback>
+          </Avatar>
+        </button>
+      );
+    }
 
     return (
       <>

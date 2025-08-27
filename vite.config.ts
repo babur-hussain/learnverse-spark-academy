@@ -6,12 +6,15 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const target = process.env.VITE_TARGET === 'app' ? 'app' : 'web';
+  const devHost = process.env.VITE_HOST || '0.0.0.0';
+  const hmrHost = process.env.VITE_HMR_HOST;
   return ({
   server: {
-    host: "localhost",
+    host: devHost,
     port: 8080,
     hmr: {
       port: 8080,
+      host: hmrHost || undefined,
     },
   },
   plugins: [

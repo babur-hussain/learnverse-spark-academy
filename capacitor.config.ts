@@ -6,9 +6,11 @@ const config: CapacitorConfig = {
   appName: 'LearnVerse Spark Academy',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
-    allowNavigation: [],
-    cleartext: false
+    androidScheme: 'http',
+    allowNavigation: ['*'],
+    cleartext: true,
+    url: process.env.VITE_DEV_URL,
+    hostname: '0.0.0.0'
   },
   android: {
     useLegacyBridge: false
