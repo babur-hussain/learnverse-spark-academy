@@ -1,6 +1,8 @@
 
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const devUrl = process.env.VITE_DEV_URL;
+
 const config: CapacitorConfig = {
   appId: 'com.learnverse.sparkacademy',
   appName: 'LearnVerse Spark Academy',
@@ -9,8 +11,7 @@ const config: CapacitorConfig = {
     androidScheme: 'http',
     allowNavigation: ['*'],
     cleartext: true,
-    url: 'http://localhost:8080',
-    hostname: 'localhost'
+    ...(devUrl ? { url: devUrl, hostname: 'localhost' } : {})
   },
   android: {
     useLegacyBridge: false

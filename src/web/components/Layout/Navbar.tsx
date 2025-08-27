@@ -546,10 +546,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 <Baby size={18} />
                 <span>Kids</span>
               </Link>
-              <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                <Headphones size={18} />
-                <span>Audio</span>
-              </Link>
+              
               <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
                 <Coffee size={18} />
                 <span>Internet Cafe</span>
