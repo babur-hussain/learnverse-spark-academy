@@ -35,7 +35,7 @@ import { Loader2, Upload, File, X, Check } from 'lucide-react';
 import { Progress } from '@/components/UI/progress';
 
 const formSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().optional(),
   description: z.string().optional(),
   resource_type: z.string().min(1, 'Type is required'),
   file_url: z.string().url('Must be a valid URL').or(z.string().length(0)).optional(),
@@ -74,7 +74,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   resource
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,8 +96,15 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   const resourceType = form.watch('resource_type');
   
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setUploadedFile(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    // Only accept PDFs for multi-upload
+    const pdfs = files.filter(f => f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf'));
+    const rejected = files.filter(f => !(f.type === 'application/pdf' || f.name.toLowerCase().endsWith('.pdf')));
+    if (rejected.length) {
+      toast({ title: 'Some files were skipped', description: `${rejected.length} non-PDF file(s) ignored.`, variant: 'destructive' });
+    }
+    setUploadedFiles(pdfs);
   };
   
   const uploadFile = async (file: File): Promise<string> => {
@@ -151,7 +158,7 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   };
   
   const clearFileInput = () => {
-    setUploadedFile(null);
+    setUploadedFiles([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -160,46 +167,59 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
   const onSubmit = async (values: FormValues) => {
     setIsSubmitting(true);
     try {
-      let fileUrl = values.file_url || null;
-      
-      // If there's a file to upload, upload it first
-      if (uploadedFile) {
-        fileUrl = await uploadFile(uploadedFile);
-      }
-      
-      const resourceData = {
-        id: resource?.id || uuidv4(),
-        title: values.title,
-        description: values.description || null,
-        resource_type: values.resource_type,
-        file_url: fileUrl,
-        external_url: values.external_url || null,
-        subject_id: values.subject_id,
-        chapter_id: values.chapter_id || null,
-      };
-      
-      const { error } = resource 
-        ? await supabase
+      if (uploadedFiles.length > 0) {
+        // Multi-upload path: create one resource per file
+        for (const file of uploadedFiles) {
+          const publicUrl = await uploadFile(file);
+          const titleFromName = file.name.replace(/\.[^.]+$/, '') || file.name;
+          const { error: dbErr } = await supabase
             .from('subject_resources')
-            .update(resourceData)
-            .eq('id', resource.id)
-        : await supabase
-            .from('subject_resources')
-            .insert(resourceData);
-      
-      if (error) {
-        throw error;
+            .insert({
+              id: uuidv4(),
+              title: titleFromName,
+              description: values.description || null,
+              resource_type: values.resource_type || 'document',
+              file_url: publicUrl,
+              external_url: null,
+              subject_id: values.subject_id,
+              chapter_id: values.chapter_id || null,
+              is_published: true,
+            });
+          if (dbErr) throw dbErr;
+        }
+      } else {
+        // Single resource path: either file_url or external_url
+        const resourceData = {
+          id: resource?.id || uuidv4(),
+          title: values.title || 'Untitled',
+          description: values.description || null,
+          resource_type: values.resource_type,
+          file_url: values.file_url || null,
+          external_url: values.external_url || null,
+          subject_id: values.subject_id,
+          chapter_id: values.chapter_id || null,
+        } as any;
+        
+        const { error } = resource 
+          ? await supabase
+              .from('subject_resources')
+              .update(resourceData)
+              .eq('id', resource.id)
+          : await supabase
+              .from('subject_resources')
+              .insert(resourceData);
+        if (error) throw error;
       }
       
       toast({
-        title: resource ? 'Resource updated' : 'Resource created',
-        description: resource 
-          ? 'The resource has been updated successfully.' 
-          : 'The resource has been created successfully.',
+        title: uploadedFiles.length > 1 ? 'Resources created' : (resource ? 'Resource updated' : 'Resource created'),
+        description: uploadedFiles.length > 1
+          ? `${uploadedFiles.length} files uploaded successfully.`
+          : (resource ? 'The resource has been updated successfully.' : 'The resource has been created successfully.'),
       });
       
       form.reset();
-      setUploadedFile(null);
+      setUploadedFiles([]);
       onOpenChange(false);
       if (onSuccess) onSuccess();
     } catch (error) {
@@ -290,34 +310,27 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
             {/* File upload section with improved UI */}
             <div className="space-y-4">
               <div>
-                <FormLabel>Upload File</FormLabel>
+                <FormLabel>Upload PDF File(s)</FormLabel>
                 <div className="mt-1 border-2 border-dashed rounded-md border-gray-300 dark:border-gray-700 p-6 flex flex-col items-center">
-                  {uploadedFile ? (
+                  {uploadedFiles.length > 0 ? (
                     <div className="w-full">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           <File className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-sm font-medium">{uploadedFile.name}</span>
-                          <span className="text-xs text-muted-foreground">({Math.round(uploadedFile.size / 1024)} KB)</span>
+                          <span className="text-sm font-medium">
+                            {uploadedFiles.length === 1 ? uploadedFiles[0].name : `${uploadedFiles.length} files selected`}
+                          </span>
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={clearFileInput}
-                          className="h-7 w-7 p-0"
-                        >
+                        <Button type="button" variant="ghost" size="sm" onClick={clearFileInput} className="h-7 w-7 p-0">
                           <X className="h-4 w-4" />
-                          <span className="sr-only">Remove file</span>
+                          <span className="sr-only">Remove files</span>
                         </Button>
                       </div>
                       
                       {isUploading && (
                         <div className="space-y-1">
                           <Progress value={uploadProgress} className="h-2" />
-                          <p className="text-xs text-center text-muted-foreground">
-                            {uploadProgress < 100 ? 'Uploading...' : 'Upload complete!'}
-                          </p>
+                          <p className="text-xs text-center text-muted-foreground">{uploadProgress < 100 ? 'Uploading...' : 'Upload complete!'}</p>
                         </div>
                       )}
                     </div>
@@ -334,16 +347,18 @@ export const ResourceDialog: React.FC<ResourceDialogProps> = ({
                             onClick={() => fileInputRef.current?.click()}
                             className="mt-2"
                           >
-                            Choose File
+                            Choose File(s)
                           </Button>
                           <p className="text-xs text-muted-foreground mt-2">
-                            Upload PDF, DOCX, PPTX, or other file types
+                            Upload one or more PDF files
                           </p>
                         </div>
                       </div>
                       <input
                         ref={fileInputRef}
                         type="file"
+                        accept="application/pdf,.pdf"
+                        multiple
                         onChange={handleFileChange}
                         className="hidden"
                         id="file-upload"

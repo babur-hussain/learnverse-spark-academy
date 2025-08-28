@@ -10,9 +10,17 @@ import { ToastProvider } from '@/hooks/use-toast';
 import SafeErrorBoundary from '@/components/Layout/SafeErrorBoundary';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { supabase } from '@/integrations/supabase/client';
 
 function WebRoot() {
   useEffect(() => {
+    // Ensure any invalid/stale auth states are cleared to prevent refresh errors
+    supabase.auth.getSession().then(({ error }) => {
+      if (error) {
+        supabase.auth.signOut().catch(() => {});
+      }
+    });
+
     const configureStatusBar = async () => {
       try {
         await StatusBar.setOverlaysWebView({ overlay: false });

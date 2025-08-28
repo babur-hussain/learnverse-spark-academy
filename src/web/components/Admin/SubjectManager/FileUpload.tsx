@@ -15,106 +15,128 @@ interface FileUploadProps {
 
 export function FileUpload({ subjectId, onFileUploaded }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [fileTitle, setFileTitle] = useState('');
   const [fileDescription, setFileDescription] = useState('');
+  const [uploadedCount, setUploadedCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
+  const isPdf = (file: File) => {
+    const nameOk = file.name.toLowerCase().endsWith('.pdf');
+    const typeOk = file.type === 'application/pdf';
+    return nameOk || typeOk;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      // Set title to filename without extension by default
-      const fileName = file.name.split('.').slice(0, -1).join('.');
-      setFileTitle(fileName || file.name);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    const pdfs = files.filter(isPdf);
+    const rejected = files.filter(f => !isPdf(f));
+
+    if (rejected.length) {
+      toast({
+        title: 'Some files were skipped',
+        description: `${rejected.length} non-PDF file(s) ignored. Only PDFs are allowed.`,
+        variant: 'destructive'
+      });
+    }
+
+    setSelectedFiles(pdfs);
+
+    if (pdfs.length === 1) {
+      const base = pdfs[0].name.split('.').slice(0, -1).join('.') || pdfs[0].name;
+      setFileTitle(base);
+    } else {
+      setFileTitle('');
     }
   };
 
   const handleClearFile = () => {
-    setSelectedFile(null);
+    setSelectedFiles([]);
     setFileTitle('');
+    setFileDescription('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
+  const uploadSingleFile = async (file: File, titleOverride?: string, descriptionOverride?: string) => {
+    const fileId = uuidv4();
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${fileId}.${fileExt}`;
+    const filePath = `${subjectId}/${fileName}`;
+
+    const { error: uploadError } = await supabase
+      .storage
+      .from('subject-content')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrlData } = await supabase
+      .storage
+      .from('subject-content')
+      .getPublicUrl(filePath);
+
+    const { error: dbError } = await supabase
+      .from('subject_resources')
+      .insert({
+        subject_id: subjectId,
+        title: (titleOverride && titleOverride.trim()) || file.name,
+        description: descriptionOverride || null,
+        resource_type: 'file',
+        file_url: publicUrlData.publicUrl,
+        file_name: file.name,
+        file_type: file.type,
+        file_size: file.size,
+        is_published: true
+      });
+    if (dbError) throw dbError;
+  };
+
   const handleUpload = async () => {
-    if (!selectedFile || !subjectId) return;
+    if (!subjectId || selectedFiles.length === 0) return;
 
     try {
       setIsUploading(true);
-      
-      const fileId = uuidv4();
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${fileId}.${fileExt}`;
-      const filePath = `${subjectId}/${fileName}`;
-      
-      // Upload file to storage bucket
-      const { data: uploadData, error: uploadError } = await supabase
-        .storage
-        .from('subject-content')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: true // Overwrite if file exists
-        });
-      
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw uploadError;
-      }
+      setUploadedCount(0);
 
-      // Get public URL
-      const { data: publicUrlData } = await supabase
-        .storage
-        .from('subject-content')
-        .getPublicUrl(filePath);
-
-      // Save file info in database
-      const { error: dbError } = await supabase
-        .from('subject_resources')
-        .insert({
-          subject_id: subjectId,
-          title: fileTitle || selectedFile.name,
-          description: fileDescription,
-          resource_type: 'file',
-          file_url: publicUrlData.publicUrl,
-          file_name: selectedFile.name,
-          file_type: selectedFile.type,
-          file_size: selectedFile.size,
-          is_published: true
-        });
-      
-      if (dbError) {
-        console.error('Database error:', dbError);
-        throw dbError;
+      for (const file of selectedFiles) {
+        await uploadSingleFile(
+          file,
+          selectedFiles.length === 1 ? fileTitle : undefined,
+          selectedFiles.length === 1 ? fileDescription : undefined
+        );
+        setUploadedCount(prev => prev + 1);
       }
 
       toast({
-        title: "File uploaded successfully",
-        description: `${selectedFile.name} has been uploaded.`
+        title: 'Upload complete',
+        description: selectedFiles.length === 1
+          ? `${selectedFiles[0].name} has been uploaded.`
+          : `${selectedFiles.length} PDF files have been uploaded.`
       });
-      
-      // Reset form
-      setSelectedFile(null);
+
+      setSelectedFiles([]);
       setFileTitle('');
       setFileDescription('');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      
-      // Notify parent component that file has been uploaded
+      if (fileInputRef.current) fileInputRef.current.value = '';
+
       onFileUploaded();
-      
     } catch (error: any) {
       console.error('Full upload error:', error);
       toast({
-        title: "Upload failed",
-        description: error.message || "There was an error uploading the file.",
-        variant: "destructive"
+        title: 'Upload failed',
+        description: error.message || 'There was an error uploading the files.',
+        variant: 'destructive'
       });
     } finally {
       setIsUploading(false);
+      setUploadedCount(0);
     }
   };
 
@@ -122,9 +144,11 @@ export function FileUpload({ subjectId, onFileUploaded }: FileUploadProps) {
     <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="file">Choose File</Label>
-        {selectedFile ? (
+        {selectedFiles.length > 0 ? (
           <div className="flex items-center justify-between p-2 border rounded-md bg-slate-50 dark:bg-slate-900">
-            <span className="truncate">{selectedFile.name}</span>
+            <span className="truncate">
+              {selectedFiles.length === 1 ? selectedFiles[0].name : `${selectedFiles.length} files selected`}
+            </span>
             <Button 
               variant="ghost" 
               size="sm" 
@@ -141,50 +165,62 @@ export function FileUpload({ subjectId, onFileUploaded }: FileUploadProps) {
               type="file"
               ref={fileInputRef}
               onChange={handleFileChange}
+              accept="application/pdf,.pdf"
+              multiple
               className="w-full"
             />
           </div>
         )}
       </div>
       
-      {selectedFile && (
+      {selectedFiles.length > 0 && (
         <>
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              placeholder="Enter file title"
-              value={fileTitle}
-              onChange={(e) => setFileTitle(e.target.value)}
-              disabled={isUploading}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
-            <Input
-              id="description"
-              placeholder="Enter file description"
-              value={fileDescription}
-              onChange={(e) => setFileDescription(e.target.value)}
-              disabled={isUploading}
-            />
-          </div>
+          {selectedFiles.length === 1 ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Enter file title"
+                  value={fileTitle}
+                  onChange={(e) => setFileTitle(e.target.value)}
+                  disabled={isUploading}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (optional)</Label>
+                <Input
+                  id="description"
+                  placeholder="Enter file description"
+                  value={fileDescription}
+                  onChange={(e) => setFileDescription(e.target.value)}
+                  disabled={isUploading}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Titles will default to their filenames. Only PDF files are allowed.
+            </div>
+          )}
           
           <Button 
             onClick={handleUpload} 
-            disabled={isUploading || !fileTitle.trim()}
+            disabled={isUploading || (selectedFiles.length === 1 && !fileTitle.trim())}
             className="w-full"
           >
             {isUploading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
+                {selectedFiles.length > 1
+                  ? `Uploading ${uploadedCount}/${selectedFiles.length}...`
+                  : 'Uploading...'}
               </>
             ) : (
               <>
                 <Upload className="mr-2 h-4 w-4" />
-                Upload File
+                {selectedFiles.length > 1 ? 'Upload All' : 'Upload File'}
               </>
             )}
           </Button>

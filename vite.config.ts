@@ -32,7 +32,8 @@ export default defineConfig(({ mode }) => {
     },
   },
   optimizeDeps: {
-    exclude: ['pdfjs-dist']
+    exclude: ['pdfjs-dist'],
+    include: ['react-pdf', 'warning']
   },
   build: {
     commonjsOptions: {
