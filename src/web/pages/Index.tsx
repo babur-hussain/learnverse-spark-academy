@@ -192,7 +192,7 @@ const Home = () => {
 
   return (
     <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
-      <div className="min-h-screen flex flex-col">
+      <div className="w-full overflow-x-hidden content-above-footer">
         <AIHero />
         
         <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />

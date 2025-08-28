@@ -684,3 +684,77 @@ html {
   flex-direction: column !important;
   align-items: center !important;
 }
+
+/* Force mobile footer to be above other content */
+.layout-container footer {
+  z-index: 9999 !important;
+}
+
+/* Ensure proper spacing above mobile footer (footer is at bottom-5 = 20px from bottom) */
+.content-above-footer {
+  margin-bottom: 140px; /* 120px footer height + 20px gap */
+}
+
+/* Mobile footer specific scrolling */
+footer .overflow-x-auto {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(0, 0, 0, 0.4) transparent !important;
+}
+
+footer .overflow-x-auto::-webkit-scrollbar {
+  height: 6px !important;
+  display: block !important;
+}
+
+footer .overflow-x-auto::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-radius: 3px !important;
+}
+
+footer .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 3px !important;
+}
+
+footer .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+.dark footer .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4) !important;
+}
+
+.dark footer .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* SmartSearchbar categories horizontal scrolling */
+.overflow-x-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar {
+  height: 4px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}

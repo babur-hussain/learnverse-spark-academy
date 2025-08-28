@@ -10,4 +10,33 @@ body.has-fixed-navbar .main-content {
   margin-top: 3rem; /* 48px */
 }
 
+/* Fix homepage scroll bar issues */
+.home-page {
+  overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure proper bottom spacing for mobile footer on homepage */
+.home-page .min-h-screen {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* Enhanced mobile footer spacing */
+.mobile-footer-spacer {
+  height: 5rem; /* 80px - matches mobile footer height */
+}
+
+@media (min-width: 769px) {
+  .mobile-footer-spacer {
+    height: 2rem; /* 32px - reduced spacing on desktop */
+  }
+}
+
+/* Fix for mobile footer overlap */
+@media (max-width: 768px) {
+  .home-page {
+    padding-bottom: 8rem; /* 128px - more space on mobile */
+  }
+}
+
 

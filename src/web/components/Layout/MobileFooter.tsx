@@ -1,51 +1,64 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
+import { Home, BookOpen, Video, FileText, ShoppingBag, Baby, Headphones, Coffee } from 'lucide-react';
 
-const MobileFooter = () => {
+/**
+ * Web-only bottom navigation with horizontal scrolling
+ * - Fixed at bottom-5 (20px from bottom)
+ * - Always shows full icon + label (min height)
+ * - Smooth horizontal scroll with visible scrollbar
+ */
+const MobileFooter: React.FC = () => {
   const location = useLocation();
 
-  const navItems = [
+  const items = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: BookOpen, label: 'Courses', path: '/catalog' },
     { icon: Video, label: 'Live', path: '/live-class' },
     { icon: FileText, label: 'Notes', path: '/notes' },
     { icon: ShoppingBag, label: 'Stationary', path: '/stationary' },
     { icon: Baby, label: 'Kids', path: '/kids' },
-    
-    { icon: Coffee, label: 'Internet Cafe', path: '/cafes' },
+    { icon: Headphones, label: 'Audio', path: '/audio' },
+    { icon: Coffee, label: 'Cafes', path: '/cafes' },
   ];
 
-  return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border pt-2 pb-6 shadow-lg">
-      <nav className="flex items-center justify-start max-w-md mx-auto overflow-x-auto scrollbar-hide px-0 gap-0 whitespace-nowrap">
-        {navItems.map((item) => {
-          const isActive = location.pathname === item.path;
-          
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex flex-col items-center gap-0.5 py-1.5 flex-shrink-0 flex-grow-0 basis-1/4 max-w-[25vw] min-w-[25vw] sm:max-w-[80px] sm:min-w-[80px] whitespace-nowrap ${
-                isActive 
-                  ? 'text-learn-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 scale-105' 
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-              aria-label={item.label}
-            >
-              <item.icon 
-                size={18} 
-                className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'}`} 
-              />
-              <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''}`}>
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+  const footer = (
+    <footer className="fixed bottom-0 left-0 right-0 z-[9999] pointer-events-auto bg-background/95 backdrop-blur-md border-t border-border">
+      {/* Scroll container touching both sides like header */}
+      <div className="w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <nav className="flex items-center gap-1.5 px-2 py-2 min-h-[68px]" style={{ minWidth: 'max-content' }}>
+          {items.map(({ icon: Icon, label, path }) => {
+            const active = location.pathname === path;
+            return (
+              <Link
+                key={path}
+                to={path}
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-md flex-shrink-0 min-w-[72px] transition-colors ${
+                  active
+                    ? 'bg-purple-50 text-learn-purple dark:bg-purple-900/20 dark:text-purple-300'
+                    : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800/60'
+                }`}
+                aria-label={label}
+              >
+                <Icon size={18} />
+                <span className="text-[11px] font-medium">{label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
     </footer>
   );
+
+  // Render via portal to escape any parent overflow/transform on homepage
+  if (typeof document !== 'undefined') {
+    return createPortal(footer, document.body);
+  }
+
+  return footer;
 };
 
 export default MobileFooter;
+
+

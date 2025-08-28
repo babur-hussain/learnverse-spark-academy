@@ -805,15 +805,17 @@ const SmartSearchbar: React.FC<SmartSearchbarProps> = ({ className }) => {
             renderStreamingResult()
           ) : result ? (
             <div>
-              <div className="flex flex-wrap gap-2 mb-3">
-                {result.categories.map((category, i) => (
-                  <span 
-                    key={i} 
-                    className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
-                  >
-                    {category}
-                  </span>
-                ))}
+              <div className="overflow-x-auto">
+                <div className="flex gap-2 mb-3 min-w-max pb-2">
+                  {result.categories.map((category, i) => (
+                    <span 
+                      key={i} 
+                      className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex-shrink-0"
+                    >
+                      {category}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="text-sm whitespace-pre-line text-foreground leading-relaxed">
                 {result.answer}

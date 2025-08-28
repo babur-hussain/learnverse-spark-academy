@@ -81,8 +81,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />
         <main className={`main-content mt-12 ${
           isMobile 
-            ? 'pb-32'
-            : 'pb-8'
+            ? 'pb-44'
+            : 'pb-16'
         }`}>
           <div className={`w-full ${isMobile ? 'px-4 py-6' : 'container mx-auto px-4 py-safe'}`}>
             {children}
