@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
 import { useIOSHeaderFix } from '@/hooks/useIOSHeaderFix';
 import SafeErrorBoundary from './SafeErrorBoundary';
+import { useLenis } from '@shared/hooks/use-lenis';
 import LoadingSpinner from './LoadingSpinner';
 
 interface MainLayoutProps {
@@ -27,6 +28,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const { theme } = useTheme();
   const isMobile = useIsMobile();
+  useLenis(true);
   
   // Apply iOS header fix
   useIOSHeaderFix();

@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import AIHero from '@/components/Home/AIHero';
 import Hero from '@/components/Home/Hero';
 import Enhanced3DHero from '@/components/Home/Enhanced3DHero';
-import Interactive3DSection from '@/components/Home/Interactive3DSection';
+// import Interactive3DSection from '@/components/Home/Interactive3DSection';
+import KidsContentSection from '@/components/Home/KidsContentSection';
 import FeaturedCategories from '@/components/Home/FeaturedCategories';
 import OnlineSchoolSection from '@/components/Home/OnlineSchoolSection';
 import TrendingCoursesSection from '@/components/Home/TrendingCoursesSection';
@@ -201,7 +202,10 @@ const Home = () => {
         <FeaturedCategories />
         
         {/* Interactive 3D Learning Section */}
-        <Interactive3DSection />
+        {/* <Interactive3DSection /> */}
+        
+        {/* Kids Content Section */}
+        <KidsContentSection />
         
         <OnlineSchoolSection />
         <TrendingCoursesSection />

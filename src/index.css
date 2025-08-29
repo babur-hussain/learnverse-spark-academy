@@ -82,7 +82,8 @@
     @apply bg-background text-foreground font-sans;
     width: 100%;
     overflow-x: hidden;
-    scroll-behavior: smooth;
+    /* Let Lenis control scroll-behavior for consistency */
+    scroll-behavior: auto;
     position: relative;
     -webkit-overflow-scrolling: touch;
   }
