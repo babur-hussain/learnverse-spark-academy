@@ -69,8 +69,8 @@ class StatusBarService {
     }
     
     // Set proper status bar height for iOS (approximately 47px for status bar + Dynamic Island)
-    const statusBarHeight = '47px';
-    const safeAreaTop = '47px';
+    const statusBarHeight = '60px';
+    const safeAreaTop = '60px';
     document.documentElement.style.setProperty('--status-bar-height', statusBarHeight);
     document.documentElement.style.setProperty('--safe-area-inset-top', safeAreaTop);
   }
