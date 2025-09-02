@@ -14,7 +14,7 @@ export const useDynamicIslandSafe = () => {
       
       // Convert to number and add minimal padding
       const topValue = parseInt(safeAreaTopValue) || 0;
-      const dynamicIslandHeight = Math.max(topValue, 60); // Set to 60px to ensure content is below Dynamic Island
+      const dynamicIslandHeight = Math.max(topValue, 25); // Set to 25px for optimal spacing below Dynamic Island
       
       setSafeAreaTop(dynamicIslandHeight);
       
