@@ -391,6 +391,27 @@
     display: none;
   }
   
+  /* Custom scrollbar styling for mobile footer */
+  .mobile-footer .custom-scrollbar {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    transition: opacity 0.3s ease;
+  }
+  
+  .mobile-footer .custom-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    transition: all 0.15s ease;
+  }
+  
+  .dark .mobile-footer .custom-scrollbar {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .dark .mobile-footer .custom-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+  }
+  
   /* Mobile footer scrollable section */
   .mobile-footer-scrollable {
     scroll-behavior: smooth;
@@ -404,93 +425,60 @@
     scroll-snap-align: start;
   }
   
-  /* Custom scrollbar for mobile footer */
+  /* Simple, always visible scrollbar for mobile footer */
+  .mobile-footer-scrollable {
+    overflow-x: scroll !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* Force scrollbar to always be visible */
   .mobile-footer-scrollable::-webkit-scrollbar {
-    height: 4px;
+    height: 8px;
+    -webkit-appearance: none;
   }
   
   .mobile-footer-scrollable::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 2px;
-    margin: 0 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
   }
   
   .mobile-footer-scrollable::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 2px;
+    background: #9ca3af;
+    border-radius: 4px;
   }
   
   .mobile-footer-scrollable::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.5);
+    background: #6b7280;
   }
   
-  /* Dark mode scrollbar */
+  /* Firefox scrollbar */
+  .mobile-footer-scrollable {
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af #e5e7eb;
+  }
+  
+  /* Dark mode */
   .dark .mobile-footer-scrollable::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.05);
+    background: #374151;
   }
   
   .dark .mobile-footer-scrollable::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
+    background: #6b7280;
   }
   
   .dark .mobile-footer-scrollable::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: #9ca3af;
   }
   
-  /* Mobile-specific scrollbar styling */
-  @media (max-width: 768px) {
-    .mobile-footer-scrollable::-webkit-scrollbar {
-      height: 3px;
-    }
-    
-    .mobile-footer-scrollable {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.05);
-    }
-    
-    .dark .mobile-footer-scrollable {
-      scrollbar-color: rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.05);
-    }
+  .dark .mobile-footer-scrollable {
+    scrollbar-color: #6b7280 #374151;
   }
   
-  /* Mobile footer fade edges effect */
-  .mobile-footer-scrollable::before,
-  .mobile-footer-scrollable::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 8px; /* Leave space for scrollbar */
-    width: 15px;
-    pointer-events: none;
-    z-index: 1;
-  }
-  
-  .mobile-footer-scrollable::before {
-    left: 0;
-    background: linear-gradient(to right, rgba(255,255,255,0.95), transparent);
-  }
-  
-  .mobile-footer-scrollable::after {
-    right: 0;
-    background: linear-gradient(to left, rgba(255,255,255,0.95), transparent);
-  }
-  
-  .dark .mobile-footer-scrollable::before {
-    background: linear-gradient(to right, rgba(17, 24, 39, 0.95), transparent);
-  }
-  
-  .dark .mobile-footer-scrollable::after {
-    background: linear-gradient(to left, rgba(17, 24, 39, 0.95), transparent);
-  }
-  
-  /* Scrollbar visibility indicator */
+  /* Remove fade effects that might interfere with scrollbar */
   .mobile-footer-scrollable {
     position: relative;
-  }
-  
-  .mobile-footer-scrollable::after {
-    /* Add a subtle shadow to indicate scrollable area */
-    box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.1);
   }
   
   .line-clamp-1 {
