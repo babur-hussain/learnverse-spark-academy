@@ -1,1031 +1,490 @@
-import React, { useState, useEffect } from 'react';
-import { z } from 'zod';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth, UserRole } from '@/contexts/AuthContext';
-import { usePlatform } from '@/contexts/PlatformContext';
-import { PlatformWrapper, WebOnly, MobileOnly } from '@/components/Platform/PlatformWrapper';
-import { Button } from '@/components/UI/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/UI/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/UI/form';
-import { Input } from '@/components/UI/input';
-import { BookOpen, X, User, UserCog, Check, Phone } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { RadioGroup, RadioGroupItem } from '@/components/UI/radio-group';
-import { Label } from '@/components/UI/label';
-import { Separator } from '@/components/UI/separator';
-import { Alert, AlertTitle } from '@/components/UI/alert';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/UI/input-otp';
-import { ReferralInput } from './ReferralInput';
+import React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Eye, EyeOff, Mail, Lock, User, Phone, X } from 'lucide-react';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
-// Define schemas
+// Form schemas
 const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-const registerSchema = z.object({
-  email: z.string().min(1, "Email is required").email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  username: z.string().min(3, { message: "Username must be at least 3 characters." }).optional().or(z.literal('')),
-  fullName: z.string().optional().or(z.literal('')),
-  role: z.enum(['student', 'teacher'], { required_error: "Please select a role" }),
+const signupSchema = z.object({
+  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Please confirm your password"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 const phoneSchema = z.object({
-  phoneNumber: z.string().min(10, { message: "Please enter a valid phone number." }),
+  phoneNumber: z.string().min(10, "Please enter a valid phone number"),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
-type RegisterFormValues = z.infer<typeof registerSchema>;
-type PhoneFormValues = z.infer<typeof phoneSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
+type SignupFormData = z.infer<typeof signupSchema>;
+type PhoneFormData = z.infer<typeof phoneSchema>;
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultTab?: "login" | "signup" | "phone";
 }
 
-const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
-  const { platform, isPlatform } = usePlatform();
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
-    // Try to get the last active tab from localStorage
-    const savedTab = localStorage.getItem('authActiveTab');
-    return (savedTab as "login" | "register" | "phone") || "login";
-  });
+export const AuthDialog: React.FC<AuthDialogProps> = ({
+  open,
+  onOpenChange,
+  defaultTab = "login"
+}) => {
+  const { platform } = usePlatform();
+  const { signIn, signUp, signInWithPhone } = useAuth();
+  const [activeTab, setActiveTab] = React.useState(defaultTab);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  // Function to update activeTab and save to localStorage
-  const updateActiveTab = (tab: "login" | "register" | "phone") => {
-    setActiveTab(tab);
-    localStorage.setItem('authActiveTab', tab);
-  };
-  const { login, signUp, testConnection } = useAuth();
-  
-  // Platform-specific styling
-  const getDialogSize = () => {
-    if (platform.isMobile) {
-      return platform.isIOS ? 'max-w-sm' : 'max-w-md';
-    }
-    return 'sm:max-w-md';
-  };
-
-  const getPadding = () => {
-    if (platform.isMobile) {
-      return platform.isIOS ? 'p-4' : 'p-6';
-    }
-    return 'p-6';
-  };
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [showOTPDialog, setShowOTPDialog] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [referralCode, setReferralCode] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  const loginForm = useForm<LoginFormValues>({
+  // Form instances
+  const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
+    defaultValues: { email: "", password: "" }
   });
 
-  const registerForm = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-      username: '',
-      fullName: '',
-      role: 'student',
-    },
+  const signupForm = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" }
   });
 
-  const phoneForm = useForm<PhoneFormValues>({
+  const phoneForm = useForm<PhoneFormData>({
     resolver: zodResolver(phoneSchema),
-    defaultValues: {
-      phoneNumber: '',
-    },
+    defaultValues: { phoneNumber: "" }
   });
 
+  // Reset forms when dialog opens/closes
   React.useEffect(() => {
-    try {
-      if (activeTab === "login") {
-        loginForm.reset();
-      } else if (activeTab === "register") {
-        registerForm.reset();
-      } else {
-        phoneForm.reset();
-      }
-      setAuthError(null);
-      setSuccessMessage(null);
-      setShowOTPDialog(false);
-      setOtp('');
-    } catch (error) {
-      console.error('Error resetting form:', error);
-      // Fallback: manually clear forms
-      setAuthError(null);
-      setSuccessMessage(null);
-      setShowOTPDialog(false);
-      setOtp('');
+    if (!open) {
+      loginForm.reset();
+      signupForm.reset();
+      phoneForm.reset();
+      setShowPassword(false);
+      setShowConfirmPassword(false);
+      setIsLoading(false);
     }
-  }, [activeTab, loginForm, registerForm, phoneForm]);
+  }, [open, loginForm, signupForm, phoneForm]);
 
-  const processReferralSignup = async (newUserId: string) => {
-    if (!referralCode) return;
-
+  // Handle form submissions
+  const handleLogin = async (data: LoginFormData) => {
+    setIsLoading(true);
     try {
-      // const { data, error } = await supabase.rpc('process_referral_signup', {
-      //   referral_code_input: referralCode,
-      //   new_user_id: newUserId
-      // });
-
-      // if (error) {
-      //   console.error('Error processing referral:', error);
-      //   return;
-      // }
-
-      // if (data) {
-      //   toast({
-      //     title: "Referral Success!",
-      //     description: "You've received a ₹50 discount coupon for your first purchase!",
-      //   });
-      // }
+      await signIn(data.email, data.password);
+      toast.success("Welcome back!");
+      onOpenChange(false);
     } catch (error) {
-      console.error('Error processing referral:', error);
+      toast.error("Invalid email or password");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const onLoginSubmit = async (data: LoginFormValues) => {
-    setIsSubmitting(true);
-    setAuthError(null);
-    setSuccessMessage(null);
-    
+  const handleSignup = async (data: SignupFormData) => {
+    setIsLoading(true);
     try {
-      // Clear any previous errors
-      loginForm.clearErrors();
+      await signUp(data.email, data.password, data.fullName);
+      toast.success("Account created successfully!");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Failed to create account");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePhoneAuth = async (data: PhoneFormData) => {
+    setIsLoading(true);
+    try {
+      await signInWithPhone(data.phoneNumber);
+      toast.success("OTP sent to your phone!");
+      onOpenChange(false);
+    } catch (error) {
+      toast.error("Failed to send OTP");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Cross-platform input component with bulletproof Android support
+  const CrossPlatformInput = React.forwardRef<
+    HTMLInputElement,
+    React.InputHTMLAttributes<HTMLInputElement> & {
+      label: string;
+      icon?: React.ReactNode;
+      error?: string;
+      showPasswordToggle?: boolean;
+      showPassword?: boolean;
+      onTogglePassword?: () => void;
+    }
+  >(({ 
+    label, 
+    icon, 
+    error, 
+    showPasswordToggle, 
+    showPassword, 
+    onTogglePassword,
+    className = "",
+    ...props 
+  }, ref) => {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const [isFocused, setIsFocused] = React.useState(false);
+
+    // Combine refs
+    React.useImperativeHandle(ref, () => inputRef.current!, []);
+
+    // Bulletproof Android input handling
+    const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+      const input = e.currentTarget;
       
-      console.log('Submitting login form with:', { email: data.email, passwordLength: data.password.length });
-      
-      const result = await login(data.email, data.password);
-      
-      console.log('Login result:', result);
-      
-      // Check if login was successful
-      if (result && result.success) {
-        // Show success message and delay closing
-        setSuccessMessage("Login successful! Welcome back!");
+      if (platform.isAndroid) {
+        e.stopPropagation();
         
-        // Close dialog after showing success message
+        // Force focus
         setTimeout(() => {
-          onOpenChange(false);
-        }, 1500);
-      } else {
-        // This shouldn't happen if login is working properly
-        setAuthError("Login completed but no success response received. Please try again.");
+          input.focus();
+          input.click();
+        }, 10);
+        
+        // Keep focus stable
+        let attempts = 0;
+        const keepFocus = setInterval(() => {
+          if (attempts >= 30) { // 3 seconds max
+            clearInterval(keepFocus);
+            return;
+          }
+          
+          if (document.activeElement !== input) {
+            input.focus();
+          }
+          attempts++;
+        }, 100);
+        
+        // Clear interval when input gets stable focus
+        const clearOnStableFocus = () => {
+          clearInterval(keepFocus);
+          input.removeEventListener('focus', clearOnStableFocus);
+        };
+        input.addEventListener('focus', clearOnStableFocus);
       }
+    };
+
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
+      if (props.onFocus) props.onFocus(e);
       
-    } catch (error: any) {
-      console.error('Login error in AuthDialog:', error);
-      
-      // Set the error message
-      const errorMessage = error.message || "Failed to sign in. Please try again.";
-      setAuthError(errorMessage);
-      
-      // If it's a credential error, focus on the password field
-      if (errorMessage.includes('Invalid email or password')) {
-        loginForm.setError('password', {
-          type: 'manual',
-          message: 'Invalid password'
-        });
-        // Focus on password field for better UX
+      if (platform.isAndroid) {
+        // Prevent viewport jumping
         setTimeout(() => {
-          const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
-          if (passwordInput) passwordInput.focus();
+          e.target.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
         }, 100);
       }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    };
 
-  const onRegisterSubmit = async (data: RegisterFormValues) => {
-    setIsSubmitting(true);
-    setAuthError(null);
-    setSuccessMessage(null);
-    
-          try {
-        // Clear any previous errors
-        registerForm.clearErrors();
-        
-        const result = await signUp(data.email, data.password, {
-          username: data.username,
-          full_name: data.fullName,
-          role: data.role
-        });
-        
-        if (result?.error) {
-          setAuthError(result.error);
-          
-          // Set specific field errors if available
-          if (result.error.includes('email already exists')) {
-            registerForm.setError('email', {
-              type: 'manual',
-              message: 'An account with this email already exists'
-            });
-          } else if (result.error.includes('Password must be at least')) {
-            registerForm.setError('password', {
-              type: 'manual',
-              message: 'Password must be at least 6 characters'
-            });
-          } else if (result.error.includes('Invalid email')) {
-            registerForm.setError('email', {
-              type: 'manual',
-              message: 'Please enter a valid email address'
-            });
-          }
-          
-          return;
-        }
-        
-        if (result?.user) {
-          // Show success message
-          setSuccessMessage("Registration successful! Please check your email for verification.");
-          
-          // Process referral if available
-          if (referralCode) {
-            await processReferralSignup(result.user.id);
-          }
-          
-          // Switch to login tab after successful registration
-          setTimeout(() => {
-            setActiveTab("login");
-            setSuccessMessage(null);
-            setAuthError(null);
-          }, 2000);
-        }
-      
-    } catch (error: any) {
-      console.error('Registration error:', error);
-      setAuthError(error.message || "Registration failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      if (props.onBlur) props.onBlur(e);
+    };
 
-  const onPhoneSubmit = async (data: PhoneFormValues) => {
-    setIsSubmitting(true);
-    setAuthError(null);
-    try {
-      // Clear any previous errors
-      phoneForm.clearErrors();
-      
-      let formattedPhone = data.phoneNumber;
-      if (!formattedPhone.startsWith('+91')) {
-        formattedPhone = '+91' + data.phoneNumber.replace(/^\+?91/, '');
-      }
+    return (
+      <div className="space-y-2">
+        <Label 
+          htmlFor={props.id} 
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+        >
+          {label}
+        </Label>
+        <div className="relative">
+          {icon && (
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              {icon}
+            </div>
+          )}
+          <Input
+            ref={inputRef}
+            className={`
+              ${icon ? 'pl-10' : 'pl-3'}
+              ${showPasswordToggle ? 'pr-10' : 'pr-3'}
+              h-12 text-base border-2 transition-all duration-200
+              ${isFocused 
+                ? 'border-purple-500 ring-2 ring-purple-500/20 shadow-lg' 
+                : error 
+                  ? 'border-red-500 ring-2 ring-red-500/20' 
+                  : 'border-gray-300 hover:border-gray-400'
+              }
+              ${platform.isAndroid ? 'touch-manipulation' : ''}
+              ${className}
+            `}
+            style={{
+              fontSize: '16px', // Prevent zoom on iOS
+              WebkitAppearance: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              ...(platform.isAndroid && {
+                touchAction: 'manipulation',
+                WebkitUserSelect: 'text',
+                userSelect: 'text',
+              })
+            }}
+            onClick={handleInputClick}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            {...props}
+          />
+          {showPasswordToggle && (
+            <button
+              type="button"
+              onClick={onTogglePassword}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          )}
+        </div>
+        {error && (
+          <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  });
 
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: formattedPhone
-      });
-
-      if (error) throw error;
-
-      setPhoneNumber(formattedPhone);
-      setShowOTPDialog(true);
-      toast({
-        title: "OTP Sent",
-        description: "Please check your phone for the verification code.",
-      });
-    } catch (error: any) {
-      console.error('Phone OTP error:', error);
-      setAuthError(error.message || "Failed to send OTP. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const verifyOTP = async () => {
-    setIsSubmitting(true);
-    setAuthError(null);
-    try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: phoneNumber,
-        token: otp,
-        type: 'sms'
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: "Success!",
-        description: "Phone number verified successfully.",
-      });
-      setShowOTPDialog(false);
-      onOpenChange(false);
-
-    } catch (error: any) {
-      console.error('OTP verification error:', error);
-      setAuthError(error.message || "Verification failed. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      setAuthError(null);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
-        }
-      });
-      
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      setAuthError(error.message || "Google sign-in failed. Please try again.");
-    }
-  };
-
-  // Prevent dialog from closing on Android when interacting with forms
-  const handleOpenChange = (newOpen: boolean) => {
-    // Only allow closing if explicitly requested (not due to accidental touches)
-    if (!newOpen && platform.isAndroid) {
-      // Add a small delay to prevent accidental closes on Android
-      return;
-    }
-    onOpenChange(newOpen);
-  };
-
-  // Android keyboard stability - prevent auto-closing
-  const [androidInputActive, setAndroidInputActive] = React.useState<string | null>(null);
-
-  const handleAndroidInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    if (platform.isAndroid) {
-      const target = e.currentTarget;
-      const inputName = target.name;
-      
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Set this input as active
-      setAndroidInputActive(inputName);
-      
-      // Focus the input directly
-      target.focus();
-      
-      // Keep trying to focus if it loses focus
-      const focusInterval = setInterval(() => {
-        if (target && document.activeElement !== target && androidInputActive === inputName) {
-          target.focus();
-        } else if (document.activeElement === target) {
-          clearInterval(focusInterval);
-        }
-      }, 100);
-      
-      // Clear interval after 2 seconds
-      setTimeout(() => clearInterval(focusInterval), 2000);
-    }
-  };
-
-  const handleAndroidInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (platform.isAndroid) {
-      const target = e.target;
-      setAndroidInputActive(target.name);
-      
-      // Prevent viewport changes that might close keyboard
-      setTimeout(() => {
-        if (target) {
-          target.scrollIntoView({ 
-            behavior: 'instant', 
-            block: 'nearest'
-          });
-        }
-      }, 50);
-    }
-  };
-
-  const handleAndroidInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (platform.isAndroid) {
-      // Only clear active state if user clicked outside form
-      setTimeout(() => {
-        const activeElement = document.activeElement;
-        if (!activeElement || (!activeElement.matches('input') && !activeElement.matches('button'))) {
-          setAndroidInputActive(null);
-        }
-      }, 100);
-    }
-  };
+  CrossPlatformInput.displayName = "CrossPlatformInput";
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className={`${getDialogSize()} max-h-[90vh] overflow-y-auto android-dialog-fix`}
-        onPointerDownOutside={(e) => {
-          // Prevent closing on Android when clicking outside during form interaction
-          if (platform.isAndroid) {
-            e.preventDefault();
+        className={`
+          max-w-md w-full mx-auto p-0 gap-0 overflow-hidden
+          ${platform.isAndroid 
+            ? 'fixed top-[5vh] left-1/2 transform -translate-x-1/2 max-h-[90vh] w-[95vw]' 
+            : 'max-h-[85vh]'
           }
-        }}
-        onInteractOutside={(e) => {
-          // Prevent closing on Android when interacting outside
-          if (platform.isAndroid) {
-            e.preventDefault();
-          }
-        }}
+        `}
+        style={platform.isAndroid ? {
+          position: 'fixed',
+          zIndex: 9999,
+          backgroundColor: 'white',
+          borderRadius: '16px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        } : undefined}
       >
-        {/* Android-specific close button */}
-        {platform.isAndroid ? (
-          <button
-            onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-white shadow-md p-1"
-            type="button"
-          >
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </button>
-        ) : (
-          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-            <X className="h-4 w-4" />
-            <span className="sr-only">Close</span>
-          </DialogClose>
-        )}
-        
-        <DialogHeader>
-          <div className="mx-auto h-12 w-12 rounded-lg gradient-primary flex items-center justify-center">
-            <BookOpen className="h-6 w-6 text-white" />
+        {/* Header */}
+        <DialogHeader className="p-6 pb-4 space-y-1">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Welcome to LearnVerse
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onOpenChange(false)}
+              className="h-8 w-8 rounded-full hover:bg-gray-100"
+            >
+              <X size={18} />
+            </Button>
           </div>
-          <DialogTitle className="text-center">
-            {platform.isMobile ? 'Welcome Back' : 'Spark Academy'}
-          </DialogTitle>
-          <DialogDescription className="text-center">
-            {platform.isMobile ? 'Sign in to continue' : 'Your journey to academic success starts here'}
-          </DialogDescription>
+          <p className="text-gray-600 dark:text-gray-400">
+            Sign in to your account or create a new one
+          </p>
         </DialogHeader>
 
-        <div className={getPadding()}>
-          <Tabs value={activeTab} onValueChange={(value) => updateActiveTab(value as "login" | "register" | "phone")}>
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="login">Sign In</TabsTrigger>
-              <TabsTrigger value="register">Register</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
+        {/* Content */}
+        <div className="px-6 pb-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
+              <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
+              <TabsTrigger value="phone" className="text-sm">Phone</TabsTrigger>
             </TabsList>
 
-            {authError && (
-              <Alert variant="destructive" className="mt-4 border-red-200 bg-red-50 text-red-800">
-                <AlertTitle className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {authError}
-                </AlertTitle>
-              </Alert>
-            )}
+            {/* Login Tab */}
+            <TabsContent value="login" className="mt-0">
+              <Card className="border-0 shadow-none">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle className="text-xl">Sign in to your account</CardTitle>
+                  <CardDescription>
+                    Enter your email and password to access your account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 space-y-4">
+                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                    <CrossPlatformInput
+                      id="login-email"
+                      label="Email Address"
+                      type="email"
+                      placeholder="Enter your email"
+                      icon={<Mail size={18} />}
+                      autoComplete="email"
+                      error={loginForm.formState.errors.email?.message}
+                      {...loginForm.register("email")}
+                    />
 
-            {successMessage && (
-              <Alert className="mt-4 border-green-200 bg-green-50 text-green-800">
-                <Check className="h-4 w-4" />
-                <AlertTitle>{successMessage}</AlertTitle>
-              </Alert>
-            )}
+                    <CrossPlatformInput
+                      id="login-password"
+                      label="Password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      icon={<Lock size={18} />}
+                      autoComplete="current-password"
+                      showPasswordToggle
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                      error={loginForm.formState.errors.password?.message}
+                      {...loginForm.register("password")}
+                    />
 
-            <TabsContent value="login" className="mt-6">
-              <Form {...loginForm}>
-                <form 
-                  onSubmit={loginForm.handleSubmit(onLoginSubmit)} 
-                  className="space-y-4"
-                  onTouchStart={(e) => {
-                    // Prevent Android from closing dialog on form interaction
-                    if (platform.isAndroid) {
-                      e.stopPropagation();
-                    }
-                  }}
-                >
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="your-email@example.com" 
-                            type="email" 
-                            name="email"
-                            autoComplete="email"
-                            inputMode="email"
-                            onClick={platform.isAndroid ? handleAndroidInputClick : undefined}
-                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
-                            onBlur={platform.isAndroid ? handleAndroidInputBlur : undefined}
-                            style={platform.isAndroid ? { 
-                              fontSize: '16px',
-                              WebkitUserSelect: 'text',
-                              userSelect: 'text'
-                            } : undefined}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            name="password"
-                            autoComplete="current-password"
-                            onClick={platform.isAndroid ? handleAndroidInputClick : undefined}
-                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
-                            onBlur={platform.isAndroid ? handleAndroidInputBlur : undefined}
-                            style={platform.isAndroid ? { 
-                              fontSize: '16px',
-                              WebkitUserSelect: 'text',
-                              userSelect: 'text'
-                            } : undefined}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-primary" 
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Signing in..." : "Sign in"}
-                  </Button>
-                  
-
-                  
-                  <div className="text-center space-y-2">
-                    <button
-                      type="button"
-                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                      onClick={() => {
-                        toast({
-                          title: "Password Reset",
-                          description: "Please contact support to reset your password.",
-                        });
-                      }}
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      disabled={isLoading}
                     >
-                      Forgot your password?
-                    </button>
-                    
-                    <div className="text-sm text-muted-foreground">
-                      Don't have an account?{' '}
-                      <button
-                        type="button"
-                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
-                        onClick={() => updateActiveTab("register")}
-                      >
-                        Sign up here
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </Form>
-
-              <div className="mt-4 space-y-4">
-                <Separator className="relative">
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-muted-foreground">
-                    Or continue with
-                  </span>
-                </Separator>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={signInWithGoogle}
-                  disabled={isSubmitting}
-                >
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Continue with Google
-                </Button>
-
-                {/* Platform-specific features */}
-                <WebOnly>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Web Feature",
-                        description: "This feature is only available on web",
-                      });
-                    }}
-                  >
-                    Web-Only Feature
-                  </Button>
-                </WebOnly>
-
-                <MobileOnly>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      toast({
-                        title: "Mobile Feature",
-                        description: "This feature is only available on mobile",
-                      });
-                    }}
-                  >
-                    Mobile-Only Feature
-                  </Button>
-                </MobileOnly>
-              </div>
+                      {isLoading ? "Signing in..." : "Sign In"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="register" className="mt-4">
-              <Form {...registerForm}>
-                <form 
-                  onSubmit={registerForm.handleSubmit(onRegisterSubmit)} 
-                  className="space-y-4"
-                  onTouchStart={(e) => {
-                    if (platform.isAndroid) {
-                      e.stopPropagation();
-                    }
-                  }}
-                >
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="your-email@example.com" 
-                            type="email" 
-                            name="email"
-                            autoComplete="email"
-                            inputMode="email"
-                            onFocus={(e) => {
-                              if (platform.isAndroid) {
-                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              }
-                            }}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <FormField
-                      control={registerForm.control}
-                      name="username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Username</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="johndoe" 
-                              autoComplete="username"
-                              onFocus={(e) => {
-                                if (platform.isAndroid) {
-                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-                              }}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+            {/* Signup Tab */}
+            <TabsContent value="signup" className="mt-0">
+              <Card className="border-0 shadow-none">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle className="text-xl">Create your account</CardTitle>
+                  <CardDescription>
+                    Fill in your details to get started with LearnVerse
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 space-y-4">
+                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
+                    <CrossPlatformInput
+                      id="signup-fullname"
+                      label="Full Name"
+                      type="text"
+                      placeholder="Enter your full name"
+                      icon={<User size={18} />}
+                      autoComplete="name"
+                      error={signupForm.formState.errors.fullName?.message}
+                      {...signupForm.register("fullName")}
                     />
 
-                    <FormField
-                      control={registerForm.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="John Doe" 
-                              autoComplete="name"
-                              onFocus={(e) => {
-                                if (platform.isAndroid) {
-                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-                              }}
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                    <CrossPlatformInput
+                      id="signup-email"
+                      label="Email Address"
+                      type="email"
+                      placeholder="Enter your email"
+                      icon={<Mail size={18} />}
+                      autoComplete="email"
+                      error={signupForm.formState.errors.email?.message}
+                      {...signupForm.register("email")}
                     />
-                  </div>
 
-                  <ReferralInput
-                    onReferralValidated={setReferralCode}
-                    initialCode={referralCode || ''}
-                  />
+                    <CrossPlatformInput
+                      id="signup-password"
+                      label="Password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Create a password"
+                      icon={<Lock size={18} />}
+                      autoComplete="new-password"
+                      showPasswordToggle
+                      showPassword={showPassword}
+                      onTogglePassword={() => setShowPassword(!showPassword)}
+                      error={signupForm.formState.errors.password?.message}
+                      {...signupForm.register("password")}
+                    />
 
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="password" 
-                            placeholder="••••••••" 
-                            name="password"
-                            autoComplete="new-password"
-                            onFocus={(e) => {
-                              if (platform.isAndroid) {
-                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              }
-                            }}
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <CrossPlatformInput
+                      id="signup-confirm-password"
+                      label="Confirm Password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm your password"
+                      icon={<Lock size={18} />}
+                      autoComplete="new-password"
+                      showPasswordToggle
+                      showPassword={showConfirmPassword}
+                      onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
+                      error={signupForm.formState.errors.confirmPassword?.message}
+                      {...signupForm.register("confirmPassword")}
+                    />
 
-                  <Separator className="my-2" />
-                  
-                  <FormField
-                    control={registerForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem className="space-y-3">
-                        <FormLabel>I am registering as a:</FormLabel>
-                        <FormControl>
-                          <RadioGroup
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                            className="grid grid-cols-2 gap-2"
-                          >
-                            <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer ${
-                              field.value === 'student' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
-                            }`}>
-                              <RadioGroupItem value="student" id="dialog-student" className="sr-only" />
-                              <Label htmlFor="dialog-student" className="cursor-pointer flex flex-col items-center justify-center w-full">
-                                <User className="h-5 w-5 mb-1 text-purple-700" />
-                                <span className="font-medium">Student</span>
-                              </Label>
-                            </div>
-                            
-                            <div className={`flex items-center space-x-2 border rounded-lg p-3 cursor-pointer ${
-                              field.value === 'teacher' ? 'border-purple-500 bg-purple-50' : 'border-gray-200'
-                            }`}>
-                              <RadioGroupItem value="teacher" id="dialog-teacher" className="sr-only" />
-                              <Label htmlFor="dialog-teacher" className="cursor-pointer flex flex-col items-center justify-center w-full">
-                                <UserCog className="h-5 w-5 mb-1 text-purple-700" />
-                                <span className="font-medium">Teacher</span>
-                              </Label>
-                            </div>
-                          </RadioGroup>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-primary" 
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? "Creating account..." : "Create account"}
-                  </Button>
-                  
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground">
-                      Already have an account?{' '}
-                      <button
-                        type="button"
-                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
-                        onClick={() => updateActiveTab("login")}
-                      >
-                        Sign in here
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </Form>
-
-              {/* Success message with manual tab switch */}
-              {successMessage && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-                  <div className="flex items-center gap-2 text-green-800">
-                    <Check className="h-4 w-4" />
-                    <span className="text-sm font-medium">{successMessage}</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-3 w-full"
-                    onClick={() => updateActiveTab("login")}
-                  >
-                    Go to Sign In
-                  </Button>
-                </div>
-              )}
-
-              <div className="mt-4 space-y-4">
-                <Separator className="relative">
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-sm text-muted-foreground">
-                    Or continue with
-                  </span>
-                </Separator>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={signInWithGoogle}
-                  disabled={isSubmitting}
-                >
-                  <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Google
-                </Button>
-              </div>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Creating account..." : "Create Account"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="phone" className="mt-6">
-              <Form {...phoneForm}>
-                <form 
-                  onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} 
-                  className="space-y-4"
-                  onTouchStart={(e) => {
-                    if (platform.isAndroid) {
-                      e.stopPropagation();
-                    }
-                  }}
-                >
-                  <FormField
-                    control={phoneForm.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-500">
-                              <img 
-                                src="/lovable-uploads/5f8332a7-0fd5-4cf0-ba9e-7f701f8b6385.png" 
-                                alt="India flag" 
-                                className="h-4 w-6 mr-2" 
-                              />
-                              +91
-                            </div>
-                            <Input
-                              type="tel"
-                              placeholder="Enter your mobile number"
-                              className="pl-20"
-                              autoComplete="tel"
-                              inputMode="numeric"
-                              onFocus={(e) => {
-                                if (platform.isAndroid) {
-                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-                              }}
-                              {...field}
-                            />
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+            {/* Phone Tab */}
+            <TabsContent value="phone" className="mt-0">
+              <Card className="border-0 shadow-none">
+                <CardHeader className="px-0 pt-0">
+                  <CardTitle className="text-xl">Sign in with phone</CardTitle>
+                  <CardDescription>
+                    Enter your phone number to receive an OTP
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="px-0 space-y-4">
+                  <form onSubmit={phoneForm.handleSubmit(handlePhoneAuth)} className="space-y-4">
+                    <CrossPlatformInput
+                      id="phone-number"
+                      label="Phone Number"
+                      type="tel"
+                      placeholder="Enter your phone number"
+                      icon={<Phone size={18} />}
+                      autoComplete="tel"
+                      error={phoneForm.formState.errors.phoneNumber?.message}
+                      {...phoneForm.register("phoneNumber")}
+                    />
 
-                  <Button 
-                    type="submit" 
-                    className="w-full gradient-primary flex items-center gap-2" 
-                    disabled={isSubmitting}
-                  >
-                    <Phone className="h-4 w-4" />
-                    {isSubmitting ? "Sending OTP..." : "Send OTP"}
-                  </Button>
-                  
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground">
-                      Prefer email?{' '}
-                      <button
-                        type="button"
-                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
-                        onClick={() => updateActiveTab("login")}
-                      >
-                        Sign in with email
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </Form>
+                    <Button
+                      type="submit"
+                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending OTP..." : "Send OTP"}
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
 
-          <Dialog open={showOTPDialog} onOpenChange={setShowOTPDialog}>
-            <DialogContent className="sm:max-w-md">
-              <div className="space-y-4">
-                <h2 className="text-xl font-semibold">Enter verification code</h2>
-                <p className="text-sm text-gray-500">
-                  We've sent a code to {phoneNumber}
-                </p>
-                
-                {authError && (
-                  <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
-                    <AlertTitle className="flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      {authError}
-                    </AlertTitle>
-                  </Alert>
-                )}
-                
-                <InputOTP
-                  value={otp}
-                  onChange={(value) => setOtp(value)}
-                  maxLength={6}
-                  render={({ slots }) => (
-                    <InputOTPGroup className="gap-2">
-                      {slots.map((slot, i) => (
-                        <InputOTPSlot key={i} {...slot} index={i} />
-                      ))}
-                    </InputOTPGroup>
-                  )}
-                />
-                
-                <div className="text-center text-sm text-muted-foreground">
-                  Didn't receive the code?{' '}
-                  <button
-                    type="button"
-                    className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
-                    onClick={() => {
-                      setOtp('');
-                      setShowOTPDialog(false);
-                      setActiveTab("phone");
-                    }}
-                  >
-                    Resend OTP
-                  </button>
-                </div>
-                
-                <div className="flex justify-end space-x-2">
-                  <Button variant="outline" onClick={() => setShowOTPDialog(false)}>
-                    Cancel
-                  </Button>
-                  <Button 
-                    onClick={verifyOTP} 
-                    disabled={isSubmitting || otp.length !== 6}
-                    className="gradient-primary"
-                  >
-                    {isSubmitting ? "Verifying..." : "Verify"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <div className="mt-6">
+            <Separator className="my-4" />
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+              By continuing, you agree to our{" "}
+              <a href="#" className="text-purple-600 hover:underline">Terms of Service</a>
+              {" "}and{" "}
+              <a href="#" className="text-purple-600 hover:underline">Privacy Policy</a>
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

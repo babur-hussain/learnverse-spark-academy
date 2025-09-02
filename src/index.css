@@ -784,79 +784,130 @@
   }
 }
 
-/* Enhanced Android keyboard fixes - preserving scrolling */
+/* Cross-Platform Auth Dialog Fixes */
+
+/* Universal Dialog Overlay - Works on all platforms */
+[data-radix-dialog-overlay] {
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+/* Universal Dialog Content Positioning */
+[data-radix-dialog-content] {
+  border-radius: 16px !important;
+  border: none !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  background: white !important;
+}
+
+/* Mobile-specific enhancements */
 @media screen and (max-width: 768px) {
-  /* Android dialog positioning - stable and keyboard-resistant */
-  .android-dialog-fix {
+  /* Mobile dialog positioning */
+  [data-radix-dialog-content] {
     position: fixed !important;
-    top: 10vh !important;
+    top: 5vh !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    width: calc(100vw - 1rem) !important;
-    max-width: calc(100vw - 1rem) !important;
-    height: 80vh !important;
-    max-height: 80vh !important;
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    z-index: 9999 !important;
-    background: white !important;
-    border-radius: 12px !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+    margin: 0 !important;
   }
-  
-  /* Enhanced Android input fixes */
-  .android-dialog-fix input {
-    font-size: 16px !important; /* Prevent zoom */
+
+  /* Universal input styling for all mobile browsers */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="tel"] {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
     -webkit-user-select: text !important;
     user-select: text !important;
+    background: white !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+  }
+
+  /* Enhanced focus states */
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="text"]:focus,
+  input[type="tel"]:focus {
+    outline: none !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    background: white !important;
+  }
+
+  /* Button enhancements */
+  button {
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
     -webkit-appearance: none !important;
-    border-radius: 8px !important;
-    position: relative !important;
-    z-index: 10 !important;
-    background: white !important;
-    border: 2px solid #e5e7eb !important;
-    padding: 12px !important;
-    line-height: 1.5 !important;
+    appearance: none !important;
   }
-  
-  /* Strong input focus state for Android */
-  .android-dialog-fix input:focus {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    outline: none !important;
-    border-color: #8b5cf6 !important;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
-    background: white !important;
-  }
-  
-  /* Prevent dialog overlay from interfering with inputs */
-  [data-radix-dialog-overlay] {
-    pointer-events: none !important;
-    touch-action: none !important;
-    background: rgba(0, 0, 0, 0.8) !important;
-  }
-  
-  /* Ensure input interaction works */
-  .android-dialog-fix input,
-  .android-dialog-fix button,
-  .android-dialog-fix form {
-    pointer-events: auto !important;
-    touch-action: manipulation !important;
-  }
-  
-  /* Prevent form from interfering */
-  .android-dialog-fix form {
+
+  /* Form enhancements */
+  form {
     -webkit-user-select: none !important;
     user-select: none !important;
+    touch-action: manipulation !important;
   }
-  
-  /* Allow text selection only in inputs */
-  .android-dialog-fix input {
-    -webkit-user-select: text !important;
-    user-select: text !important;
-    -webkit-touch-callout: default !important;
+}
+
+/* Android-specific fixes */
+@media screen and (max-width: 768px) {
+  @supports (-webkit-touch-callout: none) {
+    /* Android Chrome specific */
+    html {
+      -webkit-text-size-adjust: 100% !important;
+    }
+
+    /* Android input enhancements */
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="tel"] {
+      -webkit-touch-callout: default !important;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+      position: relative !important;
+      z-index: 1 !important;
+    }
+
+    /* Android button fixes */
+    button {
+      -webkit-touch-callout: none !important;
+      -webkit-user-select: none !important;
+      user-select: none !important;
+    }
+  }
+}
+
+/* iOS-specific enhancements */
+@supports (-webkit-touch-callout: none) and (not (-webkit-touch-callout: default)) {
+  @media screen and (max-width: 768px) {
+    /* iOS viewport fixes */
+    html, body {
+      height: 100% !important;
+      -webkit-text-size-adjust: 100% !important;
+    }
+
+    /* iOS input fixes */
+    input[type="email"],
+    input[type="password"],
+    input[type="text"],
+    input[type="tel"] {
+      -webkit-touch-callout: text !important;
+      -webkit-user-select: text !important;
+      user-select: text !important;
+    }
   }
 }
 
