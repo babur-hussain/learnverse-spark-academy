@@ -24,7 +24,10 @@ export default function AppRoot() {
   useEffect(() => {
     const configureStatusBar = async () => {
       try {
+        // Ensure status bar doesn't overlay the web view
         await StatusBar.setOverlaysWebView({ overlay: false });
+        
+        // Set status bar style based on current theme
         const isDarkMode = document.documentElement.classList.contains('dark');
         if (isDarkMode) {
           await StatusBar.setStyle({ style: Style.Light });
@@ -33,8 +36,12 @@ export default function AppRoot() {
           await StatusBar.setStyle({ style: Style.Dark });
           await StatusBar.setBackgroundColor({ color: '#ffffff' });
         }
-      } catch {
-        // plugin may not be available in web
+        
+        // Set status bar height for proper spacing
+        await StatusBar.setPadding({ top: 0, left: 0, right: 0, bottom: 0 });
+      } catch (error) {
+        // Plugin may not be available in web environment
+        console.log('StatusBar plugin not available:', error);
       }
     };
     configureStatusBar();

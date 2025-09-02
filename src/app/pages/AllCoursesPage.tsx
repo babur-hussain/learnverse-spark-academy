@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/UI/card';
-import Navbar from '@/components/Layout/Navbar';
+import MainLayout from '@/components/Layout/MainLayout';
 import { BookOpen, Star, Clock, User } from 'lucide-react';
 
 interface Course {
@@ -112,8 +112,7 @@ const AllCoursesPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-pink-100 to-white">
-      <Navbar />
+    <MainLayout>
       <div className="max-w-6xl mx-auto py-10 px-4 mt-20">
         <h1 className="text-3xl font-bold mb-8 text-indigo-700">All Courses</h1>
         {loading ? (
@@ -185,7 +184,7 @@ const AllCoursesPage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </MainLayout>
   );
 };
 

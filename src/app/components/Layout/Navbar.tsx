@@ -286,7 +286,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   return (
     <>
       <nav 
-        className="w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm"
+        className="w-full bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm border-none"
       >
         <div className="mx-auto px-2 sm:px-4 flex items-center justify-between max-w-7xl h-12">
           {/* Logo - Responsive sizing */}

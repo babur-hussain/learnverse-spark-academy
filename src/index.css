@@ -383,6 +383,17 @@
   padding-top: env(safe-area-inset-top, 0px);
 }
 
+/* Status bar spacing for Capacitor apps */
+.capacitor .pt-safe {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
+}
+
+/* Ensure proper spacing below status bar */
+.status-bar-spacer {
+  height: env(safe-area-inset-top, 24px);
+  min-height: env(safe-area-inset-top, 24px);
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -758,4 +769,166 @@ footer .overflow-x-auto::-webkit-scrollbar-thumb:hover {
 
 .dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* Target the specific black line below status bar */
+@supports (-webkit-touch-callout: none) {
+  /* More aggressive approach: pull navbar up to cover the black line */
+  .ios .layout-container {
+    margin-top: -1px !important;
+    position: relative;
+  }
+  
+  .ios nav {
+    margin-top: -1px !important;
+    border-top: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Alternative: use a background overlay to cover the line */
+  .ios .layout-container::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: hsl(var(--background)) !important;
+    z-index: 10000;
+  }
+  
+  /* Remove the black line by covering it */
+  .ios .layout-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: hsl(var(--background)) !important;
+    z-index: 9999;
+  }
+  
+  /* Ensure nav has no border */
+  .ios nav {
+    border-top: none !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+}
+
+/* Full screen approach with safe area margins */
+@supports (-webkit-touch-callout: none) {
+  /* Make the app use full screen */
+  .ios .layout-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    background: hsl(var(--background));
+    transform: translateY(-1px);
+    margin-top: -1px;
+    padding-top: calc(env(safe-area-inset-top) + 1px);
+  }
+  
+  /* Remove all previous overlay attempts */
+  .ios .layout-container::before,
+  .ios .layout-container::after {
+    display: none !important;
+  }
+  
+  /* Make navbar work with full screen */
+  .ios nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: hsl(var(--background));
+    border: none !important;
+    box-shadow: none !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+  
+  /* Ensure content starts below the safe area */
+  .ios .main-content {
+    padding-top: 0;
+    margin-top: 0;
+  }
+  
+  /* Remove any system borders */
+  .ios * {
+    border-top: none !important;
+    border-bottom: none !important;
+  }
+  
+  /* Full screen body */
+  .ios body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+  
+  /* Full screen html */
+  .ios html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  
+  /* Full screen root */
+  .ios #root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* FINAL OVERLAY APPROACH */
+  .ios body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: hsl(var(--background)) !important;
+    z-index: 2147483647 !important;
+    pointer-events: none;
+  }
+  
+  /* Light mode specific */
+  .ios:not(.dark) body::after {
+    background: #ffffff !important;
+  }
+  
+  /* Dark mode specific */
+  .ios.dark body::after {
+    background: #0a0a0a !important;
+  }
+  
+  /* Additional layer on the layout container */
+  .ios .layout-container::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: hsl(var(--background)) !important;
+    z-index: 2147483646 !important;
+    pointer-events: none;
+  }
+  
+  /* Light mode specific for layout container */
+  .ios:not(.dark) .layout-container::after {
+    background: #ffffff !important;
+  }
+  
+  /* Dark mode specific for layout container */
+  .ios.dark .layout-container::after {
+    background: #0a0a0a !important;
+  }
 }

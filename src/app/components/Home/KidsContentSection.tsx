@@ -96,7 +96,7 @@ const KidsContentSection = () => {
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16">
+        <div className="grid grid-cols-2 gap-4 md:gap-6 mb-16">
           {kidsCategories.map((category, index) => (
             <Card 
               key={index} 
@@ -106,28 +106,28 @@ const KidsContentSection = () => {
                 animation: 'fade-in 0.8s ease-out forwards'
               }}
             >
-              <CardContent className="p-6">
-                <div className={`${category.bgColor} ${category.darkBgColor} rounded-full p-4 w-fit mb-4 group-hover:scale-110 transition-transform duration-300`}>
+              <CardContent className="p-4 md:p-6">
+                <div className={`${category.bgColor} ${category.darkBgColor} rounded-full p-3 md:p-4 w-fit mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300`}>
                   {category.icon}
                 </div>
                 
-                <Badge className={`${category.badgeColor} text-white shadow-lg mb-3 text-xs`}>
+                <Badge className={`${category.badgeColor} text-white shadow-lg mb-2 md:mb-3 text-xs`}>
                   {category.badge}
                 </Badge>
                 
-                <h3 className="font-bold text-xl mb-3 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <h3 className="font-bold text-lg md:text-xl mb-2 md:mb-3 text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {category.title}
                 </h3>
                 
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-4">
+                <p className="text-gray-600 dark:text-gray-300 text-xs md:text-sm leading-relaxed mb-3 md:mb-4">
                   {category.description}
                 </p>
                 
                 <Button 
                   variant="ghost" 
-                  className="p-0 h-auto text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 group-hover:translate-x-1 transition-all duration-300"
+                  className="p-0 h-auto text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 group-hover:translate-x-1 transition-all duration-300 text-sm"
                 >
-                  Explore Now <ArrowRight className="h-4 w-4 ml-1" />
+                  Explore Now <ArrowRight className="h-3 w-3 md:h-4 md:w-4 ml-1" />
                 </Button>
               </CardContent>
             </Card>

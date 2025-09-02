@@ -24,7 +24,7 @@ const MobileFooter: React.FC = () => {
   ];
 
   const footer = (
-    <footer className="fixed bottom-0 left-0 right-0 z-[9999] pointer-events-auto bg-background/95 backdrop-blur-md border-t border-border">
+    <footer className="fixed bottom-0 left-0 right-0 z-[9999] pointer-events-auto bg-background/95 backdrop-blur-md">
       {/* Scroll container touching both sides like header */}
       <div className="w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
         <nav className="flex items-center gap-1.5 px-2 py-2 min-h-[68px]" style={{ minWidth: 'max-content' }}>
