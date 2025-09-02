@@ -145,6 +145,29 @@
     position: relative;
     -webkit-overflow-scrolling: touch;
     transition: background-color 0.3s ease, color 0.3s ease;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Android-specific body fixes */
+  @media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 100vw !important;
+      overflow-x: hidden !important;
+      position: relative !important;
+      left: 0 !important;
+      right: 0 !important;
+      -webkit-text-size-adjust: 100% !important;
+      text-size-adjust: 100% !important;
+    }
+    
+    body {
+      -webkit-transform: translateZ(0) !important;
+      transform: translateZ(0) !important;
+    }
   }
   
   /* Enhanced dark mode styles */
@@ -756,5 +779,91 @@
   [data-radix-dialog-overlay] {
     background: rgba(0, 0, 0, 0.8) !important;
     backdrop-filter: blur(2px) !important;
+  }
+}
+
+/* Android Content Centering Fixes */
+@media screen and (max-width: 768px) {
+  /* Fix Android content shifting right */
+  .android-content-fix {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  .android-content-fix .main-content {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+  
+  .android-content-wrapper {
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+    text-align: left !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Fix any potential margin/padding issues on Android */
+  .android-content-fix * {
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure proper viewport handling on Android */
+  .android-content-fix {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+  
+  /* Fix flexbox issues on Android */
+  .android-content-fix .flex {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .android-content-fix .flex-col {
+    flex-direction: column !important;
+  }
+  
+  /* Ensure grid layouts work properly on Android */
+  .android-content-fix .grid {
+    display: grid !important;
+    width: 100% !important;
+  }
+}
+
+/* Additional Android-specific viewport fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  /* Specific Android browser content centering */
+  .android-content-fix {
+    -webkit-box-sizing: border-box !important;
+    -moz-box-sizing: border-box !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fix Android Chrome content offset */
+  .android-content-fix .main-content {
+    margin: 0 auto !important;
+    padding: 2.5rem 1rem !important;
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
   }
 }
