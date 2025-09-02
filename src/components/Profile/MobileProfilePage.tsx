@@ -26,6 +26,12 @@ const MobileProfilePage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { role } = useUserRole();
+  
+  // Debug logging
+  console.log('MobileProfilePage - Component mounted');
+  console.log('MobileProfilePage - User:', user);
+  console.log('MobileProfilePage - Role:', role);
+  
   const [isEditMode, setIsEditMode] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: user?.user_metadata?.first_name || 'Sabrina',

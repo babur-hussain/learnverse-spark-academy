@@ -74,9 +74,9 @@ const UserMenu = () => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="focus:outline-none flex-shrink-0">
-              <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
+              <Avatar className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11">
                 <AvatarImage src={user?.user_metadata?.avatar_url || ''} />
-                <AvatarFallback className="text-xs sm:text-sm">{getInitials()}</AvatarFallback>
+                <AvatarFallback className="text-sm sm:text-base md:text-lg">{getInitials()}</AvatarFallback>
               </Avatar>
             </button>
           </DropdownMenuTrigger>

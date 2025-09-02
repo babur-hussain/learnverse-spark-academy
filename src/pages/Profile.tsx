@@ -18,10 +18,18 @@ const Profile = () => {
   const { platform } = usePlatform();
   const { user } = useAuth();
 
+  // Debug logging
+  console.log('Profile page - Platform:', platform);
+  console.log('Profile page - User:', user);
+  console.log('Profile page - isMobile:', platform.isMobile);
+
   // For mobile devices, render the mobile profile page
   if (platform.isMobile) {
+    console.log('Rendering MobileProfilePage');
     return <MobileProfilePage />;
   }
+
+  console.log('Rendering Web Profile Page');
 
   // For web, render the existing profile page
   const {
