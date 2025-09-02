@@ -211,6 +211,73 @@
   .mobile {
     font-size: 16px;
   }
+
+  /* Mobile Web and Tablet Styles */
+  @media (max-width: 1024px) {
+    /* Bottom horizontal scrollbar for mobile web and tablets */
+    body::before {
+      content: '';
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80%;
+      height: 8px;
+      background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+      border-radius: 4px 4px 0 0;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 4px;
+      background: #9ca3af;
+      border-radius: 2px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* Ensure content has proper bottom padding for scrollbar */
+    .main-content {
+      padding-bottom: calc(4rem + 20px) !important;
+    }
+
+    /* Footer positioning above scrollbar */
+    footer, .mobile-footer {
+      bottom: 20px !important;
+    }
+  }
+
+  /* Mobile-specific styles (phones) */
+  @media (max-width: 768px) {
+    /* Enhanced bottom scrollbar for mobile phones */
+    body::before {
+      width: 90%;
+      height: 10px;
+      background: linear-gradient(90deg, transparent, #d1d5db, transparent);
+    }
+
+    body::after {
+      width: 70%;
+      height: 6px;
+      background: #6b7280;
+    }
+
+    /* Ensure proper spacing */
+    .main-content {
+      padding-bottom: calc(4rem + 30px) !important;
+    }
+
+    footer, .mobile-footer {
+      bottom: 30px !important;
+    }
+  }
 }
 
 @layer components {

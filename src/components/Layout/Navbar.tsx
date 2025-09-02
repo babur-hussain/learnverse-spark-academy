@@ -23,6 +23,9 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   const { theme, resolvedTheme, toggleTheme, isDark, isLight, isSystem } = useThemeContext();
   const { platform } = usePlatform();
   
+  // Window width state for responsive behavior
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  
   // Custom dropdown state
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
   const [isCollegeDropdownOpen, setIsCollegeDropdownOpen] = useState(false);
@@ -122,6 +125,16 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
     };
   }, []);
 
+  // Track window resize for responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Fetch classes and colleges data
   const { data: classes = [] } = useQuery({
     queryKey: ['classes'],
@@ -197,8 +210,8 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               <span className="text-xl font-bold text-gray-900">LearnVerse</span>
             </Link>
 
-            {/* Desktop Navigation Items */}
-            {!platform.isMobile && (
+            {/* Desktop Navigation Items - Only show on large screens and non-mobile devices */}
+            {!platform.isMobile && windowWidth > 1024 && (
               <div className="flex items-center space-x-1">
                 <Link to="/web" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
                   <Globe size={18} />
@@ -319,8 +332,8 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
 
           {/* Right side controls - Responsive layout */}
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
-            {/* Mobile Class/College Selectors */}
-            {platform.isMobile && setSelectedClass && (
+            {/* Mobile Class/College Selectors - Show for all mobile devices including mobile web */}
+            {(platform.isMobile || windowWidth <= 1024) && setSelectedClass && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}
@@ -348,7 +361,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 ))}
               </select>
             )}
-            {platform.isMobile && setSelectedCollege && (
+            {(platform.isMobile || windowWidth <= 1024) && setSelectedCollege && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}
