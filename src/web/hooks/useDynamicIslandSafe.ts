@@ -12,9 +12,9 @@ export const useDynamicIslandSafe = () => {
         .getPropertyValue('env(safe-area-inset-top)') || 
         '0px';
       
-      // Convert to number and add some padding
+      // Convert to number and add minimal padding
       const topValue = parseInt(safeAreaTopValue) || 0;
-      const dynamicIslandHeight = Math.max(topValue, 47); // Minimum height for Dynamic Island
+      const dynamicIslandHeight = Math.max(topValue, 20); // Reduced minimum height for Dynamic Island
       
       setSafeAreaTop(dynamicIslandHeight);
       

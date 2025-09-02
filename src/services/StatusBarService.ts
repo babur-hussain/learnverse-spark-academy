@@ -24,11 +24,11 @@ class StatusBarService {
       // Set initial style and background
       const isDarkMode = document.documentElement.classList.contains('dark');
       await StatusBar.setStyle({ 
-        style: isDarkMode ? Style.Dark : Style.Light 
+        style: isDarkMode ? Style.Light : Style.Dark 
       });
       
       await StatusBar.setBackgroundColor({ 
-        color: isDarkMode ? '#000000' : '#ffffff' 
+        color: isDarkMode ? '#09090b' : '#ffffff' 
       });
 
       // Try to hide status bar completely
@@ -44,6 +44,9 @@ class StatusBarService {
       
       // Add app state change listener
       this.addAppStateListener();
+      
+      // Add theme change listener
+      this.addThemeChangeListener();
       
       // Force viewport adjustments
       this.adjustViewport();
@@ -141,6 +144,44 @@ class StatusBarService {
     }
   }
 
+  private addThemeChangeListener(): void {
+    try {
+      // Listen for theme changes in the DOM
+      const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+            const target = mutation.target as HTMLElement;
+            if (target.classList.contains('dark')) {
+              // Theme changed to dark
+              this.updateTheme(true);
+            } else {
+              // Theme changed to light
+              this.updateTheme(false);
+            }
+          }
+        });
+      });
+
+      // Start observing the document element for class changes
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+
+      // Also listen for localStorage changes
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') {
+          const newTheme = e.newValue as string;
+          this.updateTheme(newTheme === 'dark');
+        }
+      });
+
+      console.log('Theme change listener added');
+    } catch (error) {
+      console.log('Theme change listener not available:', error);
+    }
+  }
+
   private async hideStatusBar(): Promise<void> {
     try {
       await StatusBar.hide();
@@ -151,13 +192,20 @@ class StatusBarService {
 
   public async updateTheme(isDarkMode: boolean): Promise<void> {
     try {
+      // Update status bar style based on theme
       await StatusBar.setStyle({ 
-        style: isDarkMode ? Style.Dark : Style.Light 
+        style: isDarkMode ? Style.Light : Style.Dark 
       });
       
+      // Update status bar background color based on theme
       await StatusBar.setBackgroundColor({ 
-        color: isDarkMode ? '#000000' : '#ffffff' 
+        color: isDarkMode ? '#09090b' : '#ffffff' 
       });
+      
+      // Force status bar to stay hidden
+      await this.hideStatusBar();
+      
+      console.log('StatusBar theme updated:', isDarkMode ? 'dark' : 'light');
     } catch (error) {
       console.log('Theme update failed:', error);
     }
