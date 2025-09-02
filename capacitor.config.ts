@@ -48,8 +48,8 @@ const config: CapacitorConfig = {
       iosOverlaysWebView: false,
       androidOverlaysWebView: false,
       iosStyle: 'LIGHT',
-      hideStatusBar: true,
-      iosHideStatusBar: true
+      hideStatusBar: false,
+      iosHideStatusBar: false
     }
   }
 };

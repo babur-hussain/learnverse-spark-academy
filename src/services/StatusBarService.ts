@@ -31,12 +31,14 @@ class StatusBarService {
         color: isDarkMode ? '#09090b' : '#ffffff' 
       });
 
-      // Try to hide status bar completely
+      // Show status bar with proper styling
       try {
-        await StatusBar.hide();
-      } catch {
-        // If hiding fails, try setting height to 0
+        await StatusBar.show();
+        // Set minimal padding to ensure status bar is visible
         await StatusBar.setPadding({ top: 0, left: 0, right: 0, bottom: 0 });
+      } catch {
+        // If showing fails, ensure status bar is visible
+        console.log('StatusBar show failed, ensuring visibility');
       }
       
       // Add scroll event listener to prevent status bar from showing
@@ -113,16 +115,16 @@ class StatusBarService {
         clearTimeout(scrollTimeout);
       }
 
-      // If scrolling down, ensure status bar stays hidden
+      // If scrolling down, ensure status bar stays visible
       if (scrollTop > lastScrollTop && scrollTop > 10) {
-        this.hideStatusBar();
+        this.showStatusBar();
       }
 
       lastScrollTop = scrollTop;
 
-      // Set timeout to hide status bar after scrolling stops
+      // Set timeout to ensure status bar stays visible after scrolling stops
       scrollTimeout = setTimeout(() => {
-        this.hideStatusBar();
+        this.showStatusBar();
       }, 150);
     };
 
@@ -133,9 +135,9 @@ class StatusBarService {
     try {
       App.addListener('appStateChange', ({ isActive }) => {
         if (isActive) {
-          // App came to foreground, ensure status bar is hidden
+          // App came to foreground, ensure status bar is visible
           setTimeout(() => {
-            this.hideStatusBar();
+            this.showStatusBar();
           }, 100);
         }
       });
@@ -202,8 +204,8 @@ class StatusBarService {
         color: isDarkMode ? '#09090b' : '#ffffff' 
       });
       
-      // Force status bar to stay hidden
-      await this.hideStatusBar();
+      // Ensure status bar stays visible with new theme
+      await this.showStatusBar();
       
       console.log('StatusBar theme updated:', isDarkMode ? 'dark' : 'light');
     } catch (error) {
