@@ -23,16 +23,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   
   // Simple, clean layout like the working Courses page
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pt-20">
       <Navbar 
         selectedClass={selectedClass} 
         setSelectedClass={setSelectedClass} 
         selectedCollege={selectedCollege} 
-        setSelectedCollege={setSelectedCollege} 
+        setSelectedCollege={selectedCollege} 
       />
       
       {/* Content wrapper with proper spacing for fixed header */}
-      <div className="max-w-6xl mx-auto py-10 px-4 mt-32">
+      <div className="max-w-6xl mx-auto py-10 px-4">
         {children}
       </div>
       
