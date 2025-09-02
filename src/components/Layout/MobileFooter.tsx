@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
@@ -6,9 +6,6 @@ import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones 
 const MobileFooter = () => {
   const location = useLocation();
   const { platform } = usePlatform();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [showScrollbar, setShowScrollbar] = useState(false);
 
   // Platform-specific navigation items
   const getNavItems = () => {
@@ -42,38 +39,12 @@ const MobileFooter = () => {
   // All items are scrollable, showing 5 at a time
   const maxVisibleIcons = 5;
 
-  // Handle scroll events for custom scrollbar
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const updateScrollbar = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      const maxScroll = scrollWidth - clientWidth;
-      const scrollPercentage = maxScroll > 0 ? scrollLeft / maxScroll : 0;
-      setScrollPosition(scrollPercentage);
-      setShowScrollbar(maxScroll > 0);
-    };
-
-    updateScrollbar();
-    container.addEventListener('scroll', updateScrollbar);
-    
-    // Update on resize
-    const resizeObserver = new ResizeObserver(updateScrollbar);
-    resizeObserver.observe(container);
-
-    return () => {
-      container.removeEventListener('scroll', updateScrollbar);
-      resizeObserver.disconnect();
-    };
-  }, [navItems.length]);
-
   // Platform-specific styling
   const getFooterPadding = () => {
     if (platform.isIOS) {
-      return 'pb-12'; // Extra padding for iOS safe area + scrollbar
+      return 'pb-12'; // Extra padding for iOS safe area + scroll indicators
     }
-    return 'pb-10'; // Extra padding for scrollbar visibility
+    return 'pb-10'; // Extra padding for scroll indicators
   };
 
   const getNavGap = () => {
@@ -110,31 +81,25 @@ const MobileFooter = () => {
 
   return (
     <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 pt-2 ${getFooterPadding()} shadow-lg safe-area-bottom`}>
-      <div className="w-full">
-        <div 
-          ref={scrollContainerRef}
-          className="w-full overflow-x-auto mobile-footer-scrollable scrollbar-hide"
-        >
-          <nav className={`flex items-center px-2 ${getNavGap()}`} style={{ width: `${navItems.length * 70}px` }}>
-            {navItems.map((item) => renderNavItem(item))}
-          </nav>
-        </div>
-        
-        {/* Custom visible scrollbar */}
-        {showScrollbar && (
-          <div className="relative w-full px-4 py-2">
-            <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full">
-              <div 
-                className="h-1 bg-gray-500 dark:bg-gray-400 rounded-full transition-all duration-150 ease-out"
-                style={{ 
-                  width: '25%', // Represents visible area (roughly 5 icons out of total)
-                  transform: `translateX(${scrollPosition * 300}%)` // Adjust multiplier based on content
-                }}
-              />
-            </div>
-          </div>
-        )}
+      <div className="w-full overflow-x-auto scrollbar-hide mobile-footer-scrollable">
+        <nav className={`flex items-center px-2 ${getNavGap()}`} style={{ width: `${navItems.length * 70}px` }}>
+          {navItems.map((item) => renderNavItem(item))}
+        </nav>
       </div>
+      
+      {/* Scroll indicators */}
+      {navItems.length > maxVisibleIcons && (
+        <div className="flex justify-center pt-1 pb-1">
+          <div className="flex space-x-1">
+            {Array.from({ length: Math.ceil(navItems.length / maxVisibleIcons) }).map((_, index) => (
+              <div
+                key={index}
+                className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

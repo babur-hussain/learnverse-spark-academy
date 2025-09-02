@@ -29,16 +29,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     return 'pb-10';
   };
   
-  // Get platform-specific container classes
-  const getContainerClasses = () => {
-    if (platform.isAndroid) {
-      return 'android-content-fix';
-    }
-    return '';
-  };
-
   return (
-    <div className={`min-h-screen bg-white dark:bg-gray-900 flex flex-col ${getContainerClasses()}`}>
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col">
       <Navbar 
         selectedClass={selectedClass} 
         setSelectedClass={setSelectedClass} 
@@ -47,10 +39,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       />
       
       {/* Content wrapper with proper spacing for fixed header and mobile footer */}
-      <main className={`flex-1 main-content max-w-6xl mx-auto py-10 px-4 mt-32 ${getBottomPadding()} android-content-wrapper`}>
-        <div className="w-full">
-          {children}
-        </div>
+      <main className={`flex-1 main-content max-w-6xl mx-auto py-10 px-4 mt-32 ${getBottomPadding()}`}>
+        {children}
       </main>
       
       {/* Mobile footer only on mobile */}
