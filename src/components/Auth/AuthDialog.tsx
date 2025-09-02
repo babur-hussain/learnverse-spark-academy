@@ -227,7 +227,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             className={`
               ${icon ? 'pl-10' : 'pl-3'}
               ${showPasswordToggle ? 'pr-10' : 'pr-3'}
-              h-12 text-base border-2 transition-all duration-200
+              ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} border-2 transition-all duration-200
               ${isFocused 
                 ? 'border-purple-500 ring-2 ring-purple-500/20 shadow-lg' 
                 : error 
@@ -277,63 +277,64 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className={`
-          max-w-md w-full mx-auto p-0 gap-0 flex flex-col
-          ${platform.isAndroid 
-            ? 'fixed top-[5vh] left-1/2 transform -translate-x-1/2 max-h-[90vh] w-[95vw]' 
-            : 'max-h-[85vh]'
+          w-full mx-auto p-0 gap-0 flex flex-col
+          ${platform.isMobile 
+            ? 'fixed top-[2vh] left-1/2 transform -translate-x-1/2 max-h-[96vh] w-[98vw] max-w-[98vw]' 
+            : 'max-w-md max-h-[85vh]'
           }
         `}
-        style={platform.isAndroid ? {
+        style={platform.isMobile ? {
           position: 'fixed',
           zIndex: 9999,
           backgroundColor: 'white',
-          borderRadius: '16px',
+          borderRadius: '12px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          minHeight: '400px',
         } : undefined}
       >
         {/* Header - Fixed */}
-        <DialogHeader className="flex-shrink-0 p-6 pb-4 space-y-1 border-b border-gray-100">
+        <DialogHeader className={`flex-shrink-0 border-b border-gray-100 space-y-1 ${platform.isMobile ? 'p-4 pb-3' : 'p-6 pb-4'}`}>
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+            <DialogTitle className={`font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent ${platform.isMobile ? 'text-xl' : 'text-2xl'}`}>
               Welcome to LearnVerse
             </DialogTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => onOpenChange(false)}
-              className="h-8 w-8 rounded-full hover:bg-gray-100"
+              className="h-8 w-8 rounded-full hover:bg-gray-100 flex-shrink-0"
             >
               <X size={18} />
             </Button>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className={`text-gray-600 dark:text-gray-400 ${platform.isMobile ? 'text-sm' : ''}`}>
             Sign in to your account or create a new one
           </p>
         </DialogHeader>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto px-6 pb-6" style={{ 
+        <div className={`flex-1 overflow-y-auto ${platform.isMobile ? 'px-4 pb-4' : 'px-6 pb-6'}`} style={{ 
           WebkitOverflowScrolling: 'touch',
           overscrollBehavior: 'contain'
         }}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full pt-6">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
-              <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
-              <TabsTrigger value="phone" className="text-sm">Phone</TabsTrigger>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full pt-4">
+            <TabsList className={`grid w-full grid-cols-3 ${platform.isMobile ? 'mb-4' : 'mb-6'}`}>
+              <TabsTrigger value="login" className={`${platform.isMobile ? 'text-xs py-2' : 'text-sm'}`}>Login</TabsTrigger>
+              <TabsTrigger value="signup" className={`${platform.isMobile ? 'text-xs py-2' : 'text-sm'}`}>Sign Up</TabsTrigger>
+              <TabsTrigger value="phone" className={`${platform.isMobile ? 'text-xs py-2' : 'text-sm'}`}>Phone</TabsTrigger>
             </TabsList>
 
             {/* Login Tab */}
             <TabsContent value="login" className="mt-0">
               <Card className="border-0 shadow-none">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-xl">Sign in to your account</CardTitle>
-                  <CardDescription>
+                  <CardTitle className={`${platform.isMobile ? 'text-lg' : 'text-xl'}`}>Sign in to your account</CardTitle>
+                  <CardDescription className={`${platform.isMobile ? 'text-sm' : ''}`}>
                     Enter your email and password to access your account
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-0 space-y-4">
-                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
+                <CardContent className={`px-0 ${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
+                  <form onSubmit={loginForm.handleSubmit(handleLogin)} className={`${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
                     <CrossPlatformInput
                       id="login-email"
                       label="Email Address"
@@ -361,7 +362,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
                     >
                       {isLoading ? "Signing in..." : "Sign In"}
@@ -375,13 +376,13 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             <TabsContent value="signup" className="mt-0">
               <Card className="border-0 shadow-none">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-xl">Create your account</CardTitle>
-                  <CardDescription>
+                  <CardTitle className={`${platform.isMobile ? 'text-lg' : 'text-xl'}`}>Create your account</CardTitle>
+                  <CardDescription className={`${platform.isMobile ? 'text-sm' : ''}`}>
                     Fill in your details to get started with LearnVerse
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-0 space-y-4">
-                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
+                <CardContent className={`px-0 ${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
+                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className={`${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
                     <CrossPlatformInput
                       id="signup-fullname"
                       label="Full Name"
@@ -434,7 +435,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
                     >
                       {isLoading ? "Creating account..." : "Create Account"}
@@ -448,13 +449,13 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
             <TabsContent value="phone" className="mt-0">
               <Card className="border-0 shadow-none">
                 <CardHeader className="px-0 pt-0">
-                  <CardTitle className="text-xl">Sign in with phone</CardTitle>
-                  <CardDescription>
+                  <CardTitle className={`${platform.isMobile ? 'text-lg' : 'text-xl'}`}>Sign in with phone</CardTitle>
+                  <CardDescription className={`${platform.isMobile ? 'text-sm' : ''}`}>
                     Enter your phone number to receive an OTP
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="px-0 space-y-4">
-                  <form onSubmit={phoneForm.handleSubmit(handlePhoneAuth)} className="space-y-4">
+                <CardContent className={`px-0 ${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
+                  <form onSubmit={phoneForm.handleSubmit(handlePhoneAuth)} className={`${platform.isMobile ? 'space-y-3' : 'space-y-4'}`}>
                     <CrossPlatformInput
                       id="phone-number"
                       label="Phone Number"
@@ -468,7 +469,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
 
                     <Button
                       type="submit"
-                      className="w-full h-12 text-base font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                      className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
                     >
                       {isLoading ? "Sending OTP..." : "Send OTP"}
