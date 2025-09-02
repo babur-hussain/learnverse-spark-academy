@@ -784,23 +784,34 @@
   }
 }
 
-/* Android keyboard stability fixes */
+/* Enhanced Android keyboard stability fixes */
 @media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
-  /* Prevent Android keyboard from closing due to viewport changes */
-  .android-dialog-fix {
+  /* Aggressive Android keyboard prevention fixes */
+  html, body {
     position: fixed !important;
-    top: 10vh !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    width: calc(100vw - 2rem) !important;
-    max-width: calc(100vw - 2rem) !important;
-    height: auto !important;
-    max-height: 80vh !important;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
   }
   
-  /* Enhanced input stability for Android Chrome */
+  /* Allow scrolling only in dialog */
+  .android-dialog-fix {
+    position: fixed !important;
+    top: 5vh !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    height: 90vh !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    background: white !important;
+    border-radius: 8px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  }
+  
+  /* Ultra-aggressive input stability for Android */
   .android-dialog-fix input {
     -webkit-user-select: text !important;
     -webkit-touch-callout: default !important;
@@ -808,21 +819,80 @@
     touch-action: manipulation !important;
     pointer-events: auto !important;
     position: relative !important;
-    z-index: 999 !important;
+    z-index: 9999 !important;
+    background: white !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 6px !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    -webkit-appearance: none !important;
+    appearance: none !important;
   }
   
-  /* Prevent form submission on Android keyboard issues */
+  /* Force input focus state */
+  .android-dialog-fix input:focus {
+    border-color: #8b5cf6 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+    background: white !important;
+    -webkit-user-select: text !important;
+    user-select: text !important;
+  }
+  
+  /* Prevent any form interference */
   .android-dialog-fix form {
     -webkit-user-select: none !important;
     user-select: none !important;
     -webkit-touch-callout: none !important;
+    position: relative !important;
+    z-index: 1 !important;
   }
   
-  /* Allow text selection in inputs */
+  /* Force text selection in inputs only */
   .android-dialog-fix input, .android-dialog-fix textarea {
     -webkit-user-select: text !important;
     user-select: text !important;
     -webkit-touch-callout: default !important;
+  }
+  
+  /* Prevent any buttons from interfering */
+  .android-dialog-fix button {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+    font-size: 16px !important;
+  }
+  
+  /* Force dialog overlay to not interfere */
+  [data-radix-dialog-overlay] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 50 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Android Chrome specific fixes */
+@supports (-webkit-touch-callout: none) and (max-width: 768px) {
+  /* Force stable viewport */
+  html {
+    height: 100vh !important;
+    height: -webkit-fill-available !important;
+  }
+  
+  body {
+    height: 100vh !important;
+    height: -webkit-fill-available !important;
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+  }
+  
+  /* Prevent any scrolling outside dialog */
+  .android-dialog-fix {
+    overscroll-behavior: contain !important;
+    -webkit-overscroll-behavior: contain !important;
   }
 }
 
