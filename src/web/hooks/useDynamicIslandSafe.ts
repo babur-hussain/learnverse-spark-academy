@@ -14,7 +14,7 @@ export const useDynamicIslandSafe = () => {
       
       // Convert to number and add minimal padding
       const topValue = parseInt(safeAreaTopValue) || 0;
-      const dynamicIslandHeight = Math.max(topValue, 12); // Further reduced minimum height for Dynamic Island
+      const dynamicIslandHeight = Math.max(topValue, 20); // Restored to previous perfect position
       
       setSafeAreaTop(dynamicIslandHeight);
       
@@ -44,24 +44,37 @@ export const useDynamicIslandSafe = () => {
     // Update on scroll (for dynamic content) - but be more conservative
     let scrollTimeout: NodeJS.Timeout;
     let lastScrollTop = 0;
+    let defaultScrollPosition = 0;
+    let isDefaultPositionSet = false;
+    
     const handleScroll = () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      
+      // Set default position on first scroll
+      if (!isDefaultPositionSet) {
+        defaultScrollPosition = scrollTop;
+        isDefaultPositionSet = true;
+      }
+      
+      // Prevent scrolling up beyond default position
+      if (scrollTop < defaultScrollPosition) {
+        window.scrollTo(0, defaultScrollPosition);
+        return;
+      }
+      
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        
-        // Only update if there's a significant change in safe area AND we're not scrolling up too much
+        // Only update if there's a significant change in safe area
         const currentSafeArea = getComputedStyle(document.documentElement)
           .getPropertyValue('--safe-area-inset-top') || '0px';
         const newSafeArea = getComputedStyle(document.documentElement)
           .getPropertyValue('env(safe-area-inset-top)') || '0px';
         
-        // Only update if the difference is significant (more than 5px) and we're not going too far up
-        if (Math.abs(parseInt(currentSafeArea) - parseInt(newSafeArea)) > 5 && scrollTop > 50) {
+        // Only update if the difference is significant (more than 5px)
+        if (Math.abs(parseInt(currentSafeArea) - parseInt(newSafeArea)) > 5) {
           updateSafeArea();
         }
-        
-        lastScrollTop = scrollTop;
-      }, 300); // Increased delay further to reduce frequency
+      }, 200); // Reduced delay for better responsiveness
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
