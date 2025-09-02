@@ -176,13 +176,6 @@ const UserMenu = () => {
   return (
     <>
       {user ? <AuthenticatedView /> : <UnauthenticatedView />}
-      
-      {!user && (
-        <AuthDialog 
-          open={authDialogOpen} 
-          onOpenChange={setAuthDialogOpen} 
-        />
-      )}
     </>
   );
 };

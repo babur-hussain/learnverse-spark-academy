@@ -176,7 +176,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setSuccessMessage(null);
     try {
       await login(data.email, data.password);
-      onOpenChange(false);
+      
+      // Show success message and delay closing
+      setSuccessMessage("Login successful! Welcome back!");
+      
+      // Close dialog after showing success message
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 1500);
+      
     } catch (error: any) {
       setAuthError(error.message || "Failed to sign in");
     } finally {

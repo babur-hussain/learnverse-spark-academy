@@ -308,3 +308,81 @@
     opacity: 0 !important;
   }
 }
+
+/* Smooth Auth Dialog Animations */
+.auth-dialog-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.auth-dialog-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.auth-dialog-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.auth-dialog-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 150ms ease-in, transform 150ms ease-in;
+}
+
+/* Prevent dialog blinking */
+[data-radix-dialog-content] {
+  animation: none !important;
+}
+
+/* Smooth form transitions */
+.form-field-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.form-field-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* Loading states */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success message animations */
+.success-message-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.success-message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Error message animations */
+.error-message-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.error-message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
