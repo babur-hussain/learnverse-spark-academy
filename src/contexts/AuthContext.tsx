@@ -54,15 +54,47 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  // Test Supabase connection
+  const testConnection = async () => {
+    try {
+      console.log('Testing Supabase connection...');
+      const { data, error } = await supabase.from('user_roles').select('count').limit(1);
+      
+      if (error) {
+        console.error('Supabase connection test failed:', error);
+        return { success: false, error: error.message };
+      }
+      
+      console.log('Supabase connection test successful');
+      return { success: true };
+    } catch (err) {
+      console.error('Supabase connection test error:', err);
+      return { success: false, error: err.message };
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+      console.log('Attempting login for:', email);
+      
+      // First test the connection
+      const connectionTest = await testConnection();
+      if (!connectionTest.success) {
+        console.error('Connection test failed:', connectionTest.error);
+        throw new Error('Unable to connect to authentication service. Please check your internet connection and try again.');
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
+      console.log('Supabase auth response:', { hasData: !!data, hasUser: !!data?.user, error });
+      
       if (error) {
+        console.error('Supabase auth error:', error);
+        
         // Handle specific error cases with user-friendly messages
         let errorMessage = "Login failed. Please try again.";
         
@@ -74,79 +106,114 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           errorMessage = "Too many login attempts. Please wait a moment before trying again.";
         } else if (error.message.includes('User not found')) {
           errorMessage = "No account found with this email address. Please sign up instead.";
+        } else if (error.message.includes('Invalid email')) {
+          errorMessage = "Please enter a valid email address.";
+        } else if (error.message.includes('Password should be at least')) {
+          errorMessage = "Password must be at least 6 characters long.";
         }
         
         const authError = new Error(errorMessage);
         (authError as any).originalMessage = error.message;
+        (authError as any).supabaseError = error;
         throw authError;
       }
 
-      if (data.user) {
+      if (data && data.user) {
+        console.log('Login successful for user:', data.user.email);
         toast({
           title: "Login Successful",
           description: email === ADMIN_EMAIL 
             ? "Welcome, Administrator!" 
             : "Welcome back to Spark Academy!"
         });
+        
+        // Return success to prevent further error handling
+        return { success: true, user: data.user };
+      } else {
+        console.warn('No user data returned from Supabase');
+        throw new Error("Login failed - no user data received");
       }
-    } catch (err: any) {
-      // Special handling for admin account creation on first login
-      if (email === ADMIN_EMAIL && (err.originalMessage?.includes('Invalid login credentials') || err.message?.includes('Invalid login credentials'))) {
-        try {
-          // Generate a unique username for admin to avoid conflicts
-          const adminUsername = `admin_${Date.now()}`;
-          
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email: ADMIN_EMAIL,
-            password: ADMIN_PASSWORD,
-            options: {
-              data: {
-                username: adminUsername,
-                full_name: 'Administrator'
+          } catch (err: any) {
+        console.error('Login function error:', err);
+        
+        // Special handling for admin account creation on first login
+        if (email === ADMIN_EMAIL && (err.originalMessage?.includes('Invalid login credentials') || err.message?.includes('Invalid login credentials'))) {
+          try {
+            console.log('Attempting to create admin account...');
+            
+            // Generate a unique username for admin to avoid conflicts
+            const adminUsername = `admin_${Date.now()}`;
+            
+            const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+              email: ADMIN_EMAIL,
+              password: ADMIN_PASSWORD,
+              options: {
+                data: {
+                  username: adminUsername,
+                  full_name: 'Administrator'
+                }
+              }
+            });
+
+            if (signUpError) {
+              console.error('Admin signup error:', signUpError);
+              throw signUpError;
+            }
+
+            console.log('Admin account created:', signUpData.user);
+
+            // Add admin role to user_roles table
+            if (signUpData.user) {
+              const { error: roleError } = await supabase
+                .from('user_roles')
+                .insert({
+                  user_id: signUpData.user.id,
+                  role: 'admin'
+                });
+              
+              if (roleError) {
+                console.error('Error setting admin role:', roleError);
+                throw new Error('Failed to set admin role');
               }
             }
-          });
 
-          if (signUpError) throw signUpError;
-
-          // Add admin role to user_roles table
-          if (signUpData.user) {
-            const { error: roleError } = await supabase
-              .from('user_roles')
-              .insert({
-                user_id: signUpData.user.id,
-                role: 'admin'
-              });
+            toast({
+              title: "Admin Account Created",
+              description: "Administrator account has been set up. Please sign in again."
+            });
             
-            if (roleError) {
-              console.error('Error setting admin role:', roleError);
-              throw new Error('Failed to set admin role');
+            // Now sign in with the newly created account
+            const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
+              email: ADMIN_EMAIL,
+              password: ADMIN_PASSWORD
+            });
+            
+            if (loginError) {
+              console.error('Admin login after creation error:', loginError);
+              throw loginError;
             }
+            
+            if (loginData.user) {
+              toast({
+                title: "Admin Login Successful",
+                description: "Welcome, Administrator!"
+              });
+              return { success: true, user: loginData.user };
+            }
+            
+          } catch (createErr: any) {
+            console.error('Admin account creation failed:', createErr);
+            toast({
+              title: "Admin Account Creation Failed",
+              description: createErr.message,
+              variant: "destructive"
+            });
+            throw createErr;
           }
-
-          toast({
-            title: "Admin Account Created",
-            description: "Administrator account has been set up. Please sign in again."
-          });
-          
-          // Now sign in with the newly created account
-          await supabase.auth.signInWithPassword({
-            email: ADMIN_EMAIL,
-            password: ADMIN_PASSWORD
-          });
-          
-        } catch (createErr: any) {
-          toast({
-            title: "Admin Account Creation Failed",
-            description: createErr.message,
-            variant: "destructive"
-          });
-          throw createErr;
+        } else {
+          // Don't show toast here as the component will handle the error display
+          throw err;
         }
-      } else {
-        // Don't show toast here as the component will handle the error display
-        throw err;
-      }
     } finally {
       setLoading(false);
     }
@@ -281,7 +348,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signOut = logout;
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, login, signIn, signUp, logout, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading, login, signIn, signUp, logout, signOut, testConnection }}>
       {children}
     </AuthContext.Provider>
   );

@@ -74,7 +74,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setActiveTab(tab);
     localStorage.setItem('authActiveTab', tab);
   };
-  const { login, signUp } = useAuth();
+  const { login, signUp, testConnection } = useAuth();
   
   // Platform-specific styling
   const getDialogSize = () => {
@@ -183,18 +183,28 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       // Clear any previous errors
       loginForm.clearErrors();
       
-      await login(data.email, data.password);
+      console.log('Submitting login form with:', { email: data.email, passwordLength: data.password.length });
       
-      // Show success message and delay closing
-      setSuccessMessage("Login successful! Welcome back!");
+      const result = await login(data.email, data.password);
       
-      // Close dialog after showing success message
-      setTimeout(() => {
-        onOpenChange(false);
-      }, 1500);
+      console.log('Login result:', result);
+      
+      // Check if login was successful
+      if (result && result.success) {
+        // Show success message and delay closing
+        setSuccessMessage("Login successful! Welcome back!");
+        
+        // Close dialog after showing success message
+        setTimeout(() => {
+          onOpenChange(false);
+        }, 1500);
+      } else {
+        // This shouldn't happen if login is working properly
+        setAuthError("Login completed but no success response received. Please try again.");
+      }
       
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('Login error in AuthDialog:', error);
       
       // Set the error message
       const errorMessage = error.message || "Failed to sign in. Please try again.";
@@ -450,6 +460,32 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? "Signing in..." : "Sign in"}
+                  </Button>
+                  
+                  {/* Debug button - remove in production */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={async () => {
+                      const result = await testConnection();
+                      console.log('Connection test result:', result);
+                      if (result.success) {
+                        toast({
+                          title: "Connection Test",
+                          description: "Supabase connection successful!",
+                        });
+                      } else {
+                        toast({
+                          title: "Connection Test Failed",
+                          description: result.error || "Unknown error",
+                          variant: "destructive"
+                        });
+                      }
+                    }}
+                  >
+                    Test Connection
                   </Button>
                   
                   <div className="text-center space-y-2">
