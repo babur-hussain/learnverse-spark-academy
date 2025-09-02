@@ -57,8 +57,7 @@ class StatusBarService {
       console.log('StatusBar configured successfully');
     } catch (error) {
       console.log('StatusBar configuration failed:', error);
-      // Fallback to CSS-only solution
-      this.fallbackCSSSolution();
+      // Don't use fallback CSS solution as it interferes with status bar visibility
     }
   }
 
@@ -69,39 +68,14 @@ class StatusBarService {
       viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no');
     }
     
-    // Add CSS variables for status bar height
-    document.documentElement.style.setProperty('--status-bar-height', '0px');
-    document.documentElement.style.setProperty('--safe-area-inset-top', '0px');
+    // Set proper status bar height for iOS (approximately 47px for status bar + Dynamic Island)
+    const statusBarHeight = '47px';
+    const safeAreaTop = '47px';
+    document.documentElement.style.setProperty('--status-bar-height', statusBarHeight);
+    document.documentElement.style.setProperty('--safe-area-inset-top', safeAreaTop);
   }
 
-  private fallbackCSSSolution(): void {
-    // CSS-only fallback when StatusBar plugin fails
-    this.adjustViewport();
-    
-    // Add CSS to hide status bar area
-    const style = document.createElement('style');
-    style.textContent = `
-      body { 
-        padding-top: 0 !important; 
-        margin-top: 0 !important; 
-      }
-      #root { 
-        padding-top: 0 !important; 
-        margin-top: 0 !important; 
-      }
-      .app-header { 
-        top: 0 !important; 
-        margin-top: 0 !important; 
-        padding-top: 0 !important; 
-      }
-      .status-bar-area { 
-        height: 0 !important; 
-        min-height: 0 !important; 
-        display: none !important; 
-      }
-    `;
-    document.head.appendChild(style);
-  }
+
 
   private addScrollListener(): void {
     let lastScrollTop = 0;
