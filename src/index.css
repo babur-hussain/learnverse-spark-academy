@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Light theme colors */
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
@@ -25,9 +26,25 @@
     --ring: 262.1 83.3% 57.8%;
     --radius: 0.75rem;
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    
+    /* Additional light theme colors */
+    --surface: 0 0% 100%;
+    --surface-foreground: 224 71.4% 4.1%;
+    --surface-hover: 220 14.3% 95.9%;
+    --surface-active: 220 14.3% 90%;
+    --text-primary: 224 71.4% 4.1%;
+    --text-secondary: 220 8.9% 46.1%;
+    --text-muted: 220 8.9% 46.1%;
+    --text-inverse: 210 20% 98%;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   }
 
   .dark {
+    /* Dark theme colors */
     --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
     --card: 224 71.4% 4.1%;
@@ -47,25 +64,142 @@
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
     --ring: 263.4 70% 50.4%;
+    
+    /* Additional dark theme colors */
+    --surface: 224 71.4% 4.1%;
+    --surface-foreground: 210 20% 98%;
+    --surface-hover: 215 27.9% 16.9%;
+    --surface-active: 215 27.9% 22%;
+    --text-primary: 210 20% 98%;
+    --text-secondary: 217.9 10.6% 64.9%;
+    --text-muted: 217.9 10.6% 64.9%;
+    --text-inverse: 224 71.4% 4.1%;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  }
+
+  /* System theme detection */
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --background: 224 71.4% 4.1%;
+      --foreground: 210 20% 98%;
+      --card: 224 71.4% 4.1%;
+      --card-foreground: 210 20% 98%;
+      --popover: 224 71.4% 4.1%;
+      --popover-foreground: 210 20% 98%;
+      --primary: 263.4 70% 50.4%;
+      --primary-foreground: 210 20% 98%;
+      --secondary: 215 27.9% 16.9%;
+      --secondary-foreground: 210 20% 98%;
+      --muted: 215 27.9% 16.9%;
+      --muted-foreground: 217.9 10.6% 64.9%;
+      --accent: 215 27.9% 16.9%;
+      --accent-foreground: 210 20% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 20% 98%;
+      --border: 215 27.9% 16.9%;
+      --input: 215 27.9% 16.9%;
+      --ring: 263.4 70% 50.4%;
+      
+      --surface: 224 71.4% 4.1%;
+      --surface-foreground: 210 20% 98%;
+      --surface-hover: 215 27.9% 16.9%;
+      --surface-active: 215 27.9% 22%;
+      --text-primary: 210 20% 98%;
+      --text-secondary: 217.9 10.6% 64.9%;
+      --text-muted: 217.9 10.6% 64.9%;
+      --text-inverse: 224 71.4% 4.1%;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    }
   }
 }
 
 @layer base {
   * {
-    @apply border-border transition-colors duration-200;
+    @apply border-border;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
   }
 
-  html, body {
+  /* Smooth theme transitions */
+  html {
+    transition: color-scheme 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html,
+  body {
     @apply bg-background text-foreground font-sans;
     width: 100%;
     overflow-x: hidden;
     scroll-behavior: auto;
     position: relative;
     -webkit-overflow-scrolling: touch;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Enhanced dark mode styles */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .light {
+    color-scheme: light;
+  }
+  
+  /* Dark mode specific enhancements */
+  .dark body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  .dark nav {
+    background-color: hsl(var(--surface));
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .dark .bg-white {
+    background-color: hsl(var(--card));
+  }
+  
+  .dark .text-gray-900 {
+    color: hsl(var(--text-primary));
+  }
+  
+  .dark .text-gray-600 {
+    color: hsl(var(--text-secondary));
+  }
+  
+  .dark .text-gray-500 {
+    color: hsl(var(--text-muted));
+  }
+  
+  .dark .border-gray-200 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .border-gray-100 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .divide-gray-100 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .hover\:bg-gray-50:hover {
+    background-color: hsl(var(--surface-hover));
+  }
+  
+  .dark .bg-gray-50 {
+    background-color: hsl(var(--surface));
   }
   
   img, video, canvas, svg {

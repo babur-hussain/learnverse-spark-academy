@@ -15,6 +15,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { Capacitor } from '@capacitor/core';
 import { NotificationsService } from './services/NotificationsService';
 import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 function PushTokenRegistrar() {
   const { user } = useAuth();
@@ -95,23 +96,25 @@ function App() {
 
   return (
     <SafeErrorBoundary>
-      <ToastProvider>
-        <PlatformProvider>
-          <AuthProvider>
-            <GuardianProvider>
-              <PushTokenRegistrar />
-              <Suspense fallback={
-                <div className="flex items-center justify-center h-screen">
-                  <EducationalLoader message="Preparing your learning experience..." />
-                </div>
-              }>
-                <RouterProvider router={router} />
-              </Suspense>
-              <Toaster />
-            </GuardianProvider>
-          </AuthProvider>
-        </PlatformProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <PlatformProvider>
+            <AuthProvider>
+              <GuardianProvider>
+                <PushTokenRegistrar />
+                <Suspense fallback={
+                  <div className="flex items-center justify-center h-screen">
+                    <EducationalLoader message="Preparing your learning experience..." />
+                  </div>
+                }>
+                  <RouterProvider router={router} />
+                </Suspense>
+                <Toaster />
+              </GuardianProvider>
+            </AuthProvider>
+          </PlatformProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </SafeErrorBoundary>
   );
 }

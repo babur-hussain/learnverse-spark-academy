@@ -642,10 +642,20 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="touch-feedback transition-all duration-300 hover:scale-110 h-7 w-7"
+              className="touch-feedback transition-all duration-300 hover:scale-110 h-7 w-7 relative"
+              title={`Current theme: ${theme === 'system' ? 'System' : theme} (${resolvedTheme})`}
             >
-              <Moon className="h-4 w-4" />
-              <span className="sr-only">Toggle theme</span>
+              {resolvedTheme === 'dark' ? (
+                <Moon className="h-4 w-4 text-yellow-400" />
+              ) : (
+                <Sun className="h-4 w-4 text-orange-500" />
+              )}
+              {theme === 'system' && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border border-background"></div>
+              )}
+              <span className="sr-only">
+                Toggle theme (Current: {theme === 'system' ? 'System' : theme})
+              </span>
             </Button>
             
             {/* User Menu */}
