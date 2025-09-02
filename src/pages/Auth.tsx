@@ -50,7 +50,17 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 type PhoneFormValues = z.infer<typeof phoneSchema>;
 
 const Auth = () => {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
+    // Try to get the last active tab from localStorage
+    const savedTab = localStorage.getItem('authActiveTab');
+    return (savedTab as "login" | "register" | "phone") || "login";
+  });
+
+  // Function to update activeTab and save to localStorage
+  const updateActiveTab = (tab: "login" | "register" | "phone") => {
+    setActiveTab(tab);
+    localStorage.setItem('authActiveTab', tab);
+  };
   const { user, loading, login, signUp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -308,7 +318,7 @@ const Auth = () => {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register" | "phone")}>
+        <Tabs value={activeTab} onValueChange={(value) => updateActiveTab(value as "login" | "register" | "phone")}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -531,7 +541,7 @@ const Auth = () => {
                   variant="outline"
                   size="sm"
                   className="mt-3 w-full"
-                  onClick={() => setActiveTab("login")}
+                  onClick={() => updateActiveTab("login")}
                 >
                   Go to Sign In
                 </Button>

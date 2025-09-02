@@ -50,7 +50,17 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 type PhoneFormValues = z.infer<typeof phoneSchema>;
 
 const Auth = () => {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
+    // Try to get the last active tab from localStorage
+    const savedTab = localStorage.getItem('authActiveTab');
+    return (savedTab as "login" | "register" | "phone") || "login";
+  });
+
+  // Function to update activeTab and save to localStorage
+  const updateActiveTab = (tab: "login" | "register" | "phone") => {
+    setActiveTab(tab);
+    localStorage.setItem('authActiveTab', tab);
+  };
   const { user, loading, login, signUp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -157,12 +167,8 @@ const Auth = () => {
       if (response.error) {
         setAuthError(response.error);
         
-        // Only auto-switch to login for specific errors
-        if (response.error === "Account already exists") {
-          setTimeout(() => {
-            setActiveTab("login");
-          }, 3000); // Increased delay for better UX
-        }
+        // Don't auto-switch - let user decide what to do
+        // User can manually switch to login if they want
         return;
       }
       
@@ -308,7 +314,7 @@ const Auth = () => {
           </p>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register" | "phone")}>
+        <Tabs value={activeTab} onValueChange={(value) => updateActiveTab(value as "login" | "register" | "phone")}>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="login">Sign In</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -527,14 +533,14 @@ const Auth = () => {
                   <Check className="h-4 w-4" />
                   <span className="text-sm font-medium">{successMessage}</span>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3 w-full"
-                  onClick={() => setActiveTab("login")}
-                >
-                  Go to Sign In
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 w-full"
+                    onClick={() => updateActiveTab("login")}
+                  >
+                    Go to Sign In
+                  </Button>
               </div>
             )}
 

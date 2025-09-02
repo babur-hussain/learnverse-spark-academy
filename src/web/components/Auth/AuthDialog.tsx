@@ -60,7 +60,17 @@ interface AuthDialogProps {
 }
 
 const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
-  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">("login");
+  const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
+    // Try to get the last active tab from localStorage
+    const savedTab = localStorage.getItem('authActiveTab');
+    return (savedTab as "login" | "register" | "phone") || "login";
+  });
+
+  // Function to update activeTab and save to localStorage
+  const updateActiveTab = (tab: "login" | "register" | "phone") => {
+    setActiveTab(tab);
+    localStorage.setItem('authActiveTab', tab);
+  };
   const { login, signUp } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -182,12 +192,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       if (response.error) {
         setAuthError(response.error);
         
-        // Only auto-switch to login for specific errors
-        if (response.error === "Account already exists") {
-          setTimeout(() => {
-            setActiveTab("login");
-          }, 3000); // Increased delay for better UX
-        }
+        // Don't auto-switch - let user decide what to do
+        // User can manually switch to login if they want
         return;
       }
       
@@ -310,7 +316,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
         </DialogHeader>
 
         <div className="py-4">
-          <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "login" | "register" | "phone")}>
+          <Tabs value={activeTab} onValueChange={(value) => updateActiveTab(value as "login" | "register" | "phone")}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">Sign In</TabsTrigger>
               <TabsTrigger value="register">Register</TabsTrigger>
@@ -522,7 +528,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     variant="outline"
                     size="sm"
                     className="mt-3 w-full"
-                    onClick={() => setActiveTab("login")}
+                    onClick={() => updateActiveTab("login")}
                   >
                     Go to Sign In
                   </Button>
