@@ -2,7 +2,7 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthGuard from '@/components/Layout/AuthGuard';
 import Navbar from '@/components/Layout/Navbar';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 import MobileFooter from '@/components/Layout/MobileFooter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
@@ -13,7 +13,7 @@ import { Label } from '@/components/UI/label';
 
 const Settings = () => {
   const { user } = useAuth();
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
 
   return (
     <AuthGuard>
@@ -28,6 +28,9 @@ const Settings = () => {
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="privacy">Privacy</TabsTrigger>
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              {platform.isMobile && (
+                <TabsTrigger value="mobile">Mobile</TabsTrigger>
+              )}
             </TabsList>
             
             <TabsContent value="account">
@@ -106,10 +109,54 @@ const Settings = () => {
                 </CardContent>
               </Card>
             </TabsContent>
+            
+            {/* Mobile-specific settings */}
+            {platform.isMobile && (
+              <TabsContent value="mobile">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Mobile Settings</CardTitle>
+                    <CardDescription>Platform-specific mobile features and preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">📱</span>
+                        <Label htmlFor="mobile-optimization">Mobile optimization</Label>
+                      </div>
+                      <Switch id="mobile-optimization" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">🔔</span>
+                        <Label htmlFor="mobile-notifications">Mobile notifications</Label>
+                      </div>
+                      <Switch id="mobile-notifications" defaultChecked />
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">💾</span>
+                        <Label htmlFor="offline-mode">Offline mode</Label>
+                      </div>
+                      <Switch id="offline-mode" />
+                    </div>
+                    
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        {platform.isIOS ? '🍎 iOS Optimized' : '🤖 Android Optimized'} - 
+                        Your device is configured for optimal performance
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
           </Tabs>
         </main>
         
-        {isMobile ? (
+        {platform.isMobile ? (
           <MobileFooter />
         ) : (
           <footer className="py-8 bg-gray-100">

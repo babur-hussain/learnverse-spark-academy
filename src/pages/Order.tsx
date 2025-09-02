@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/UI/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { supabase } from '@/integrations/supabase/client';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Package, MapPin, Calendar, CreditCard } from 'lucide-react';
@@ -40,6 +41,7 @@ const statusColors = {
 };
 
 const Orders = () => {
+  const { platform } = usePlatform();
   const { user } = useAuth();
 
   const { data: orders, isLoading } = useQuery({
@@ -92,10 +94,34 @@ const Orders = () => {
     );
   }
 
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-6 px-4' : 'py-8 px-4';
+    }
+    return 'py-8';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-2xl';
+    }
+    return 'text-3xl';
+  };
+
+  const getMaxWidth = () => {
+    if (platform.isMobile) {
+      return 'max-w-full';
+    }
+    return 'max-w-4xl';
+  };
+
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8">My Orders</h1>
+      <div className={`container mx-auto px-4 ${getContainerPadding()} ${getMaxWidth()}`}>
+        <h1 className={`${getTitleSize()} font-bold mb-8`}>
+          {platform.isMobile ? 'Orders' : 'My Orders'}
+        </h1>
         
         {orders?.length === 0 ? (
           <div className="text-center py-12">
@@ -185,6 +211,21 @@ const Orders = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+        
+        {/* Platform-specific features */}
+        {platform.isMobile && orders && orders.length > 0 && (
+          <div className="mt-8 p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 rounded-lg">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+              📱 Mobile Order Features
+            </h3>
+            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <div>• Real-time order tracking</div>
+              <div>• Push notifications for updates</div>
+              <div>• Quick reorder from order history</div>
+              <div>• Share order details with family</div>
+            </div>
           </div>
         )}
       </div>

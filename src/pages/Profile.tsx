@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
 import { ProfileHeader } from '@/components/Profile/ProfileHeader';
@@ -13,6 +14,7 @@ import { User, BookOpen, BarChart3, Trophy, Gift } from 'lucide-react';
 import MainLayout from '@/components/Layout/MainLayout';
 
 const Profile = () => {
+  const { platform } = usePlatform();
   const { user } = useAuth();
   const {
     profile,
@@ -72,8 +74,20 @@ const Profile = () => {
           onEndStudy={endStudySession}
         />
         
+        {/* Platform-specific welcome message */}
+        {platform.isMobile && (
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-2 text-blue-800">
+              <span className="text-sm font-medium">📱 Mobile Profile</span>
+            </div>
+            <p className="text-xs text-blue-700 mt-1">
+              Optimized for mobile viewing and interaction
+            </p>
+          </div>
+        )}
+        
         <Tabs defaultValue="overview" className="mt-8">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${platform.isMobile ? 'grid-cols-3' : 'grid-cols-5'}`}>
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Overview
@@ -90,10 +104,12 @@ const Profile = () => {
               <Trophy className="h-4 w-4" />
               Achievements
             </TabsTrigger>
-            <TabsTrigger value="referrals" className="flex items-center gap-2">
-              <Gift className="h-4 w-4" />
-              Referrals
-            </TabsTrigger>
+            {!platform.isMobile && (
+              <TabsTrigger value="referrals" className="flex items-center gap-2">
+                <Gift className="h-4 w-4" />
+                Referrals
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="overview" className="mt-6">
@@ -124,6 +140,43 @@ const Profile = () => {
           <TabsContent value="referrals" className="mt-6">
             <ReferralDashboard />
           </TabsContent>
+          
+          {/* Mobile-specific tab content */}
+          {platform.isMobile && (
+            <TabsContent value="mobile-features" className="mt-6">
+              <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 rounded-lg">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
+                  📱 Mobile-Exclusive Features
+                </h3>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center">
+                      📍
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Location-based course recommendations
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      🔔
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Push notifications for study reminders
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                      📱
+                    </div>
+                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                      Offline content download
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </MainLayout>

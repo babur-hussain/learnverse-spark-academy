@@ -23,7 +23,7 @@ import SkillBasedLearningSection from '@/components/Home/SkillBasedLearningSecti
 import CareerReadinessSection from '@/components/Home/CareerReadinessSection';
 import TestimonialsSection from '@/components/Home/TestimonialsSection';
 import NewsletterSection from '@/components/Home/NewsletterSection';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 import MainLayout from '@/components/Layout/MainLayout';
 import ClassSubjectsGrid from '@/components/Home/ClassSubjectsGrid';
 import { useAuth } from '@/contexts/AuthContext';
@@ -48,7 +48,7 @@ function setCookie(name: string, value: string, maxAgeSeconds = 60 * 60 * 24 * 3
 }
 
 const Home = () => {
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
   const { user } = useAuth();
   const [selectedClass, setSelectedClass] = useState(() =>
     localStorage.getItem('selectedClass') || getCookie('selectedClass') || ''
@@ -237,6 +237,34 @@ const Home = () => {
         <BecomeInstructorSection />
         
         <NewsletterSection />
+        
+        {/* Platform-specific sections */}
+        {platform.isMobile && (
+          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 py-8">
+            <div className="container mx-auto px-4 text-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                📱 Mobile-Exclusive Features
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Get the best learning experience on your mobile device
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {platform.isWeb && (
+          <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 py-8">
+            <div className="container mx-auto px-4 text-center">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                🖥️ Web-Exclusive Features
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Access advanced features and larger screens on web
+              </p>
+            </div>
+          </div>
+        )}
+        
         <AppDownload />
       </div>
     </MainLayout>

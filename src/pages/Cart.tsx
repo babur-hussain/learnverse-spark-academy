@@ -4,10 +4,12 @@ import { Button } from '@/components/UI/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Minus, Plus, Trash2, ShoppingBag } from 'lucide-react';
 
 const Cart = () => {
+  const { platform } = usePlatform();
   const { user } = useAuth();
   const { cart, updateQuantity, removeFromCart } = useCart();
   const navigate = useNavigate();
@@ -39,12 +41,36 @@ const Cart = () => {
     );
   }
 
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-6 px-4' : 'py-8 px-4';
+    }
+    return 'py-8';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-2xl';
+    }
+    return 'text-3xl';
+  };
+
+  const getGridLayout = () => {
+    if (platform.isMobile) {
+      return 'grid-cols-1 gap-4';
+    }
+    return 'grid-cols-1 lg:grid-cols-3 gap-8';
+  };
+
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8">Shopping Cart ({cart.length} items)</h1>
+      <div className={`container mx-auto ${getContainerPadding()} ${platform.isMobile ? 'max-w-full' : 'max-w-4xl'}`}>
+        <h1 className={`${getTitleSize()} font-bold mb-8`}>
+          {platform.isMobile ? 'Cart' : 'Shopping Cart'} ({cart.length} items)
+        </h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`grid ${getGridLayout()}`}>
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item) => (
               <Card key={item.id}>
@@ -138,6 +164,20 @@ const Cart = () => {
                 >
                   Continue Shopping
                 </Button>
+                
+                {/* Platform-specific features */}
+                {platform.isMobile && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-800 mb-2">
+                      <span className="text-sm font-medium">📱 Mobile Features</span>
+                    </div>
+                    <div className="space-y-2 text-xs text-blue-700">
+                      <div>• Quick checkout with saved payment methods</div>
+                      <div>• Location-based delivery options</div>
+                      <div>• Push notifications for order updates</div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

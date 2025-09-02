@@ -8,12 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/UI/card';
 import { Separator } from '@/components/UI/separator';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import MainLayout from '@/components/Layout/MainLayout';
 import { Package, MapPin, CreditCard } from 'lucide-react';
 
 const Checkout = () => {
+  const { platform } = usePlatform();
   const { user } = useAuth();
   const { cart, clearCart } = useCart();
   const { toast } = useToast();
@@ -32,6 +34,28 @@ const Checkout = () => {
   });
 
   const [paymentMethod, setPaymentMethod] = useState('cod');
+
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-6 px-4' : 'py-8 px-4';
+    }
+    return 'py-8';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-2xl';
+    }
+    return 'text-3xl';
+  };
+
+  const getGridLayout = () => {
+    if (platform.isMobile) {
+      return 'grid-cols-1 gap-6';
+    }
+    return 'grid-cols-1 lg:grid-cols-2 gap-8';
+  };
 
   const totalAmount = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
 
@@ -122,10 +146,12 @@ const Checkout = () => {
 
   return (
     <MainLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+      <div className={`container mx-auto px-4 ${getContainerPadding()} ${platform.isMobile ? 'max-w-full' : 'max-w-6xl'}`}>
+        <h1 className={`${getTitleSize()} font-bold mb-8`}>
+          {platform.isMobile ? 'Checkout' : 'Complete Your Order'}
+        </h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className={`grid ${getGridLayout()}`}>
           {/* Order Form */}
           <div className="space-y-6">
             <Card>
@@ -295,6 +321,20 @@ const Checkout = () => {
                 >
                   {createOrderMutation.isPending ? 'Placing Order...' : 'Place Order'}
                 </Button>
+                
+                {/* Platform-specific features */}
+                {platform.isMobile && (
+                  <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-green-800 mb-2">
+                      <span className="text-sm font-medium">📱 Mobile Checkout</span>
+                    </div>
+                    <div className="space-y-1 text-xs text-green-700">
+                      <div>• Quick checkout with saved addresses</div>
+                      <div>• Real-time order tracking</div>
+                      <div>• Push notifications for updates</div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

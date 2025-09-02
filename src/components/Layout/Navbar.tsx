@@ -6,7 +6,7 @@ import { useUserRole } from '@/hooks/use-user-role';
 import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useTheme } from '@/hooks/use-theme';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown, Building2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +22,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   const { user } = useAuth();
   const { role } = useUserRole();
   const { theme, toggleTheme } = useTheme();
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
   
   // Custom dropdown state
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
@@ -226,7 +226,6 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
 
   const handleCollegeSelect = useCallback((collegeObj: any) => {
     if (setSelectedCollege) {
-
       setSelectedCollege(collegeObj.id);
       // Auto-deselect class when college is selected
       if (setSelectedClass) {
@@ -234,7 +233,12 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
       }
       try {
         localStorage.setItem('selectedCollege', collegeObj.id);
-        localStorage.removeItem('selectedClass');
+        localStorage.removeItem('selectedCollege');
+      } catch {}
+    } else {
+      // If no setSelectedCollege prop, just store in localStorage for other components
+      try {
+        localStorage.setItem('selectedCollege', collegeObj.id);
       } catch {}
     }
     setIsCollegeDropdownOpen(false);
@@ -273,17 +277,35 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   return (
     <>
       <nav 
-        className="w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm"
+        className="w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm fixed top-0 left-0 right-0 z-50"
       >
         <div className="mx-auto px-2 sm:px-4 flex items-center justify-between max-w-7xl h-12">
           {/* Logo - Responsive sizing */}
-          <Link to="/" className="text-lg md:text-2xl font-bold text-learn-purple flex items-center gap-1 md:gap-2 touch-feedback flex-shrink-0">
-            <GraduationCap className="h-5 w-5 md:h-8 md:w-8" />
-            <span className="text-base sm:text-lg md:text-2xl">LearnVerse</span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link to="/" className="text-lg md:text-2xl font-bold text-learn-purple flex items-center gap-1 md:gap-2 touch-feedback flex-shrink-0">
+              <GraduationCap className="h-5 w-5 md:h-8 md:w-8" />
+              <span className="text-base sm:text-lg md:text-2xl">LearnVerse</span>
+            </Link>
+            
+            {/* Platform Indicator */}
+            <div className="hidden sm:flex items-center gap-1">
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                platform.isWeb 
+                  ? 'bg-blue-100 text-blue-800' 
+                  : platform.isIOS 
+                  ? 'bg-purple-100 text-purple-800' 
+                  : 'bg-green-100 text-green-800'
+              }`}>
+                {platform.isWeb ? '🌐' : platform.isIOS ? '🍎' : '🤖'}
+                <span className="ml-1">
+                  {platform.isWeb ? 'Web' : platform.isIOS ? 'iOS' : 'Android'}
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* Desktop Navigation */}
-          {!isMobile && (
+          {!platform.isMobile && (
             <div className="hidden md:flex items-center space-x-2">
               {/* Custom Class Dropdown */}
               {setSelectedClass && (
@@ -356,75 +378,73 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               )}
 
               {/* Custom College Dropdown */}
-              {setSelectedCollege && (
-                <div className="relative" ref={collegeDropdownRef}>
-                  <button
+              <div className="relative" ref={collegeDropdownRef}>
+                                                                     <button
+                     onMouseEnter={() => handleCollegeDropdownHover(true)}
+                     onMouseLeave={() => handleCollegeDropdownHover(false)}
+                     className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                     disabled={isLoadingColleges}
+                   >
+                  <Building2 className="h-4 w-4" />
+                  {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isCollegeDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
                     onMouseEnter={() => handleCollegeDropdownHover(true)}
                     onMouseLeave={() => handleCollegeDropdownHover(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
-                    disabled={isLoadingColleges}
                   >
-                    <Building2 className="h-4 w-4" />
-                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-                  
-                  {isCollegeDropdownOpen && (
-                    <div 
-                      className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
-                      onMouseEnter={() => handleCollegeDropdownHover(true)}
-                      onMouseLeave={() => handleCollegeDropdownHover(false)}
-                    >
-                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select College</span>
+                    <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select College</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            refetchColleges();
+                          }}
+                          className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                          title="Refresh colleges"
+                        >
+                          Refresh
+                        </button>
+                      </div>
+                    </div>
+                    <ul className="p-2">
+                      {isLoadingColleges ? (
+                        <li className="p-2 text-center text-muted-foreground">Loading colleges...</li>
+                      ) : collegesError ? (
+                        <li className="p-2 text-center text-red-500">
+                          <div>Error loading colleges</div>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               refetchColleges();
                             }}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
-                            title="Refresh colleges"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
                           >
-                            Refresh
+                            Try again
                           </button>
-                        </div>
-                      </div>
-                      <ul className="p-2">
-                        {isLoadingColleges ? (
-                          <li className="p-2 text-center text-muted-foreground">Loading colleges...</li>
-                        ) : collegesError ? (
-                          <li className="p-2 text-center text-red-500">
-                            <div>Error loading colleges</div>
+                        </li>
+                      ) : colleges && colleges.length > 0 ? (
+                        colleges.map((col) => (
+                          <li key={col.id}>
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                refetchColleges();
-                              }}
-                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                              className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedCollege === col.id ? 'bg-accent font-bold' : ''}`}
+                              onClick={() => handleCollegeSelect(col)}
                             >
-                              Try again
+                              {col.name}
                             </button>
                           </li>
-                        ) : colleges && colleges.length > 0 ? (
-                          colleges.map((col) => (
-                            <li key={col.id}>
-                              <button
-                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedCollege === col.id ? 'bg-accent font-bold' : ''}`}
-                                onClick={() => handleCollegeSelect(col)}
-                              >
-                                {col.name}
-                              </button>
-                            </li>
-                          ))
-                        ) : (
-                          <li className="p-2 text-center text-muted-foreground">No colleges available</li>
-                        )}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              )}
+                        ))
+                      ) : (
+                        <li className="p-2 text-center text-muted-foreground">No colleges available</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {/* Custom Community Dropdown */}
               <div className="relative" ref={communityDropdownRef}>
@@ -560,7 +580,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
           {/* Right side controls - Responsive layout */}
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
             {/* Mobile Class/College Selectors */}
-            {isMobile && setSelectedClass && (
+            {platform.isMobile && setSelectedClass && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}
@@ -588,7 +608,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 ))}
               </select>
             )}
-            {isMobile && setSelectedCollege && (
+            {platform.isMobile && setSelectedCollege && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}

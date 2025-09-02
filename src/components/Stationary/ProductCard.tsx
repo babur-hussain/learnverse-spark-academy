@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Heart, ShoppingCart, Truck } from 'lucide-react';
+import { Star, Heart, ShoppingCart, Truck, Plus, Minus } from 'lucide-react';
 import { Card, CardContent } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import { Product } from '@/hooks/use-products';
 import { useCart } from '@/hooks/use-cart';
 import { useWishlist } from '@/hooks/use-wishlist';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 interface ProductCardProps {
   product: Product;
@@ -16,6 +17,8 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart, isAddingToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlist();
+  const { platform } = usePlatform();
+  const [quantity, setQuantity] = useState(1);
 
   const primaryImage = product.images?.find(img => img.is_primary)?.image_url || '/images/materials.png';
   const discount = product.original_price && product.original_price > product.price 
@@ -25,7 +28,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart({ product_id: product.id });
+    addToCart({ product_id: product.id, quantity });
   };
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
@@ -141,6 +144,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <Truck className="h-3 w-3" />
             FREE Delivery
           </p>
+
+          {/* Mobile Quantity Selector */}
+          {platform.isMobile && product.stock_quantity > 0 && (
+            <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-2 mt-3">
+              <span className="text-sm text-gray-600 dark:text-gray-400">Quantity:</span>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  disabled={quantity <= 1}
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <span className="text-sm font-medium w-8 text-center">{quantity}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setQuantity(Math.min(product.stock_quantity, quantity + 1))}
+                  disabled={quantity >= product.stock_quantity}
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+          )}
 
           {/* Add to cart button */}
           <Button 

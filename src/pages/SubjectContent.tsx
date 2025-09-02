@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase, publicSupabase } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/UI/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
@@ -71,7 +71,7 @@ const SubjectContent = () => {
       try {
         // First get the files from subject_resources
         console.log('Fetching from subject_resources table...');
-        const { data: resources, error: resourcesError } = await publicSupabase
+        const { data: resources, error: resourcesError } = await supabase
           .from('subject_resources')
           .select('*')
           .eq('subject_id', subjectId);
@@ -84,7 +84,7 @@ const SubjectContent = () => {
 
         // List all buckets first
         console.log('Listing all storage buckets...');
-        const { data: buckets, error: bucketsError } = await publicSupabase
+        const { data: buckets, error: bucketsError } = await supabase
           .storage
           .listBuckets();
         
@@ -96,7 +96,7 @@ const SubjectContent = () => {
 
         // Try to list files from the subject-content bucket
         console.log('Listing files from subject-content bucket...');
-        const { data: storageFiles, error: storageError } = await publicSupabase
+        const { data: storageFiles, error: storageError } = await supabase
           .storage
           .from('subject-content')
           .list(subjectId, {
@@ -114,7 +114,7 @@ const SubjectContent = () => {
         // If no files in the subject folder, try listing root
         if (!storageFiles || storageFiles.length === 0) {
           console.log('No files in subject folder, checking root...');
-          const { data: rootFiles, error: rootError } = await publicSupabase
+          const { data: rootFiles, error: rootError } = await supabase
             .storage
             .from('subject-content')
             .list('', {
@@ -138,7 +138,7 @@ const SubjectContent = () => {
             file.name === resource.title
           );
           const fileUrl = storageFile ? 
-            publicSupabase.storage
+            supabase.storage
               .from('subject-content')
               .getPublicUrl(`${subjectId}/${storageFile.name}`).data.publicUrl 
             : resource.file_url || '';
@@ -171,7 +171,7 @@ const SubjectContent = () => {
     queryFn: async () => {
       console.log('Fetching subject details for ID:', subjectId);
       try {
-        const { data, error } = await publicSupabase
+        const { data, error } = await supabase
           .from('subjects')
           .select('id, title, description, is_featured')
           .eq('id', subjectId)

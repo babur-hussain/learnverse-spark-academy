@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import Navbar from '@/components/Layout/Navbar';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 import MobileFooter from '@/components/Layout/MobileFooter';
 import { Heart, ShoppingCart, Trash2, Star, Share2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/UI/button';
@@ -10,7 +10,7 @@ import { Badge } from '@/components/UI/badge';
 import { Link } from 'react-router-dom';
 
 const Wishlist = () => {
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
   const [wishlistItems, setWishlistItems] = useState([
     { 
       id: 1, 
@@ -84,7 +84,7 @@ const Wishlist = () => {
             </Link>
           </div>
         </main>
-        {isMobile && <MobileFooter />}
+        {platform.isMobile && <MobileFooter />}
       </div>
     );
   }
@@ -94,9 +94,9 @@ const Wishlist = () => {
       <Navbar />
       
       <main className="pt-16">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <div className={`${platform.isMobile ? 'max-w-full' : 'max-w-6xl'} mx-auto px-4 ${platform.isMobile ? 'py-4' : 'py-6'}`}>
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className={`flex items-center justify-between ${platform.isMobile ? 'mb-4' : 'mb-6'}`}>
             <div className="flex items-center gap-4">
               <Link to="/stationary">
                 <Button variant="ghost" size="sm">
@@ -244,6 +244,20 @@ const Wishlist = () => {
             ))}
           </div>
 
+          {/* Platform-specific features */}
+          {platform.isMobile && (
+            <div className="mt-8 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                📱 Mobile-Exclusive Features
+              </h3>
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div>• Quick add to cart with one tap</div>
+                <div>• Share wishlist with friends</div>
+                <div>• Get notified when items go on sale</div>
+              </div>
+            </div>
+          )}
+
           {/* Recommendations */}
           <div className="mt-12">
             <h2 className="text-xl font-bold mb-6">You might also like</h2>
@@ -275,7 +289,7 @@ const Wishlist = () => {
         </div>
       </main>
 
-      {isMobile && <MobileFooter />}
+      {platform.isMobile && <MobileFooter />}
     </div>
   );
 };

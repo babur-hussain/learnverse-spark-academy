@@ -6,63 +6,44 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
-
     --card: 0 0% 100%;
     --card-foreground: 224 71.4% 4.1%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 224 71.4% 4.1%;
-
     --primary: 262.1 83.3% 57.8%;
     --primary-foreground: 210 20% 98%;
-
     --secondary: 220 14.3% 95.9%;
     --secondary-foreground: 220.9 39.3% 11%;
-
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 46.1%;
-
     --accent: 220 14.3% 95.9%;
     --accent-foreground: 220.9 39.3% 11%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
-
     --border: 220 13% 91%;
     --input: 220 13% 91%;
     --ring: 262.1 83.3% 57.8%;
-
     --radius: 0.75rem;
-
-    /* Safe area vars */
     --safe-area-inset-top: env(safe-area-inset-top, 0px);
   }
 
   .dark {
     --background: 224 71.4% 4.1%;
     --foreground: 210 20% 98%;
-
     --card: 224 71.4% 4.1%;
     --card-foreground: 210 20% 98%;
-
     --popover: 224 71.4% 4.1%;
     --popover-foreground: 210 20% 98%;
-
     --primary: 263.4 70% 50.4%;
     --primary-foreground: 210 20% 98%;
-
     --secondary: 215 27.9% 16.9%;
     --secondary-foreground: 210 20% 98%;
-
     --muted: 215 27.9% 16.9%;
     --muted-foreground: 217.9 10.6% 64.9%;
-
     --accent: 215 27.9% 16.9%;
     --accent-foreground: 210 20% 98%;
-
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 20% 98%;
-
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
     --ring: 263.4 70% 50.4%;
@@ -82,188 +63,130 @@
     @apply bg-background text-foreground font-sans;
     width: 100%;
     overflow-x: hidden;
-    /* Let Lenis control scroll-behavior for consistency */
     scroll-behavior: auto;
     position: relative;
     -webkit-overflow-scrolling: touch;
   }
   
-  /* Make media fully responsive by default */
   img, video, canvas, svg {
     max-width: 100%;
     height: auto;
     display: block;
   }
   
-  /* Enhanced mobile-specific styles */
   .mobile {
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  .mobile input,
-  .mobile select,
-  .mobile textarea {
-    font-size: 16px; /* Prevent zoom on iOS */
-  }
-  
-  /* Platform-specific styles */
-  .ios {
-    --safe-top: env(safe-area-inset-top, 0px);
-    --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --safe-left: env(safe-area-inset-left, 0px);
-    --safe-right: env(safe-area-inset-right, 0px);
-  }
-  
-  .capacitor button, 
-  .capacitor a {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-  
-  /* Enhanced touch feedback */
-  @media (hover: none) and (pointer: coarse) {
-    .touch-feedback:active {
-      @apply opacity-70 scale-95;
-      transition: all 0.1s ease;
-    }
-  }
-  
-  /* Optimize button/input sizing for touch */
-  @media (max-width: 768px) {
-    button, 
-    .btn, 
-    input[type="button"], 
-    input[type="submit"],
-    .touch-button {
-      @apply min-h-12 min-w-12;
-      font-size: 16px;
-    }
-    
-    input, 
-    select, 
-    textarea {
-      @apply text-base min-h-12;
-      font-size: 16px;
-    }
+    font-size: 16px;
   }
 }
 
 @layer components {
-  .gradient-primary {
-    @apply bg-gradient-to-r from-learn-purple via-learn-blue to-learn-teal;
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
   }
   
-  .gradient-text {
-    @apply text-transparent bg-clip-text gradient-primary;
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
   }
   
-  .gradient-border {
-    @apply relative before:absolute before:inset-0 before:-z-10 before:padding-[1px] 
-    before:rounded-[inherit] before:gradient-primary before:content-[''];
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
   
-  .live-badge {
-    @apply px-2 py-0.5 text-xs font-semibold rounded-full bg-red-500 text-white
-    animate-pulse-soft;
+  .btn-outline {
+    @apply border border-input hover:bg-accent hover:text-accent-foreground;
   }
   
-  .card-hover {
-    @apply transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 dark:hover:shadow-primary/20
-    hover:scale-105;
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
   }
   
-  .search-container {
-    @apply relative flex items-center w-full;
+  .btn-link {
+    @apply underline-offset-4 hover:underline text-primary;
   }
   
-  .search-input {
-    @apply w-full py-3 pl-12 pr-4 rounded-2xl border border-gray-200 dark:border-gray-700
-    focus:outline-none focus:ring-2 focus:ring-learn-purple focus:border-transparent
-    dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-400 
-    transition-all duration-300 focus:shadow-lg;
+  .btn-sm {
+    @apply h-9 px-3 rounded-md;
   }
   
-  .nav-link {
-    @apply px-4 py-2 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-100 
-    hover:text-learn-purple dark:hover:bg-gray-800 transition-all duration-300
-    hover:scale-105;
+  .btn-md {
+    @apply h-10 py-2 px-4;
   }
   
-  .nav-link-active {
-    @apply px-4 py-2 text-learn-purple font-medium dark:text-learn-purple
-    bg-blue-50 dark:bg-blue-900/20;
+  .btn-lg {
+    @apply h-11 px-8 rounded-md;
   }
   
-  /* Enhanced responsive grid layouts */
-  .course-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8;
+  .btn-icon {
+    @apply h-10 w-10;
   }
   
-  /* Mobile optimized grids */
-  .mobile-grid {
-    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
   }
   
-  /* Enhanced touch-friendly buttons */
-  .touch-button {
-    @apply rounded-xl py-3 px-6 flex items-center justify-center touch-feedback
-    transition-all duration-300 hover:scale-105 hover:shadow-lg min-h-12 font-medium;
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
   }
   
-  .bg-grid-pattern {
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
   }
+  
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .card-content {
+    @apply p-6 pt-0;
+  }
+  
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+  
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+  
+  .badge-default {
+    @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+  }
+  
+  .badge-secondary {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .badge-destructive {
+    @apply border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80;
+  }
+  
+  .badge-outline {
+    @apply text-foreground;
+  }
+}
 
-  .dark .bg-grid-pattern {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 24px 24px;
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
   
-  /* Enhanced animations */
-  .animate-bounce-slow {
-    animation: bounce-slow 3s ease-in-out infinite;
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
   
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
   
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
-  }
-  
-  /* Enhanced bottom sheet for mobile */
-  .bottom-sheet {
-    @apply fixed inset-x-0 bottom-0 z-50 rounded-t-3xl bg-white/95 dark:bg-gray-900/95 
-    border-t border-gray-200 dark:border-gray-800 shadow-2xl pb-safe
-    backdrop-blur-md;
-    transform: translateY(0);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .bottom-sheet-hidden {
-    transform: translateY(100%);
-  }
-  
-  /* Enhanced glass morphism effect */
-  .glass {
-    @apply bg-white/20 dark:bg-gray-900/20 backdrop-blur-md border border-white/20 dark:border-gray-800/20;
-  }
-  
-  /* Enhanced hover effects */
-  .hover-lift {
-    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-xl;
-  }
-  
-  .hover-grow {
-    @apply transition-transform duration-300 hover:scale-110;
-  }
-  
-  /* Line clamp utilities */
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
@@ -284,693 +207,104 @@
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
-
-  /* Safe-area padding utilities */
-  .pt-safe { padding-top: var(--safe-area-inset-top); }
-}
-
-/* Enhanced keyframe animations */
-@keyframes pulse-soft {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-@keyframes bounce-slow {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes glow {
-  from {
-    box-shadow: 0 0 20px rgba(66, 133, 244, 0.3);
-  }
-  to {
-    box-shadow: 0 0 30px rgba(66, 133, 244, 0.6);
-  }
-}
-
-@keyframes slide-up {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Animation classes */
-.animate-fade-in {
-  animation: fade-in 0.6s ease-out forwards;
-}
-
-.animate-slide-up {
-  animation: slide-up 0.8s ease-out forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 3s infinite;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.4s ease-out forwards;
-}
-
-/* Enhanced responsive paddings for safe areas */
-.pt-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-/* Status bar spacing for Capacitor apps */
-.capacitor .pt-safe {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 24px);
-}
-
-/* Ensure proper spacing below status bar */
-.status-bar-spacer {
-  height: env(safe-area-inset-top, 24px);
-  min-height: env(safe-area-inset-top, 24px);
-}
-
-/* Force status bar to stay hidden */
-body {
-  --status-bar-height: 0px;
-}
-
-/* Prevent status bar from showing during scroll */
-html {
-  scroll-behavior: smooth;
-}
-
-
-
-
-
-/* Dynamic Island and safe area handling */
-.dynamic-island-safe {
-  padding-top: env(safe-area-inset-top, 0px) !important;
-  margin-top: env(safe-area-inset-top, 0px) !important;
-}
-
-/* Ensure header is below Dynamic Island */
-.app-header,
-header,
-.header {
-  padding-top: calc(env(safe-area-inset-top, 0px) + 30px) !important;
-  margin-top: env(safe-area-inset-top, 0px) !important;
-}
-
-/* Force safe area consideration */
-:root {
-  --safe-area-inset-top: env(safe-area-inset-top, 0px);
-  --dynamic-island-height: calc(env(safe-area-inset-top, 0px) + 30px);
-}
-
-/* Ensure content starts below Dynamic Island */
-.main-content,
-.content,
-#root > div:first-child {
-  padding-top: var(--dynamic-island-height) !important;
-  margin-top: var(--dynamic-island-height) !important;
-}
-
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-.py-safe {
-  padding-top: env(safe-area-inset-top, 0px);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* Android-specific status bar height fallback */
-.capacitor.android .pt-safe {
-  padding-top: max(env(safe-area-inset-top, 0px), 8px);
-}
-
-/* Force minimum status bar height on Android devices */
-@media screen and (max-width: 768px) {
-  .capacitor.android nav {
-    padding-top: max(env(safe-area-inset-top, 0px), 8px) !important;
-    min-height: calc(48px + max(env(safe-area-inset-top, 0px), 8px));
+  
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
   }
   
-  .capacitor.android .main-content {
-    margin-top: calc(48px + max(env(safe-area-inset-top, 0px), 8px)) !important;
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  /* Ensure all common content wrappers have enough space above bottom nav */
-  .capacitor.android main,
-  .capacitor.android body,
-  .capacitor.android #root,
-  .capacitor.android .container {
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)) !important;
+  .line-clamp-5 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
   }
   
-  /* Add visible bottom spacing for scrollable content */
-  .capacitor.android .main-content > div {
-    margin-bottom: 40px !important;
-  }
-  
-  /* Add extra bottom spacing to footer on Android */
-  .capacitor.android footer {
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)) !important;
+  .line-clamp-6 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
   }
 }
 
-/* Navbar refinements for proper layout */
-nav .flex.items-center.justify-between {
-  min-height: 56px;
-}
-
-/* iOS and Capacitor app styling */
-.ios, .capacitor {
-  background-color: var(--background);
-}
-
-.ios body, .capacitor body {
-  background-color: var(--background);
-}
-
-/* Unified layout container */
-.layout-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  background-color: var(--background);
-  color: var(--foreground);
-  transition: colors 300ms;
-  overflow-x: hidden;
-}
-
-.main-content {
-  flex-grow: 1;
-  transition: all 300ms;
-}
-
-/* iOS-specific layout fixes */
-.ios .layout-container {
-  height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
-  overflow: hidden;
-}
-
-.ios nav {
-  position: relative;
-  flex-shrink: 0;
-  z-index: 50;
-}
-
-.ios .main-content {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* Android-specific layout fixes */
-.android .layout-container {
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-.android nav {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background-color: var(--background);
-}
-
-.android .main-content {
-  flex-grow: 1;
-}
-
-/* Web/default layout */
-.layout-container:not(.ios):not(.android) {
-  min-height: 100vh;
-  overflow-x: hidden;
-}
-
-.layout-container:not(.ios):not(.android) nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background-color: var(--background);
-}
-
-/* iOS Safari specific fixes */
+/* iOS-specific fixes - minimal and clean */
 @supports (-webkit-touch-callout: none) {
-  html, body {
-    background-color: var(--background) !important;
-  }
-  
-  body {
-    -webkit-overflow-scrolling: touch;
-    position: relative !important;
-  }
-}
-
-/* Ensure proper header background theming */
-.capacitor nav {
-  background: hsl(var(--background) / 0.95) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Fix select dropdown backgrounds to match theme */
-.capacitor select,
-.capacitor select option {
-  background: hsl(var(--background)) !important;
-  color: hsl(var(--foreground)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-/* Ensure dropdowns and sidebars match theme */
-.capacitor .bg-white {
-  background: hsl(var(--background)) !important;
-}
-
-.capacitor .dark\\:bg-gray-900 {
-  background: hsl(var(--background)) !important;
-}
-
-.capacitor .text-gray-900 {
-  color: hsl(var(--foreground)) !important;
-}
-
-.capacitor .dark\\:text-white {
-  color: hsl(var(--foreground)) !important;
-}
-
-/* Improved Capacitor web view fixes */
-@supports (-webkit-touch-callout: none) {
-  .h-screen {
-    height: -webkit-fill-available;
-  }
-  
-  .min-h-screen {
-    min-height: -webkit-fill-available;
-  }
-  
-  .min-h-screen-safe {
-    min-height: calc(100vh - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
-    min-height: calc(-webkit-fill-available - env(safe-area-inset-bottom, 0px) - env(safe-area-inset-top, 0px));
-  }
-}
-
-/* Prevent text size adjustment on orientation change */
-html {
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-}
-
-/* Lightweight iOS tweaks */
-@supports (-webkit-touch-callout: none) {
-  .ios .main-content {
-    -webkit-overflow-scrolling: touch;
-  }
-}
-
-/* Enhanced custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.dark ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* Enhanced loading animations */
-.loading-dots {
-  display: inline-block;
-}
-
-.loading-dots::after {
-  content: '';
-  animation: loading-dots 1.5s infinite;
-}
-
-@keyframes loading-dots {
-  0% { content: ''; }
-  25% { content: '.'; }
-  50% { content: '..'; }
-  75% { content: '...'; }
-  100% { content: ''; }
-}
-
-/* Mobile-first responsive breakpoints */
-@media (max-width: 640px) {
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-  /* Improve readability and prevent overflow on tiny screens */
-  body, input, button, textarea, select {
-    word-break: break-word;
-    overflow-wrap: anywhere;
-  }
-}
-
-/* Improve touch targets on mobile */
-@media (max-width: 768px) {
-  a, button, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* Optimize for retina displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-  .high-dpi {
-    image-rendering: -webkit-optimize-contrast;
-    image-rendering: crisp-edges;
-  }
-}
-
-.scrollbar-hide {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
-}
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Chrome, Safari, Opera */
-}
-
-/* React PDF Styles */
-.react-pdf__Page {
-  margin: 0 auto !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-}
-
-.react-pdf__Page__canvas {
-  display: block !important;
-  width: 100% !important;
-  height: auto !important;
-}
-
-.react-pdf__Document {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-
-/* Force mobile footer to be above other content */
-.layout-container footer {
-  z-index: 9999 !important;
-}
-
-/* Ensure proper spacing above mobile footer (footer is at bottom-5 = 20px from bottom) */
-.content-above-footer {
-  margin-bottom: 140px; /* 120px footer height + 20px gap */
-}
-
-/* Mobile footer specific scrolling */
-footer .overflow-x-auto {
-  scrollbar-width: thin !important;
-  scrollbar-color: rgba(0, 0, 0, 0.4) transparent !important;
-}
-
-footer .overflow-x-auto::-webkit-scrollbar {
-  height: 6px !important;
-  display: block !important;
-}
-
-footer .overflow-x-auto::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1) !important;
-  border-radius: 3px !important;
-}
-
-footer .overflow-x-auto::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 3px !important;
-}
-
-footer .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6) !important;
-}
-
-.dark footer .overflow-x-auto::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.4) !important;
-}
-
-.dark footer .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.6) !important;
-}
-
-/* SmartSearchbar categories horizontal scrolling */
-.overflow-x-auto {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar {
-  height: 4px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 2px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.5);
-}
-
-.dark .overflow-x-auto::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
-}
-
-/* Target the specific black line below status bar */
-@supports (-webkit-touch-callout: none) {
-  /* More aggressive approach: pull navbar up to cover the black line */
-  .ios .layout-container {
-    margin-top: -1px !important;
-    position: relative;
-  }
-  
   .ios nav {
-    margin-top: -1px !important;
-    border-top: none !important;
-    box-shadow: none !important;
-  }
-  
-  /* Alternative: use a background overlay to cover the line */
-  .ios .layout-container::after {
-    content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: hsl(var(--background)) !important;
-    z-index: 10000;
-  }
-  
-  /* Remove the black line by covering it */
-  .ios .layout-container::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: hsl(var(--background)) !important;
-    z-index: 9999;
-  }
-  
-  /* Ensure nav has no border */
-  .ios nav {
-    border-top: none !important;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
-  }
-}
-
-/* Full screen approach with safe area margins */
-@supports (-webkit-touch-callout: none) {
-  /* Make the app use full screen */
-  .ios .layout-container {
-    min-height: 100vh;
-    min-height: 100dvh;
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    background: hsl(var(--background));
-    transform: translateY(-1px);
-    margin-top: -1px;
-    padding-top: calc(env(safe-area-inset-top) + 1px);
-  }
-  
-  /* Remove all previous overlay attempts */
-  .ios .layout-container::before,
-  .ios .layout-container::after {
-    display: none !important;
-  }
-  
-  /* Make navbar work with full screen */
-  .ios nav {
-    position: sticky;
-    top: 0;
     z-index: 50;
-    background: hsl(var(--background));
-    border: none !important;
-    box-shadow: none !important;
-    margin-top: 0 !important;
-    padding-top: 0 !important;
+    background-color: white;
+    border-bottom: 1px solid #ccc;
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(3.5rem + env(safe-area-inset-top, 0px));
   }
   
-  /* Ensure content starts below the safe area */
-  .ios .main-content {
-    padding-top: 0;
-    margin-top: 0;
-  }
-  
-  /* Remove any system borders */
-  .ios * {
-    border-top: none !important;
-    border-bottom: none !important;
-  }
-  
-  /* Full screen body */
-  .ios body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-  
-  /* Full screen html */
-  .ios html {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-  }
-  
-  /* Full screen root */
-  .ios #root {
-    min-height: 100vh;
-    min-height: 100dvh;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* FINAL OVERLAY APPROACH */
-  .ios body::after {
+  .ios body::before {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: hsl(var(--background)) !important;
-    z-index: 2147483647 !important;
-    pointer-events: none;
+    height: env(safe-area-inset-top, 0px);
+    background-color: white;
+    z-index: 49;
   }
   
-  /* Light mode specific */
-  .ios:not(.dark) body::after {
-    background: #ffffff !important;
-  }
-  
-  /* Dark mode specific */
-  .ios.dark body::after {
-    background: #0a0a0a !important;
-  }
-  
-  /* Additional layer on the layout container */
-  .ios .layout-container::after {
-    content: '';
-    position: absolute;
-    top: -3px;
+  .ios footer {
+    position: fixed;
+    bottom: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: hsl(var(--background)) !important;
-    z-index: 2147483646 !important;
-    pointer-events: none;
+    z-index: 40;
+    background-color: white;
+    border-top: 1px solid #ccc;
+    height: 4rem;
   }
   
-  /* Light mode specific for layout container */
-  .ios:not(.dark) .layout-container::after {
-    background: #ffffff !important;
+  /* Simple bottom scrollbar */
+  .ios .main-content::before {
+    content: '';
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: #666;
+    z-index: 1000;
+    border-top: 2px solid #ccc;
   }
   
-  /* Dark mode specific for layout container */
-  .ios.dark .layout-container::after {
-    background: #0a0a0a !important;
+  .ios .main-content::after {
+    content: '';
+    position: fixed;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 12px;
+    background: #333;
+    border-radius: 6px;
+    z-index: 1001;
+  }
+  
+  /* Remove iOS Optimized badge */
+  .ios [class*="iOS Optimized"],
+  .ios [class*="ios-optimized"],
+  .ios [class*="iOSOptimized"],
+  .ios [class*="ios"],
+  .ios [class*="iOS"],
+  .ios [class*="optimized"],
+  .ios [class*="Optimized"],
+  .ios [class*="badge"],
+  .ios [class*="Badge"],
+  .ios [class*="BADGE"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
   }
 }

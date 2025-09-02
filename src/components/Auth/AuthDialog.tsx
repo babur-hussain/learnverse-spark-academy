@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
+import { PlatformWrapper, WebOnly, MobileOnly } from '@/components/Platform/PlatformWrapper';
 import { Button } from '@/components/UI/button';
 import {
   Dialog,
@@ -60,6 +62,7 @@ interface AuthDialogProps {
 }
 
 const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
+  const { platform, isPlatform } = usePlatform();
   const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
     // Try to get the last active tab from localStorage
     const savedTab = localStorage.getItem('authActiveTab');
@@ -72,6 +75,22 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     localStorage.setItem('authActiveTab', tab);
   };
   const { login, signUp } = useAuth();
+  
+  // Platform-specific styling
+  const getDialogSize = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'max-w-sm' : 'max-w-md';
+    }
+    return 'sm:max-w-md';
+  };
+
+  const getPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'p-4' : 'p-6';
+    }
+    return 'p-6';
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -297,7 +316,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className={`${getDialogSize()} max-h-[90vh] overflow-y-auto`}>
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
@@ -308,14 +327,14 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
             <BookOpen className="h-6 w-6 text-white" />
           </div>
           <DialogTitle className="text-center">
-            Spark Academy
+            {platform.isMobile ? 'Welcome Back' : 'Spark Academy'}
           </DialogTitle>
           <DialogDescription className="text-center">
-            Your journey to academic success starts here
+            {platform.isMobile ? 'Sign in to continue' : 'Your journey to academic success starts here'}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className={getPadding()}>
           <Tabs value={activeTab} onValueChange={(value) => updateActiveTab(value as "login" | "register" | "phone")}>
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="login">Sign In</TabsTrigger>
@@ -396,8 +415,39 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  Google
+                  Continue with Google
                 </Button>
+
+                {/* Platform-specific features */}
+                <WebOnly>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Web Feature",
+                        description: "This feature is only available on web",
+                      });
+                    }}
+                  >
+                    Web-Only Feature
+                  </Button>
+                </WebOnly>
+
+                <MobileOnly>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      toast({
+                        title: "Mobile Feature",
+                        description: "This feature is only available on mobile",
+                      });
+                    }}
+                  >
+                    Mobile-Only Feature
+                  </Button>
+                </MobileOnly>
               </div>
             </TabsContent>
 

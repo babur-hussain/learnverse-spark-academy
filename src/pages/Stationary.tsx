@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, Grid, List, ChevronDown } from 'lucide-react';
+import { Search, Filter, Grid, List, ChevronDown, Eye, ShoppingCart, Heart } from 'lucide-react';
 import { Button } from '@/components/UI/button';
 import { Input } from '@/components/UI/input';
 import { Badge } from '@/components/UI/badge';
@@ -8,11 +8,11 @@ import { Card, CardContent } from '@/components/UI/card';
 import { ProductCard } from '@/components/Stationary/ProductCard';
 import { useProducts, useProductCategories, useBrands } from '@/hooks/use-products';
 import MainLayout from '@/components/Layout/MainLayout';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 
 const Stationary = () => {
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
@@ -24,6 +24,21 @@ const Stationary = () => {
   const { data: categories = [], isLoading: isLoadingCategories } = useProductCategories();
   const { data: brands = [], isLoading: isLoadingBrands } = useBrands();
   
+  // Platform-specific styling
+  const getHeroPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-6' : 'py-8';
+    }
+    return 'py-8';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-2xl md:text-3xl';
+    }
+    return 'text-3xl md:text-4xl';
+  };
+
   const { data: products = [], isLoading: isLoadingProducts } = useProducts({
     category_id: selectedCategory || undefined,
     brand_id: selectedBrand || undefined,
@@ -63,11 +78,15 @@ const Stationary = () => {
     <MainLayout>
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-8">
+        <div className={`bg-gradient-to-r from-blue-600 to-purple-600 text-white ${getHeroPadding()}`}>
           <div className="max-w-7xl mx-auto px-4">
             <div className="text-center">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Premium Stationery Store</h1>
-              <p className="text-blue-100 mb-6">Discover quality stationery items for work, study, and creativity</p>
+              <h1 className={`${getTitleSize()} font-bold mb-2`}>
+                {platform.isMobile ? 'Premium Stationery' : 'Premium Stationery Store'}
+              </h1>
+              <p className="text-blue-100 mb-6">
+                {platform.isMobile ? 'Quality stationery for study & creativity' : 'Discover quality stationery items for work, study, and creativity'}
+              </p>
               
               {/* Search Bar */}
               <div className="max-w-2xl mx-auto relative">
@@ -80,6 +99,30 @@ const Stationary = () => {
                 />
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
+
+              {/* Mobile Quick Actions */}
+              {platform.isMobile && (
+                <div className="mt-6 flex justify-center space-x-4">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={() => setShowFilters(!showFilters)}
+                  >
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filters
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                    onClick={() => navigate('/cart')}
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Cart
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -118,8 +161,8 @@ const Stationary = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar Filters */}
-            <div className={`${isMobile ? (showFilters ? 'block' : 'hidden') : 'block'} w-full lg:w-64 space-y-6 ${isMobile ? 'fixed inset-0 bg-white dark:bg-gray-900 z-50 p-4 overflow-y-auto' : ''}`}>
-              {isMobile && showFilters && (
+                    <div className={`${platform.isMobile ? (showFilters ? 'block' : 'hidden') : 'block'} w-full lg:w-64 space-y-6 ${platform.isMobile ? 'fixed inset-0 bg-white dark:bg-gray-900 z-50 p-4 overflow-y-auto' : ''}`}>
+          {platform.isMobile && showFilters && (
                 <div className="flex justify-between items-center mb-6">
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
                   <Button variant="ghost" size="sm" onClick={() => setShowFilters(false)}>
@@ -174,6 +217,55 @@ const Stationary = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Web-only Advanced Filters */}
+              {!platform.isMobile && (
+                <>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Availability</h3>
+                    <div className="space-y-2">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">In Stock Only</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Free Shipping</span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Same Day Delivery</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+                    <h3 className="font-semibold mb-3 text-gray-900 dark:text-gray-100">Rating</h3>
+                    <div className="space-y-2">
+                      {[4, 3, 2, 1].map((rating) => (
+                        <label key={rating} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            className="mr-2"
+                          />
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {rating}+ Stars
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Main Content */}
@@ -186,7 +278,7 @@ const Stationary = () => {
                       {filteredProducts.length} results
                     </span>
                     
-                    {isMobile && (
+                    {platform.isMobile && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -200,6 +292,19 @@ const Stationary = () => {
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                    {/* Web-only Comparison Tool */}
+                    {!platform.isMobile && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="hidden lg:flex"
+                        onClick={() => navigate('/compare')}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Compare
+                      </Button>
+                    )}
+                    
                     <select
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
@@ -212,7 +317,7 @@ const Stationary = () => {
                       <option value="newest">Newest Arrivals</option>
                     </select>
 
-                    {!isMobile && (
+                    {!platform.isMobile && (
                       <div className="flex border rounded dark:border-gray-600">
                         <Button
                           variant={viewMode === 'grid' ? 'default' : 'ghost'}
@@ -233,6 +338,40 @@ const Stationary = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Web-only Bulk Actions Toolbar */}
+              {!platform.isMobile && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm mb-4 border border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">Select All</span>
+                      </label>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">
+                        {filteredProducts.length} products
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button variant="outline" size="sm">
+                        <Heart className="h-4 w-4 mr-2" />
+                        Add to Wishlist
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <ShoppingCart className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Compare Selected
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Products Grid */}
               {isLoadingProducts ? (
@@ -306,6 +445,19 @@ const Stationary = () => {
             </div>
           </div>
         </div>
+
+        {/* Mobile Floating Action Button */}
+        {platform.isMobile && (
+          <div className="fixed bottom-6 right-6 z-50">
+            <Button
+              size="lg"
+              className="h-14 w-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => navigate('/cart')}
+            >
+              <ShoppingCart className="h-6 w-6" />
+            </Button>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

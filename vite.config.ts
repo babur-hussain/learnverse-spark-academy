@@ -5,7 +5,6 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const target = process.env.VITE_TARGET === 'app' ? 'app' : 'web';
   const devHost = process.env.VITE_HOST || '0.0.0.0';
   const hmrHost = process.env.VITE_HMR_HOST;
   return ({
@@ -24,11 +23,17 @@ export default defineConfig(({ mode }) => {
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, target === 'app' ? "./src/app" : "./src/web"),
-      "@root": path.resolve(__dirname, target === 'app' ? "./src/app/AppRoot.tsx" : "./src/web/WebRoot.tsx"),
-      "@app": path.resolve(__dirname, "./src/app"),
-      "@web": path.resolve(__dirname, "./src/web"),
+      "@": path.resolve(__dirname, "./src"),
+      "@root": path.resolve(__dirname, "./src/App.tsx"),
       "@shared": path.resolve(__dirname, "./src"),
+      "@components": path.resolve(__dirname, "./src/components"),
+      "@pages": path.resolve(__dirname, "./src/pages"),
+      "@hooks": path.resolve(__dirname, "./src/hooks"),
+      "@contexts": path.resolve(__dirname, "./src/contexts"),
+      "@services": path.resolve(__dirname, "./src/services"),
+      "@utils": path.resolve(__dirname, "./src/utils"),
+      "@types": path.resolve(__dirname, "./src/types"),
+      "@integrations": path.resolve(__dirname, "./src/integrations"),
     },
   },
   optimizeDeps: {

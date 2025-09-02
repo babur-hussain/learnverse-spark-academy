@@ -1,25 +1,60 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
 
 const MobileFooter = () => {
   const location = useLocation();
+  const { platform } = usePlatform();
 
-  const navItems = [
-    { icon: Home, label: 'Home', path: '/' },
-    { icon: BookOpen, label: 'Courses', path: '/catalog' },
-    { icon: Video, label: 'Live', path: '/live-class' },
-    { icon: FileText, label: 'Notes', path: '/notes' },
-    { icon: ShoppingBag, label: 'Stationary', path: '/stationary' },
-    { icon: Baby, label: 'Kids', path: '/kids' },
-    { icon: Headphones, label: 'Audio', path: '/audio' },
-    { icon: Coffee, label: 'Cafes', path: '/cafes' },
-  ];
+  // Platform-specific navigation items
+  const getNavItems = () => {
+    const baseItems = [
+      { icon: Home, label: 'Home', path: '/' },
+      { icon: BookOpen, label: 'Courses', path: '/catalog' },
+      { icon: Video, label: 'Live', path: '/live-class' },
+      { icon: FileText, label: 'Notes', path: '/notes' },
+    ];
+
+    // Add platform-specific items
+    if (platform.isWeb) {
+      baseItems.push(
+        { icon: ShoppingBag, label: 'Stationary', path: '/stationary' },
+        { icon: Coffee, label: 'Cafes', path: '/cafes' }
+      );
+    }
+
+    if (platform.isMobile) {
+      baseItems.push(
+        { icon: Baby, label: 'Kids', path: '/kids' },
+        { icon: Headphones, label: 'Audio', path: '/audio' }
+      );
+    }
+
+    return baseItems;
+  };
+
+  const navItems = getNavItems();
+
+  // Platform-specific styling
+  const getFooterPadding = () => {
+    if (platform.isIOS) {
+      return 'pb-8'; // Extra padding for iOS safe area
+    }
+    return 'pb-6';
+  };
+
+  const getNavGap = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'gap-1' : 'gap-2';
+    }
+    return 'gap-2';
+  };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border pt-2 pb-6 shadow-lg">
+    <footer className={`fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border pt-2 ${getFooterPadding()} shadow-lg`}>
       <div className="w-full overflow-x-auto">
-        <nav className="mobile-footer-nav flex items-center justify-start w-full px-4 gap-2 whitespace-nowrap min-w-max">
+        <nav className={`mobile-footer-nav flex items-center justify-start w-full px-4 ${getNavGap()} whitespace-nowrap min-w-max`}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             
@@ -45,6 +80,24 @@ const MobileFooter = () => {
             );
           })}
         </nav>
+        
+        {/* Platform-specific feature indicator */}
+        {platform.isMobile && (
+          <div className="px-4 mt-2">
+            <div className="text-center">
+              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                platform.isIOS 
+                  ? 'bg-purple-100 text-purple-800' 
+                  : 'bg-green-100 text-green-800'
+              }`}>
+                {platform.isIOS ? '🍎' : '🤖'}
+                <span className="ml-1">
+                  {platform.isIOS ? 'iOS Optimized' : 'Android Optimized'}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </footer>
   );

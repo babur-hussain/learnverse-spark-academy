@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/UI/input';
 import { Button } from '@/components/UI/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Dialog, DialogContent } from '@/components/UI/dialog';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/UI/input-otp';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/UI/badge';
 
 const SignupHero = () => {
+  const { platform } = usePlatform();
   const [searchParams] = useSearchParams();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showOTPDialog, setShowOTPDialog] = useState(false);
@@ -137,14 +139,40 @@ const SignupHero = () => {
     }
   };
 
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'px-4 py-8' : 'px-4 py-12';
+    }
+    return 'px-4 sm:px-6 lg:px-8 py-12 md:py-24';
+  };
+
+  const getGridLayout = () => {
+    if (platform.isMobile) {
+      return 'grid-cols-1 gap-8';
+    }
+    return 'grid-cols-1 md:grid-cols-2 gap-12';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-3xl md:text-4xl';
+    }
+    return 'text-4xl md:text-5xl lg:text-6xl';
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-24">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+    <div className={`max-w-7xl mx-auto ${getContainerPadding()}`}>
+      <div className={`grid ${getGridLayout()} items-center`}>
         <div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-gray-100 leading-tight mb-6">
-            Crack your goal
-            <br />
-            with India's top educators
+          <h1 className={`${getTitleSize()} font-bold text-gray-900 dark:text-gray-100 leading-tight mb-6`}>
+            {platform.isMobile ? 'Crack your goal with top educators' : (
+              <>
+                Crack your goal
+                <br />
+                with India's top educators
+              </>
+            )}
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
             Over <span className="text-green-500 font-semibold">10 crore</span> learners trust us for their preparation
@@ -207,6 +235,18 @@ const SignupHero = () => {
               Join for free
             </Button>
           </form>
+
+          {/* Platform-specific features */}
+          {platform.isMobile && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 text-blue-800">
+                <span className="text-sm font-medium">📱 Mobile Exclusive</span>
+              </div>
+              <p className="text-xs text-blue-700 mt-1">
+                Get instant access to mobile-optimized learning features
+              </p>
+            </div>
+          )}
         </div>
         
         <div className="relative hidden md:block">
@@ -244,7 +284,7 @@ const SignupHero = () => {
       </div>
 
       <Dialog open={showOTPDialog} onOpenChange={setShowOTPDialog}>
-        <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
+        <DialogContent className={`${platform.isMobile ? 'max-w-sm' : 'sm:max-w-md'} dark:bg-gray-800 dark:border-gray-700`}>
           <div className="space-y-4">
             <h2 className="text-xl font-semibold dark:text-gray-100">Enter verification code</h2>
             <p className="text-sm text-gray-500 dark:text-gray-400">

@@ -5,36 +5,65 @@ import './App.css';
 import { router } from './routes';
 import { AuthProvider } from './contexts/AuthContext';
 import { GuardianProvider } from './contexts/GuardianContext';
+import { PlatformProvider } from './contexts/PlatformContext';
 import { Toaster } from '@/components/UI/toaster';
-import { EducationalLoader } from './components/UI/educational-loader';
+import { EducationalLoader } from '@/components/UI/educational-loader';
 import { ToastProvider } from '@/hooks/use-toast';
-import SafeErrorBoundary from './components/Layout/SafeErrorBoundary';
+import SafeErrorBoundary from '@/components/Layout/SafeErrorBoundary';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { Capacitor } from '@capacitor/core';
+import { NotificationsService } from './services/NotificationsService';
+import { useAuth } from './contexts/AuthContext';
+
+function PushTokenRegistrar() {
+  const { user } = useAuth();
+  useEffect(() => {
+    NotificationsService.registerDeviceToken(user?.id ?? null).catch(() => {});
+  }, [user]);
+  return null;
+}
 
 function App() {
   console.log('App component rendering...');
   
-  // Android back button handler
+  // Platform-specific status bar and layout configuration
   useEffect(() => {
-    // Configure StatusBar so content doesn't draw under it
     const configureStatusBar = async () => {
       try {
-        // Ensure status bar doesn't overlay the webview
-        await StatusBar.setOverlaysWebView({ overlay: false });
-        
         // Check if we're in dark mode and set appropriate colors
         const isDarkMode = document.documentElement.classList.contains('dark');
         
-        if (isDarkMode) {
-          await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: '#09090b' }); // Dark background to match theme
+        // iOS-specific configuration
+        if (Capacitor.getPlatform() === 'ios') {
+          // For iOS, we want the status bar to NOT overlay the webview so it's visible
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          
+          if (isDarkMode) {
+            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setBackgroundColor({ color: '#1f2937' }); // Dark gray to match header
+          } else {
+            await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: '#ffffff' }); // White background
+          }
+          
+          // Ensure status bar is visible and properly configured
+          await StatusBar.show();
+          console.log('iOS StatusBar configured with overlay: false');
         } else {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#ffffff' }); // White background to match theme
+          // Android and other platforms
+          await StatusBar.setOverlaysWebView({ overlay: false });
+          
+          if (isDarkMode) {
+            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setBackgroundColor({ color: '#09090b' });
+          } else {
+            await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: '#ffffff' });
+          }
         }
         
-        console.log('Status bar configured successfully');
+        console.log('Status bar configured successfully for', Capacitor.getPlatform());
       } catch (err) {
         console.log('Status bar configuration failed:', err);
         // ignore if plugin not available (web)
@@ -67,18 +96,21 @@ function App() {
   return (
     <SafeErrorBoundary>
       <ToastProvider>
-        <AuthProvider>
-          <GuardianProvider>
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-screen">
-                <EducationalLoader message="Preparing your learning experience..." />
-              </div>
-            }>
-              <RouterProvider router={router} />
-            </Suspense>
-            <Toaster />
-          </GuardianProvider>
-        </AuthProvider>
+        <PlatformProvider>
+          <AuthProvider>
+            <GuardianProvider>
+              <PushTokenRegistrar />
+              <Suspense fallback={
+                <div className="flex items-center justify-center h-screen">
+                  <EducationalLoader message="Preparing your learning experience..." />
+                </div>
+              }>
+                <RouterProvider router={router} />
+              </Suspense>
+              <Toaster />
+            </GuardianProvider>
+          </AuthProvider>
+        </PlatformProvider>
       </ToastProvider>
     </SafeErrorBoundary>
   );

@@ -1,8 +1,8 @@
 
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-// Temporarily import app routes directly to bypass alias issues
-import AppRoot from './app/AppRoot'
+import App from './App'
+import './index.css'
 
 const queryClient = new QueryClient()
 
@@ -16,6 +16,6 @@ if (document.querySelector('meta[name="viewport"]')) {
 
 createRoot(document.getElementById('root')!).render(
   <QueryClientProvider client={queryClient}>
-    <AppRoot />
+    <App />
   </QueryClientProvider>
 )

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import Navbar from '@/components/Layout/Navbar';
-import useIsMobile from '@/hooks/use-mobile';
+import { usePlatform } from '@/contexts/PlatformContext';
 import MobileFooter from '@/components/Layout/MobileFooter';
 import { useParams } from 'react-router-dom';
 import { Star, Heart, Share2, ShoppingCart, Truck, Shield, RotateCcw, Plus, Minus, ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react';
@@ -75,12 +75,34 @@ const relatedProducts = [
 ];
 
 const Product = () => {
-  const isMobile = useIsMobile();
+  const { platform } = usePlatform();
   const { id } = useParams();
   const product = products.find(p => p.id === Number(id));
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-4 px-4' : 'py-6 px-4';
+    }
+    return 'py-6';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-xl lg:text-2xl';
+    }
+    return 'text-2xl lg:text-3xl';
+  };
+
+  const getGridLayout = () => {
+    if (platform.isMobile) {
+      return 'grid-cols-1 gap-6';
+    }
+    return 'grid-cols-1 lg:grid-cols-2 gap-8';
+  };
+
   const [selectedTab, setSelectedTab] = useState('description');
 
   if (!product) {
@@ -103,9 +125,9 @@ const Product = () => {
       <Navbar />
       
       <main className="pt-16">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className={`max-w-7xl mx-auto px-4 ${getContainerPadding()}`}>
           {/* Breadcrumb */}
-          <nav className="mb-6 text-sm">
+          <nav className={`${platform.isMobile ? 'mb-4' : 'mb-6'} text-sm`}>
             <span className="text-gray-500">Stationery</span>
             <span className="mx-2 text-gray-300">/</span>
             <span className="text-gray-500">{product.category}</span>
@@ -113,7 +135,7 @@ const Product = () => {
             <span className="text-gray-900">{product.name}</span>
           </nav>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className={`${getGridLayout()} mb-8`}>
             {/* Product Images */}
             <div className="space-y-4">
               <div className="relative bg-white rounded-lg overflow-hidden shadow-sm">
@@ -154,7 +176,7 @@ const Product = () => {
             <div className="space-y-6">
               <div>
                 <p className="text-blue-600 font-medium mb-2">{product.brand}</p>
-                <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                <h1 className={`${getTitleSize()} font-bold text-gray-900 mb-2`}>{product.name}</h1>
                 
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-4">
@@ -397,10 +419,25 @@ const Product = () => {
               ))}
             </div>
           </div>
+          
+          {/* Platform-specific features */}
+          {platform.isMobile && (
+            <div className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                📱 Mobile-Exclusive Features
+              </h3>
+              <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div>• AR product preview</div>
+                <div>• Quick add to cart</div>
+                <div>• Share with friends</div>
+                <div>• Location-based delivery</div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
-      {isMobile && <MobileFooter />}
+      {platform.isMobile && <MobileFooter />}
     </div>
   );
 };

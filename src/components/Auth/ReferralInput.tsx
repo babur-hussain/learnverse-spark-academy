@@ -5,6 +5,7 @@ import { Label } from '@/components/UI/label';
 import { Button } from '@/components/UI/button';
 import { Badge } from '@/components/UI/badge';
 import { useToast } from '@/hooks/use-toast';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Check, X, Gift } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export const ReferralInput: React.FC<ReferralInputProps> = ({
   onReferralValidated,
   initialCode = ''
 }) => {
+  const { platform } = usePlatform();
   const [referralCode, setReferralCode] = useState(initialCode);
   const [isValidating, setIsValidating] = useState(false);
   const [validationStatus, setValidationStatus] = useState<'valid' | 'invalid' | null>(null);
@@ -84,12 +86,21 @@ export const ReferralInput: React.FC<ReferralInputProps> = ({
     onReferralValidated(null);
   };
 
+  // Platform-specific styling
+  const getSpacing = () => {
+    return platform.isMobile ? 'space-y-2' : 'space-y-3';
+  };
+
+  const getInputSize = () => {
+    return platform.isMobile ? 'text-sm' : 'text-base';
+  };
+
   return (
-    <div className="space-y-3">
+    <div className={getSpacing()}>
       <div className="flex items-center gap-2">
         <Gift className="h-4 w-4 text-purple-600" />
-        <Label htmlFor="referral-code" className="text-sm font-medium">
-          Referral Code (Optional)
+        <Label htmlFor="referral-code" className={`${getInputSize()} font-medium`}>
+          {platform.isMobile ? 'Referral Code' : 'Referral Code (Optional)'}
         </Label>
       </div>
       
@@ -152,6 +163,13 @@ export const ReferralInput: React.FC<ReferralInputProps> = ({
         <p className="text-xs text-gray-500 dark:text-gray-400">
           Get ₹50 off your first purchase with a valid referral code
         </p>
+
+        {/* Platform-specific features */}
+        {platform.isMobile && (
+          <div className="p-2 bg-blue-50 border border-blue-200 rounded text-blue-800 text-xs">
+            📱 Mobile users: Referral codes are automatically validated
+          </div>
+        )}
       </div>
     </div>
   );

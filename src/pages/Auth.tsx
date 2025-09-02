@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth, UserRole } from '@/contexts/AuthContext';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Button } from '@/components/UI/button';
 import {
   Form,
@@ -50,6 +51,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 type PhoneFormValues = z.infer<typeof phoneSchema>;
 
 const Auth = () => {
+  const { platform } = usePlatform();
   const [activeTab, setActiveTab] = useState<"login" | "register" | "phone">(() => {
     // Try to get the last active tab from localStorage
     const savedTab = localStorage.getItem('authActiveTab');
@@ -64,6 +66,28 @@ const Auth = () => {
   const { user, loading, login, signUp } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  
+  // Platform-specific styling
+  const getContainerPadding = () => {
+    if (platform.isMobile) {
+      return platform.isIOS ? 'py-8 px-4' : 'py-10 px-4';
+    }
+    return 'py-12 px-4 sm:px-6 lg:px-8';
+  };
+
+  const getCardWidth = () => {
+    if (platform.isMobile) {
+      return 'max-w-sm';
+    }
+    return 'max-w-md';
+  };
+
+  const getTitleSize = () => {
+    if (platform.isMobile) {
+      return 'text-2xl';
+    }
+    return 'text-3xl';
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -304,17 +328,17 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto">
+    <div className={`min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 ${getContainerPadding()}`}>
+      <div className={`${getCardWidth()} w-full space-y-8 bg-white p-8 rounded-xl shadow-lg max-h-[90vh] overflow-y-auto`}>
         <div className="text-center">
           <div className="mx-auto h-14 w-14 rounded-lg gradient-primary flex items-center justify-center">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Spark Academy
+          <h2 className={`mt-6 ${getTitleSize()} font-extrabold text-gray-900`}>
+            {platform.isMobile ? 'Welcome Back' : 'Spark Academy'}
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Your journey to academic success starts here
+            {platform.isMobile ? 'Sign in to continue' : 'Your journey to academic success starts here'}
           </p>
         </div>
 

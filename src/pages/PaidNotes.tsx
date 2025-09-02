@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
-import Navbar from '@/components/Layout/Navbar';
-import useIsMobile from '@/hooks/use-mobile';
-import MobileFooter from '@/components/Layout/MobileFooter';
+import MainLayout from '@/components/Layout/MainLayout';
 import { NotePurchaseCard } from '@/components/UI/NotePurchaseCard';
 import SearchBar from '@/components/UI/SearchBar';
 import { Button } from '@/components/UI/button';
@@ -68,9 +66,9 @@ const PaidNotes = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-1">
+    <MainLayout>
+      <div className="min-h-screen flex flex-col">
+        <main className="flex-1">
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
@@ -158,16 +156,13 @@ const PaidNotes = () => {
           </Tabs>
         </div>
       </main>
-      {isMobile ? (
-        <MobileFooter />
-      ) : (
-        <footer className="py-8 bg-gray-100">
-          <div className="container mx-auto px-4 text-center">
-            <p className="text-muted-foreground">© 2025 LearnVerse: Spark Academy. All rights reserved.</p>
-          </div>
-        </footer>
-      )}
-    </div>
+      <footer className="py-8 bg-gray-100">
+        <div className="container mx-auto px-4 text-center">
+          <p className="text-muted-foreground">© 2025 LearnVerse: Spark Academy. All rights reserved.</p>
+        </div>
+      </footer>
+      </div>
+    </MainLayout>
   );
 };
 
