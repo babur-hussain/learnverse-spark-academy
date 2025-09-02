@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
@@ -6,6 +6,28 @@ import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones 
 const MobileFooter = () => {
   const location = useLocation();
   const { platform } = usePlatform();
+  const [isMobileScreen, setIsMobileScreen] = useState(false);
+
+  // Fallback mobile detection for better compatibility
+  useEffect(() => {
+    const checkMobileScreen = () => {
+      setIsMobileScreen(window.innerWidth <= 768);
+    };
+
+    // Check on mount
+    checkMobileScreen();
+
+    // Listen for resize events
+    window.addEventListener('resize', checkMobileScreen);
+    window.addEventListener('orientationchange', checkMobileScreen);
+
+    return () => {
+      window.removeEventListener('resize', checkMobileScreen);
+      window.removeEventListener('orientationchange', checkMobileScreen);
+    };
+  }, []);
+
+  const shouldShowFooter = platform.isMobile || platform.isMobileWeb || isMobileScreen;
 
   // Platform-specific navigation items
   const getNavItems = () => {
