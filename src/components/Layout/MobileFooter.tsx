@@ -42,9 +42,9 @@ const MobileFooter = () => {
   // Platform-specific styling
   const getFooterPadding = () => {
     if (platform.isIOS) {
-      return 'pb-8'; // Extra padding for iOS safe area
+      return 'pb-10'; // Extra padding for iOS safe area + scrollbar
     }
-    return 'pb-6';
+    return 'pb-8'; // Extra padding for scrollbar visibility
   };
 
   const getNavGap = () => {
@@ -81,7 +81,7 @@ const MobileFooter = () => {
 
   return (
     <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 pt-2 ${getFooterPadding()} shadow-lg safe-area-bottom`}>
-      <div className="w-full overflow-x-auto scrollbar-hide mobile-footer-scrollable relative">
+      <div className="w-full overflow-x-auto mobile-footer-scrollable relative">
         <nav className={`flex items-center px-2 ${getNavGap()}`} style={{ width: `${navItems.length * 70}px` }}>
           {navItems.map((item) => renderNavItem(item))}
         </nav>
