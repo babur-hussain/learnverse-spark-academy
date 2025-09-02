@@ -648,3 +648,115 @@
     font-size: 16px;
   }
 }
+
+  /* Fix for mobile browsers with dynamic viewport */
+  @media (max-width: 768px) {
+    .mobile-footer {
+      /* Force bottom positioning */
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      width: 100% !important;
+      max-width: 100vw !important;
+      /* Ensure it's above all content */
+      z-index: 9999 !important;
+      /* Prevent any transforms that might affect positioning */
+      transform: none !important;
+      -webkit-transform: none !important;
+    }
+
+    /* Ensure no other elements overlap the footer */
+    *:not(.mobile-footer) {
+      z-index: auto !important;
+    }
+
+    /* Fix for mobile browsers that change viewport height */
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      min-height: stretch;
+      /* Prevent body from affecting footer position */
+      position: relative !important;
+    }
+
+    /* Ensure main content doesn't overlap footer */
+    .main-content {
+      padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px) + 10px) !important;
+      /* Prevent content from going under footer */
+      position: relative !important;
+      z-index: 1 !important;
+    }
+
+    /* Handle top status bar and safe areas */
+    body {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+      padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    }
+
+    /* Ensure proper viewport handling */
+    html {
+      height: 100%;
+      height: -webkit-fill-available;
+      overflow-x: hidden;
+    }
+
+    /* Fix for mobile browsers with dynamic address bars */
+    .app-container {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      min-height: stretch;
+      position: relative;
+    }
+
+    /* Ensure header/navigation stays at top */
+    header, .app-header, .top-nav {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 1000 !important;
+      background: hsl(var(--background) / 0.95) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+    }
+  }
+
+  /* Additional Safari fixes */
+  @supports (-webkit-touch-callout: none) and (max-width: 768px) {
+    .mobile-footer {
+      /* iOS Safari specific positioning */
+      bottom: max(0px, env(safe-area-inset-bottom)) !important;
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Fix iOS Safari viewport height issues */
+    html {
+      height: -webkit-fill-available;
+    }
+
+    body {
+      min-height: -webkit-fill-available;
+    }
+  }
+
+  /* Global mobile footer positioning fixes */
+  .mobile-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 9999 !important;
+    background: hsl(var(--background) / 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-top: 1px solid hsl(var(--border)) !important;
+    box-shadow: 0 -4px 6px -1px rgb(0 0 0 / 0.1) !important;
+    transform: translateZ(0) !important;
+    -webkit-transform: translateZ(0) !important;
+  }
+
+  /* Ensure footer is above all other elements */
+  .mobile-footer,
+  .mobile-footer * {
+    z-index: 9999 !important;
+    position: relative !important;
+  }

@@ -52,7 +52,7 @@ const MobileFooter = () => {
   };
 
   return (
-    <footer className={`fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border pt-2 ${getFooterPadding()} shadow-lg`}>
+    <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-[9999] bg-background/95 backdrop-blur-md border-t border-border pt-2 shadow-lg`}>
       <div className="w-full overflow-x-auto">
         <nav className={`mobile-footer-nav flex items-center justify-start w-full px-4 ${getNavGap()} whitespace-nowrap min-w-max`}>
           {navItems.map((item) => {
