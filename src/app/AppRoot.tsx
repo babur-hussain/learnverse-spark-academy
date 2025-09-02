@@ -8,7 +8,7 @@ import SafeErrorBoundary from '@/components/Layout/SafeErrorBoundary';
 import { Toaster } from '@/components/UI/toaster';
 import { EducationalLoader } from '@/components/UI/educational-loader';
 import { App as CapApp } from '@capacitor/app';
-import { StatusBar, Style } from '@capacitor/status-bar';
+import StatusBarService from '../services/StatusBarService';
 import { useAuth } from '@/contexts/AuthContext';
 import { NotificationsService } from './services/NotificationsService';
 
@@ -24,24 +24,10 @@ export default function AppRoot() {
   useEffect(() => {
     const configureStatusBar = async () => {
       try {
-        // Ensure status bar doesn't overlay the web view
-        await StatusBar.setOverlaysWebView({ overlay: false });
-        
-        // Set status bar style based on current theme
-        const isDarkMode = document.documentElement.classList.contains('dark');
-        if (isDarkMode) {
-          await StatusBar.setStyle({ style: Style.Light });
-          await StatusBar.setBackgroundColor({ color: '#09090b' });
-        } else {
-          await StatusBar.setStyle({ style: Style.Dark });
-          await StatusBar.setBackgroundColor({ color: '#ffffff' });
-        }
-        
-        // Set status bar height for proper spacing
-        await StatusBar.setPadding({ top: 0, left: 0, right: 0, bottom: 0 });
+        // Use the StatusBar service for better control
+        await StatusBarService.getInstance().configureStatusBar();
       } catch (error) {
-        // Plugin may not be available in web environment
-        console.log('StatusBar plugin not available:', error);
+        console.log('StatusBar configuration failed:', error);
       }
     };
     configureStatusBar();

@@ -394,6 +394,29 @@
   min-height: env(safe-area-inset-top, 24px);
 }
 
+/* Force status bar to stay hidden */
+body {
+  --status-bar-height: 0px;
+}
+
+/* Prevent status bar from showing during scroll */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Ensure content starts from the very top */
+#root {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Force header to start from top */
+.app-header {
+  top: 0 !important;
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
