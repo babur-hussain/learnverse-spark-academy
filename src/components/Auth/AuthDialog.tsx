@@ -368,51 +368,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onOpenChange={(newOpen) => {
-        // Prevent autoclosing on mobile web during form interactions
-        if (platform.isMobile && !newOpen && isSubmitting) {
-          console.log('Preventing autoclose during submission on mobile');
-          return;
-        }
-        
-        // Prevent autoclosing if there are active errors or success messages
-        if (platform.isMobile && !newOpen && (authError || successMessage)) {
-          console.log('Preventing autoclose due to active messages on mobile');
-          return;
-        }
-        
-        // Android-specific autoclosing prevention
-        if (platform.isAndroid && !newOpen && (isSubmitting || authError || successMessage)) {
-          console.log('Preventing autoclose on Android device');
-          return;
-        }
-        
-        onOpenChange(newOpen);
-      }}
-    >
-      <DialogContent 
-        className={`${getDialogSize()} max-h-[90vh] overflow-y-auto`}
-        onPointerDownOutside={(e) => {
-          // Prevent closing on outside clicks on mobile
-          if (platform.isMobile) {
-            e.preventDefault();
-          }
-        }}
-        onInteractOutside={(e) => {
-          // Prevent closing on outside interactions on mobile
-          if (platform.isMobile) {
-            e.preventDefault();
-          }
-        }}
-        onEscapeKeyDown={(e) => {
-          // Prevent closing on escape key on mobile
-          if (platform.isMobile) {
-            e.preventDefault();
-          }
-        }}
-      >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className={`${getDialogSize()} max-h-[90vh] overflow-y-auto`}>
         <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>

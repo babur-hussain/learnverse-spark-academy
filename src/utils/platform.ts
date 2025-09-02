@@ -82,18 +82,6 @@ export const detectPlatform = (): PlatformConfig => {
     } else if (/android/i.test(userAgent)) {
       isAndroid = true;
     }
-  } else if (isMobileDevice()) {
-    // Additional check for mobile devices that might have been missed
-    isMobile = true;
-    platform = 'mobile';
-    
-    // Detect iOS vs Android for web browsers
-    const userAgent = navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/i.test(userAgent)) {
-      isIOS = true;
-    } else if (/android/i.test(userAgent)) {
-      isAndroid = true;
-    }
   }
 
   return {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones } from 'lucide-react';
@@ -6,28 +6,6 @@ import { Home, BookOpen, Video, FileText, ShoppingBag, Coffee, Baby, Headphones 
 const MobileFooter = () => {
   const location = useLocation();
   const { platform } = usePlatform();
-  const [isMobileScreen, setIsMobileScreen] = useState(false);
-
-  // Fallback mobile detection for better compatibility
-  useEffect(() => {
-    const checkMobileScreen = () => {
-      setIsMobileScreen(window.innerWidth <= 768);
-    };
-
-    // Check on mount
-    checkMobileScreen();
-
-    // Listen for resize events
-    window.addEventListener('resize', checkMobileScreen);
-    window.addEventListener('orientationchange', checkMobileScreen);
-
-    return () => {
-      window.removeEventListener('resize', checkMobileScreen);
-      window.removeEventListener('orientationchange', checkMobileScreen);
-    };
-  }, []);
-
-  const shouldShowFooter = platform.isMobile || platform.isMobileWeb || isMobileScreen;
 
   // Platform-specific navigation items
   const getNavItems = () => {
@@ -74,9 +52,9 @@ const MobileFooter = () => {
   };
 
   return (
-    <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-[9999] bg-background/95 backdrop-blur-md border-t border-border pt-2 shadow-lg`}>
-      <div className="w-full overflow-x-auto">
-        <nav className={`mobile-footer-nav flex items-center justify-start w-full px-4 ${getNavGap()} whitespace-nowrap min-w-max`}>
+    <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 pt-2 ${getFooterPadding()} shadow-lg safe-area-bottom`}>
+      <div className="w-full overflow-x-auto scrollbar-hide">
+        <nav className={`mobile-footer-nav flex items-center justify-center w-full px-2 ${getNavGap()} whitespace-nowrap`}>
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             
@@ -84,7 +62,7 @@ const MobileFooter = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex flex-col items-center gap-0.5 py-1.5 px-3 flex-shrink-0 min-w-[80px] whitespace-nowrap rounded-lg transition-all duration-300 ${
+                className={`flex flex-col items-center gap-0.5 py-1.5 px-2 flex-1 min-w-0 whitespace-nowrap rounded-lg transition-all duration-300 ${
                   isActive 
                     ? 'text-learn-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 scale-105' 
                     : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
@@ -95,7 +73,7 @@ const MobileFooter = () => {
                   size={18} 
                   className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'}`} 
                 />
-                <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''}`}>
+                <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''} truncate`}>
                   {item.label}
                 </span>
               </Link>
