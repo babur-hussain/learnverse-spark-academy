@@ -728,30 +728,50 @@
     pointer-events: auto !important;
   }
   
-  /* Android keyboard handling */
+  /* Enhanced Android keyboard handling */
   .android-dialog-fix input {
     font-size: 16px !important; /* Prevent zoom on Android */
     -webkit-user-select: text !important;
     user-select: text !important;
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
+    -webkit-appearance: none !important;
+    border-radius: 4px !important;
+    background-color: white !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Prevent input focus from triggering viewport changes */
+  .android-dialog-fix input:focus {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    outline: none !important;
+    border: 2px solid #8b5cf6 !important;
+    background-color: white !important;
+    transform: none !important;
+    transition: border-color 0.2s ease !important;
   }
   
   /* Android form interaction fixes */
   .android-dialog-fix form {
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
+    position: relative !important;
+    z-index: 1 !important;
   }
   
   .android-dialog-fix button {
     touch-action: manipulation !important;
     -webkit-tap-highlight-color: transparent !important;
+    font-size: 16px !important;
   }
   
   /* Prevent Android viewport changes from affecting dialog */
   .android-dialog-fix {
     height: auto !important;
     min-height: auto !important;
+    contain: layout style paint !important;
   }
   
   /* Android keyboard overlay fixes */
@@ -761,6 +781,48 @@
       top: 5vh !important;
       transform: translateX(-50%) !important;
     }
+  }
+}
+
+/* Android keyboard stability fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  /* Prevent Android keyboard from closing due to viewport changes */
+  .android-dialog-fix {
+    position: fixed !important;
+    top: 10vh !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    height: auto !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Enhanced input stability for Android Chrome */
+  .android-dialog-fix input {
+    -webkit-user-select: text !important;
+    -webkit-touch-callout: default !important;
+    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    position: relative !important;
+    z-index: 999 !important;
+  }
+  
+  /* Prevent form submission on Android keyboard issues */
+  .android-dialog-fix form {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    -webkit-touch-callout: none !important;
+  }
+  
+  /* Allow text selection in inputs */
+  .android-dialog-fix input, .android-dialog-fix textarea {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
   }
 }
 

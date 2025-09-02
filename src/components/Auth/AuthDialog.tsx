@@ -377,6 +377,41 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     onOpenChange(newOpen);
   };
 
+  // Android keyboard stability handlers
+  const handleAndroidInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (platform.isAndroid) {
+      // Prevent viewport changes that cause keyboard issues
+      e.preventDefault();
+      const target = e.target;
+      
+      // Use setTimeout to ensure the focus happens after the current event loop
+      setTimeout(() => {
+        target.focus();
+        // Scroll to center the input without triggering viewport changes
+        target.scrollIntoView({ 
+          behavior: 'instant', 
+          block: 'center',
+          inline: 'nearest'
+        });
+      }, 100);
+    }
+  };
+
+  const handleAndroidInputTouch = (e: React.TouchEvent<HTMLInputElement>) => {
+    if (platform.isAndroid) {
+      // Prevent touch events from bubbling up and causing dialog issues
+      e.stopPropagation();
+      
+      // Ensure the input stays focused
+      const target = e.currentTarget;
+      setTimeout(() => {
+        if (target && !target.matches(':focus')) {
+          target.focus();
+        }
+      }, 50);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
@@ -474,12 +509,9 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             name="email"
                             autoComplete="email"
                             inputMode="email"
-                            onFocus={(e) => {
-                              // Prevent Android keyboard from closing dialog
-                              if (platform.isAndroid) {
-                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              }
-                            }}
+                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
+                            onTouchStart={platform.isAndroid ? handleAndroidInputTouch : undefined}
+                            style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
                           />
                         </FormControl>
@@ -500,12 +532,9 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             placeholder="••••••••" 
                             name="password"
                             autoComplete="current-password"
-                            onFocus={(e) => {
-                              // Prevent Android keyboard from closing dialog
-                              if (platform.isAndroid) {
-                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                              }
-                            }}
+                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
+                            onTouchStart={platform.isAndroid ? handleAndroidInputTouch : undefined}
+                            style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
                           />
                         </FormControl>
