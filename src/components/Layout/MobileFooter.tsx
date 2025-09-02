@@ -35,6 +35,9 @@ const MobileFooter = () => {
   };
 
   const navItems = getNavItems();
+  
+  // All items are scrollable, showing 5 at a time
+  const maxVisibleIcons = 5;
 
   // Platform-specific styling
   const getFooterPadding = () => {
@@ -51,35 +54,49 @@ const MobileFooter = () => {
     return 'gap-2';
   };
 
+  const renderNavItem = (item: any) => {
+    const isActive = location.pathname === item.path;
+    
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        className={`flex flex-col items-center gap-0.5 py-1.5 px-3 min-w-[70px] flex-shrink-0 whitespace-nowrap rounded-lg transition-all duration-300 ${
+          isActive 
+            ? 'text-learn-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 scale-105' 
+            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
+        }`}
+        aria-label={item.label}
+      >
+        <item.icon 
+          size={18} 
+          className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'}`} 
+        />
+        <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''} truncate`}>
+          {item.label}
+        </span>
+      </Link>
+    );
+  };
+
   return (
     <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 pt-2 ${getFooterPadding()} shadow-lg safe-area-bottom`}>
-      <div className="w-full overflow-x-auto scrollbar-hide">
-        <nav className={`mobile-footer-nav flex items-center justify-center w-full px-2 ${getNavGap()} whitespace-nowrap`}>
-          {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`flex flex-col items-center gap-0.5 py-1.5 px-2 flex-1 min-w-0 whitespace-nowrap rounded-lg transition-all duration-300 ${
-                  isActive 
-                    ? 'text-learn-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 scale-105' 
-                    : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-                aria-label={item.label}
-              >
-                <item.icon 
-                  size={18} 
-                  className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'}`} 
-                />
-                <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''} truncate`}>
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+      <div className="w-full overflow-x-auto scrollbar-hide mobile-footer-scrollable relative">
+        <nav className={`flex items-center px-2 ${getNavGap()}`} style={{ width: `${navItems.length * 70}px` }}>
+          {navItems.map((item) => renderNavItem(item))}
         </nav>
+        
+        {/* Scroll indicator dots */}
+        {navItems.length > maxVisibleIcons && (
+          <div className="flex justify-center space-x-1 pt-1 pb-1">
+            {Array.from({ length: Math.ceil(navItems.length / maxVisibleIcons) }, (_, i) => (
+              <div
+                key={i}
+                className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </footer>
   );

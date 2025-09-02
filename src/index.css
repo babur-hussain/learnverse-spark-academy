@@ -368,6 +368,70 @@
     display: none;
   }
   
+  /* Mobile footer scrollable section */
+  .mobile-footer-scrollable {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  
+  /* Scroll snap for mobile footer items */
+  .mobile-footer-scrollable nav > * {
+    scroll-snap-align: start;
+  }
+  
+  /* Custom scrollbar for mobile footer (visible on desktop) */
+  @media (min-width: 1024px) {
+    .mobile-footer-scrollable::-webkit-scrollbar {
+      height: 2px;
+    }
+    
+    .mobile-footer-scrollable::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 1px;
+    }
+    
+    .mobile-footer-scrollable::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 1px;
+    }
+    
+    .mobile-footer-scrollable::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  }
+  
+  /* Mobile footer fade edges effect */
+  .mobile-footer-scrollable::before,
+  .mobile-footer-scrollable::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 20px;
+    pointer-events: none;
+    z-index: 1;
+  }
+  
+  .mobile-footer-scrollable::before {
+    left: 0;
+    background: linear-gradient(to right, rgba(255,255,255,0.95), transparent);
+  }
+  
+  .mobile-footer-scrollable::after {
+    right: 0;
+    background: linear-gradient(to left, rgba(255,255,255,0.95), transparent);
+  }
+  
+  .dark .mobile-footer-scrollable::before {
+    background: linear-gradient(to right, rgba(17, 24, 39, 0.95), transparent);
+  }
+  
+  .dark .mobile-footer-scrollable::after {
+    background: linear-gradient(to left, rgba(17, 24, 39, 0.95), transparent);
+  }
+  
   .line-clamp-1 {
     overflow: hidden;
     display: -webkit-box;
