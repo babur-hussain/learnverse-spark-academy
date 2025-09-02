@@ -14,7 +14,7 @@ export const useDynamicIslandSafe = () => {
       
       // Convert to number and add minimal padding
       const topValue = parseInt(safeAreaTopValue) || 0;
-      const dynamicIslandHeight = Math.max(topValue, 20); // Reduced minimum height for Dynamic Island
+      const dynamicIslandHeight = Math.max(topValue, 12); // Further reduced minimum height for Dynamic Island
       
       setSafeAreaTop(dynamicIslandHeight);
       
@@ -41,13 +41,29 @@ export const useDynamicIslandSafe = () => {
     // Update on resize
     window.addEventListener('resize', updateSafeArea);
     
-    // Update on scroll (for dynamic content)
+    // Update on scroll (for dynamic content) - but be more conservative
     let scrollTimeout: NodeJS.Timeout;
+    let lastScrollTop = 0;
     const handleScroll = () => {
       clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(updateSafeArea, 100);
+      scrollTimeout = setTimeout(() => {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        
+        // Only update if there's a significant change in safe area AND we're not scrolling up too much
+        const currentSafeArea = getComputedStyle(document.documentElement)
+          .getPropertyValue('--safe-area-inset-top') || '0px';
+        const newSafeArea = getComputedStyle(document.documentElement)
+          .getPropertyValue('env(safe-area-inset-top)') || '0px';
+        
+        // Only update if the difference is significant (more than 5px) and we're not going too far up
+        if (Math.abs(parseInt(currentSafeArea) - parseInt(newSafeArea)) > 5 && scrollTop > 50) {
+          updateSafeArea();
+        }
+        
+        lastScrollTop = scrollTop;
+      }, 300); // Increased delay further to reduce frequency
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     return () => {
       window.removeEventListener('orientationchange', updateSafeArea);
