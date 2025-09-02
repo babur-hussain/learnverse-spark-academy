@@ -24,11 +24,11 @@ class StatusBarService {
       // Set initial style and background
       const isDarkMode = document.documentElement.classList.contains('dark');
       await StatusBar.setStyle({ 
-        style: isDarkMode ? Style.Light : Style.Dark 
+        style: isDarkMode ? Style.Dark : Style.Light 
       });
       
       await StatusBar.setBackgroundColor({ 
-        color: isDarkMode ? '#09090b' : '#ffffff' 
+        color: isDarkMode ? '#000000' : '#ffffff' 
       });
 
       // Ensure status bar is hidden initially
@@ -101,11 +101,11 @@ class StatusBarService {
   public async updateTheme(isDarkMode: boolean): Promise<void> {
     try {
       await StatusBar.setStyle({ 
-        style: isDarkMode ? Style.Light : Style.Dark 
+        style: isDarkMode ? Style.Dark : Style.Light 
       });
       
       await StatusBar.setBackgroundColor({ 
-        color: isDarkMode ? '#09090b' : '#ffffff' 
+        color: isDarkMode ? '#000000' : '#ffffff' 
       });
     } catch (error) {
       console.log('Theme update failed:', error);
