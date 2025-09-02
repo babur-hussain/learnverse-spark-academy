@@ -649,6 +649,129 @@
   }
 }
 
+/* Android-specific dialog fixes */
+@supports not (-webkit-touch-callout: none) {
+  [data-radix-dialog-content] {
+    /* Prevent Android Chrome from closing dialog on scroll */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: auto;
+  }
+  
+  /* Fix Android input focus issues */
+  [data-radix-dialog-content] input:focus {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent Android dialog autoclosing */
+  [data-radix-dialog-overlay] {
+    touch-action: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Ensure Android dialogs stay open during interactions */
+  [data-radix-dialog-content] {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* Enhanced mobile dialog fixes for all platforms */
+@media (max-width: 768px) {
+  /* Prevent dialog autoclosing on all mobile devices */
+  [data-radix-dialog-content] {
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: manipulation !important;
+    /* Prevent any unwanted closes */
+    position: relative !important;
+    z-index: 10000 !important;
+  }
+  
+  /* Prevent overlay from closing dialog */
+  [data-radix-dialog-overlay] {
+    touch-action: none !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  
+  /* Ensure form elements don't trigger dialog close */
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] button,
+  [data-radix-dialog-content] select,
+  [data-radix-dialog-content] textarea,
+  [data-radix-dialog-content] label {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  
+  /* Better mobile dialog positioning */
+  [data-radix-dialog-content] {
+    margin: 1rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    /* Ensure dialog is above all content */
+    z-index: 10000 !important;
+  }
+}
+
+/* Fix content overlapping top header */
+.navbar, nav, header, .app-header, .top-nav {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  background: hsl(var(--background) / 0.95) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-bottom: 1px solid hsl(var(--border)) !important;
+  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 0.1) !important;
+}
+
+/* Ensure proper spacing for fixed header */
+.main-content, .content-wrapper, .page-content {
+  margin-top: 5rem !important;
+  padding-top: 2rem !important;
+}
+
+/* Fix for main layout content spacing */
+.max-w-6xl.mx-auto.py-10.px-4.mt-32 {
+  margin-top: 8rem !important;
+  padding-top: 2rem !important;
+}
+
+/* Ensure content doesn't go under fixed header */
+body {
+  padding-top: 0 !important;
+}
+
+/* Fix for mobile devices */
+@media (max-width: 768px) {
+  .navbar, nav, header, .app-header, .top-nav {
+    height: 4rem !important;
+    min-height: 4rem !important;
+  }
+  
+  .main-content, .content-wrapper, .page-content {
+    margin-top: 4rem !important;
+    padding-top: 1rem !important;
+  }
+  
+  .max-w-6xl.mx-auto.py-10.px-4.mt-32 {
+    margin-top: 6rem !important;
+    padding-top: 1rem !important;
+  }
+}
+
   /* Force mobile footer to be visible on mobile devices */
   @media (max-width: 768px) {
     .mobile-footer {
