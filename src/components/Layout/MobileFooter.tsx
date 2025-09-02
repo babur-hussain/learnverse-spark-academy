@@ -80,24 +80,6 @@ const MobileFooter = () => {
             );
           })}
         </nav>
-        
-        {/* Platform-specific feature indicator */}
-        {platform.isMobile && (
-          <div className="px-4 mt-2">
-            <div className="text-center">
-              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                platform.isIOS 
-                  ? 'bg-purple-100 text-purple-800' 
-                  : 'bg-green-100 text-green-800'
-              }`}>
-                {platform.isIOS ? '🍎' : '🤖'}
-                <span className="ml-1">
-                  {platform.isIOS ? 'iOS Optimized' : 'Android Optimized'}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </footer>
   );

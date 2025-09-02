@@ -145,7 +145,6 @@ const Settings = () => {
                     
                     <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
                       <p className="text-sm text-blue-800 dark:text-blue-200">
-                        {platform.isIOS ? '🍎 iOS Optimized' : '🤖 Android Optimized'} - 
                         Your device is configured for optimal performance
                       </p>
                     </div>
