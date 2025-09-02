@@ -10,7 +10,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         
         // Hide status bar using modern iOS approach
-        StatusBarManager.shared.hideStatusBar()
+        self.hideStatusBar()
         
         return true
     }
@@ -33,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         
         // Ensure status bar stays hidden when app becomes active
-        StatusBarManager.shared.hideStatusBar()
+        self.hideStatusBar()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
@@ -53,6 +53,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Feel free to add additional processing here, but if you want the App API to support
         // tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(application, continue: userActivity, restorationHandler: restorationHandler)
+    }
+
+    // MARK: - Status Bar Management
+    
+    private func hideStatusBar() {
+        if #available(iOS 13.0, *) {
+            // Use modern iOS 13+ approach
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                windowScene.statusBarManager?.isStatusBarHidden = true
+            }
+        } else {
+            // Fallback for older iOS versions
+            UIApplication.shared.isStatusBarHidden = true
+        }
+    }
+    
+    private func showStatusBar() {
+        if #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                windowScene.statusBarManager?.isStatusBarHidden = false
+            }
+        } else {
+            UIApplication.shared.isStatusBarHidden = false
+            UIApplication.shared.statusBarStyle = .lightContent
+        }
+    }
+    
+    private func setStatusBarStyle(_ style: UIStatusBarStyle) {
+        if #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                windowScene.statusBarManager?.statusBarStyle = style
+            }
+        } else {
+            UIApplication.shared.statusBarStyle = style
+        }
     }
 
 }
