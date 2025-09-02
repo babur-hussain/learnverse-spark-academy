@@ -14,7 +14,7 @@ export const useDynamicIslandSafe = () => {
       
       // Convert to number and add minimal padding
       const topValue = parseInt(safeAreaTopValue) || 0;
-      const dynamicIslandHeight = Math.max(topValue, 25); // Set to 25px for optimal spacing below Dynamic Island
+      const dynamicIslandHeight = Math.max(topValue, 30); // Set to 30px for optimal spacing below Dynamic Island
       
       setSafeAreaTop(dynamicIslandHeight);
       
@@ -62,19 +62,29 @@ export const useDynamicIslandSafe = () => {
         return;
       }
       
+      // Ensure content never gets too close to Dynamic Island during scroll
+      // Force minimum spacing of 30px (25px + 5px extra) during scroll animations
+      const currentSafeArea = getComputedStyle(document.documentElement)
+        .getPropertyValue('--safe-area-inset-top') || '0px';
+      const topValue = parseInt(currentSafeArea) || 0;
+      const minScrollSpacing = Math.max(topValue, 30); // 5px more than default
+      
+      // Update spacing during scroll to prevent Dynamic Island overlap
+      document.documentElement.style.setProperty('--dynamic-island-height', `${minScrollSpacing}px`);
+      
+      // Force update of elements during scroll
+      const elements = document.querySelectorAll('.dynamic-island-safe');
+      elements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          element.style.paddingTop = `${minScrollSpacing}px`;
+        }
+      });
+      
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
-        // Only update if there's a significant change in safe area
-        const currentSafeArea = getComputedStyle(document.documentElement)
-          .getPropertyValue('--safe-area-inset-top') || '0px';
-        const newSafeArea = getComputedStyle(document.documentElement)
-          .getPropertyValue('env(safe-area-inset-top)') || '0px';
-        
-        // Only update if the difference is significant (more than 5px)
-        if (Math.abs(parseInt(currentSafeArea) - parseInt(newSafeArea)) > 5) {
-          updateSafeArea();
-        }
-      }, 200); // Reduced delay for better responsiveness
+        // Reset to normal spacing after scroll stops
+        updateSafeArea();
+      }, 300); // Slightly longer delay to ensure scroll animation completes
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
 
