@@ -618,3 +618,79 @@
     font-size: 16px;
   }
 }
+
+/* Android-specific dialog fixes */
+@media screen and (max-width: 768px) {
+  /* Android dialog container fixes */
+  .android-dialog-fix {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: calc(100vh - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Prevent Android dialog from closing on touch */
+  [data-radix-dialog-overlay] {
+    pointer-events: none !important;
+  }
+  
+  .android-dialog-fix {
+    pointer-events: auto !important;
+  }
+  
+  /* Android keyboard handling */
+  .android-dialog-fix input {
+    font-size: 16px !important; /* Prevent zoom on Android */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+  }
+  
+  /* Android form interaction fixes */
+  .android-dialog-fix form {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  
+  .android-dialog-fix button {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
+  
+  /* Prevent Android viewport changes from affecting dialog */
+  .android-dialog-fix {
+    height: auto !important;
+    min-height: auto !important;
+  }
+  
+  /* Android keyboard overlay fixes */
+  @media screen and (max-height: 500px) {
+    .android-dialog-fix {
+      max-height: 90vh !important;
+      top: 5vh !important;
+      transform: translateX(-50%) !important;
+    }
+  }
+}
+
+/* Specific Android browser detection and fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  /* Chrome on Android */
+  .android-dialog-fix [data-radix-dialog-content] {
+    overscroll-behavior-y: contain !important;
+    overflow-anchor: none !important;
+  }
+  
+  /* Prevent accidental dialog closes on Android */
+  [data-radix-dialog-overlay] {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+}

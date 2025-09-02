@@ -367,13 +367,49 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     }
   };
 
+  // Prevent dialog from closing on Android when interacting with forms
+  const handleOpenChange = (newOpen: boolean) => {
+    // Only allow closing if explicitly requested (not due to accidental touches)
+    if (!newOpen && platform.isAndroid) {
+      // Add a small delay to prevent accidental closes on Android
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={`${getDialogSize()} max-h-[90vh] overflow-y-auto`}>
-        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-          <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
-        </DialogClose>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className={`${getDialogSize()} max-h-[90vh] overflow-y-auto android-dialog-fix`}
+        onPointerDownOutside={(e) => {
+          // Prevent closing on Android when clicking outside during form interaction
+          if (platform.isAndroid) {
+            e.preventDefault();
+          }
+        }}
+        onInteractOutside={(e) => {
+          // Prevent closing on Android when interacting outside
+          if (platform.isAndroid) {
+            e.preventDefault();
+          }
+        }}
+      >
+        {/* Android-specific close button */}
+        {platform.isAndroid ? (
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 bg-white shadow-md p-1"
+            type="button"
+          >
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </button>
+        ) : (
+          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        )}
         
         <DialogHeader>
           <div className="mx-auto h-12 w-12 rounded-lg gradient-primary flex items-center justify-center">
@@ -415,7 +451,16 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
             <TabsContent value="login" className="mt-6">
               <Form {...loginForm}>
-                <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-4">
+                <form 
+                  onSubmit={loginForm.handleSubmit(onLoginSubmit)} 
+                  className="space-y-4"
+                  onTouchStart={(e) => {
+                    // Prevent Android from closing dialog on form interaction
+                    if (platform.isAndroid) {
+                      e.stopPropagation();
+                    }
+                  }}
+                >
                   <FormField
                     control={loginForm.control}
                     name="email"
@@ -427,6 +472,14 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             placeholder="your-email@example.com" 
                             type="email" 
                             name="email"
+                            autoComplete="email"
+                            inputMode="email"
+                            onFocus={(e) => {
+                              // Prevent Android keyboard from closing dialog
+                              if (platform.isAndroid) {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }}
                             {...field} 
                           />
                         </FormControl>
@@ -446,6 +499,13 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             type="password" 
                             placeholder="••••••••" 
                             name="password"
+                            autoComplete="current-password"
+                            onFocus={(e) => {
+                              // Prevent Android keyboard from closing dialog
+                              if (platform.isAndroid) {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }}
                             {...field} 
                           />
                         </FormControl>
@@ -549,7 +609,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
             <TabsContent value="register" className="mt-4">
               <Form {...registerForm}>
-                <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
+                <form 
+                  onSubmit={registerForm.handleSubmit(onRegisterSubmit)} 
+                  className="space-y-4"
+                  onTouchStart={(e) => {
+                    if (platform.isAndroid) {
+                      e.stopPropagation();
+                    }
+                  }}
+                >
                   <FormField
                     control={registerForm.control}
                     name="email"
@@ -561,6 +629,13 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             placeholder="your-email@example.com" 
                             type="email" 
                             name="email"
+                            autoComplete="email"
+                            inputMode="email"
+                            onFocus={(e) => {
+                              if (platform.isAndroid) {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }}
                             {...field} 
                           />
                         </FormControl>
@@ -577,7 +652,16 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="johndoe" {...field} />
+                            <Input 
+                              placeholder="johndoe" 
+                              autoComplete="username"
+                              onFocus={(e) => {
+                                if (platform.isAndroid) {
+                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              }}
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -591,7 +675,16 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                         <FormItem>
                           <FormLabel>Full Name</FormLabel>
                           <FormControl>
-                            <Input placeholder="John Doe" {...field} />
+                            <Input 
+                              placeholder="John Doe" 
+                              autoComplete="name"
+                              onFocus={(e) => {
+                                if (platform.isAndroid) {
+                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              }}
+                              {...field} 
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -615,6 +708,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             type="password" 
                             placeholder="••••••••" 
                             name="password"
+                            autoComplete="new-password"
+                            onFocus={(e) => {
+                              if (platform.isAndroid) {
+                                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                              }
+                            }}
                             {...field} 
                           />
                         </FormControl>
@@ -730,7 +829,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
             <TabsContent value="phone" className="mt-6">
               <Form {...phoneForm}>
-                <form onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} className="space-y-4">
+                <form 
+                  onSubmit={phoneForm.handleSubmit(onPhoneSubmit)} 
+                  className="space-y-4"
+                  onTouchStart={(e) => {
+                    if (platform.isAndroid) {
+                      e.stopPropagation();
+                    }
+                  }}
+                >
                   <FormField
                     control={phoneForm.control}
                     name="phoneNumber"
@@ -751,6 +858,13 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                               type="tel"
                               placeholder="Enter your mobile number"
                               className="pl-20"
+                              autoComplete="tel"
+                              inputMode="numeric"
+                              onFocus={(e) => {
+                                if (platform.isAndroid) {
+                                  e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
+                              }}
                               {...field}
                             />
                           </div>
