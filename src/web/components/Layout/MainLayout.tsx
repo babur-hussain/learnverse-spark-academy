@@ -5,6 +5,7 @@ import MobileFooter from './MobileFooter';
 import { useTheme } from '@/hooks/use-theme';
 import useIsMobile from '@/hooks/use-mobile';
 import { useIOSHeaderFix } from '@/hooks/useIOSHeaderFix';
+import { useDynamicIslandSafe } from '@/hooks/useDynamicIslandSafe';
 import SafeErrorBoundary from './SafeErrorBoundary';
 import { useLenis } from '@shared/hooks/use-lenis';
 import LoadingSpinner from './LoadingSpinner';
@@ -32,6 +33,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   
   // Apply iOS header fix
   useIOSHeaderFix();
+  
+  // Apply Dynamic Island safe area handling
+  useDynamicIslandSafe();
   
   // Get platform classes
   const getPlatformClasses = () => {
@@ -81,7 +85,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     <SafeErrorBoundary>
       <div className={getPlatformClasses()}>
         <Navbar selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege} />
-        <main className={`main-content mt-12 ${
+        <main className={`main-content dynamic-island-safe mt-12 ${
           isMobile 
             ? 'pb-44'
             : 'pb-16'

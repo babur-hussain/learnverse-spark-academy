@@ -273,7 +273,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
   return (
     <>
       <nav 
-        className="fixed top-0 left-0 right-0 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm z-50"
+        className="fixed top-0 left-0 right-0 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm z-50 dynamic-island-safe"
       >
         <div className="mx-auto px-2 sm:px-4 flex items-center justify-between max-w-7xl h-12">
           {/* Logo - Responsive sizing */}

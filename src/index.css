@@ -458,6 +458,34 @@ header {
   }
 }
 
+/* Dynamic Island and safe area handling */
+.dynamic-island-safe {
+  padding-top: env(safe-area-inset-top, 0px) !important;
+  margin-top: env(safe-area-inset-top, 0px) !important;
+}
+
+/* Ensure header is below Dynamic Island */
+.app-header,
+header,
+.header {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 8px) !important;
+  margin-top: env(safe-area-inset-top, 0px) !important;
+}
+
+/* Force safe area consideration */
+:root {
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --dynamic-island-height: calc(env(safe-area-inset-top, 0px) + 8px);
+}
+
+/* Ensure content starts below Dynamic Island */
+.main-content,
+.content,
+#root > div:first-child {
+  padding-top: var(--dynamic-island-height) !important;
+  margin-top: var(--dynamic-island-height) !important;
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
