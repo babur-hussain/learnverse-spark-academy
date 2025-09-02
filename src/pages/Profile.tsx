@@ -13,23 +13,34 @@ import { useProfileData } from '@/hooks/use-profile-data';
 import { User, BookOpen, BarChart3, Trophy, Gift } from 'lucide-react';
 import MainLayout from '@/components/Layout/MainLayout';
 import MobileProfilePage from '@/components/Profile/MobileProfilePage';
+import { Capacitor } from '@capacitor/core';
 
 const Profile = () => {
   const { platform } = usePlatform();
   const { user } = useAuth();
 
+  // Check if we're in a Capacitor app (mobile/tablet)
+  const isCapacitorApp = Capacitor.isNativePlatform();
+  
+  // Additional mobile detection methods
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isSmallScreen = window.innerWidth <= 768;
+  
   // Debug logging
-  console.log('Profile page - Platform:', platform);
+  console.log('Profile page - Platform Context:', platform);
+  console.log('Profile page - Capacitor Native:', isCapacitorApp);
+  console.log('Profile page - User Agent Mobile:', isMobileDevice);
+  console.log('Profile page - Small Screen:', isSmallScreen);
   console.log('Profile page - User:', user);
-  console.log('Profile page - isMobile:', platform.isMobile);
+  console.log('Profile page - isMobile from context:', platform.isMobile);
 
-  // For mobile devices, render the mobile profile page
-  if (platform.isMobile) {
-    console.log('Rendering MobileProfilePage');
+  // For mobile devices, Capacitor apps, or small screens, render the mobile profile page
+  if (platform.isMobile || isCapacitorApp || isMobileDevice || isSmallScreen) {
+    console.log('Rendering MobileProfilePage - Mobile detected via multiple methods');
     return <MobileProfilePage />;
   }
 
-  console.log('Rendering Web Profile Page');
+  console.log('Rendering Web Profile Page - Web detected');
 
   // For web, render the existing profile page
   const {
