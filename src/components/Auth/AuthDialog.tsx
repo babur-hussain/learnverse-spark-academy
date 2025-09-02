@@ -462,31 +462,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     {isSubmitting ? "Signing in..." : "Sign in"}
                   </Button>
                   
-                  {/* Debug button - remove in production */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full text-xs"
-                    onClick={async () => {
-                      const result = await testConnection();
-                      console.log('Connection test result:', result);
-                      if (result.success) {
-                        toast({
-                          title: "Connection Test",
-                          description: "Supabase connection successful!",
-                        });
-                      } else {
-                        toast({
-                          title: "Connection Test Failed",
-                          description: result.error || "Unknown error",
-                          variant: "destructive"
-                        });
-                      }
-                    }}
-                  >
-                    Test Connection
-                  </Button>
+
                   
                   <div className="text-center space-y-2">
                     <button
