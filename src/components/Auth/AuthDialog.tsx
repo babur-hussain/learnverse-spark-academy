@@ -279,7 +279,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
         className={`
           w-full mx-auto p-0 gap-0 flex flex-col
           ${platform.isMobile 
-            ? 'fixed top-[2vh] left-1/2 transform -translate-x-1/2 max-h-[96vh] w-[98vw] max-w-[98vw]' 
+            ? 'fixed top-[8vh] left-1/2 transform -translate-x-1/2 max-h-[84vh] w-[92vw] max-w-[92vw]' 
             : 'max-w-md max-h-[85vh]'
           }
         `}
@@ -287,9 +287,9 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
           position: 'fixed',
           zIndex: 9999,
           backgroundColor: 'white',
-          borderRadius: '12px',
+          borderRadius: '16px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          minHeight: '400px',
+          minHeight: '350px',
         } : undefined}
       >
         {/* Header - Fixed */}
