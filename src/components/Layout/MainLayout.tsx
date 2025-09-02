@@ -39,7 +39,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       />
       
       {/* Content wrapper with proper spacing for fixed header and mobile footer */}
-      <main className={`flex-1 main-content max-w-6xl mx-auto py-10 px-4 mt-32 ${getBottomPadding()}`}>
+      <main className={`flex-1 main-content ${
+        platform.isAndroid 
+          ? 'w-full max-w-full mx-0 px-4' 
+          : 'max-w-6xl mx-auto px-4'
+      } py-10 mt-32 ${getBottomPadding()}`}>
         {children}
       </main>
       

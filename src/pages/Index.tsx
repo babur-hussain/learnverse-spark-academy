@@ -193,7 +193,7 @@ const Home = () => {
 
   return (
     <MainLayout selectedClass={selectedClass} setSelectedClass={setSelectedClass} selectedCollege={selectedCollege} setSelectedCollege={setSelectedCollege}>
-      <div className="min-h-screen flex flex-col">
+      <div className={`min-h-screen flex flex-col ${platform.isAndroid ? 'w-full max-w-full' : ''}`}>
         <AIHero />
         <ClassSubjectsGrid selectedClass={selectedClass} selectedCollege={selectedCollege} />
         <Hero />
