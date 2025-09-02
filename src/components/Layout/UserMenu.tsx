@@ -15,11 +15,15 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
 import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen, HardDrive } from 'lucide-react';
 import AuthDialog from '@/components/Auth/AuthDialog';
 import { Button } from '@/components/UI/button';
+import { Capacitor } from '@capacitor/core';
 
 const UserMenu = () => {
   const { user, logout } = useAuth();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const navigate = useNavigate();
+  
+  // Check if we're in a Capacitor app
+  const isCapacitorApp = Capacitor.isNativePlatform();
   
   // Get the first letter of the username for the avatar fallback
   const getInitials = () => {
@@ -69,6 +73,22 @@ const UserMenu = () => {
       }
     };
 
+    // If in Capacitor app, show simple profile button instead of dropdown
+    if (isCapacitorApp) {
+      return (
+        <button 
+          onClick={handleProfileClick}
+          className="focus:outline-none flex-shrink-0"
+        >
+          <Avatar className="h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11">
+            <AvatarImage src={user?.user_metadata?.avatar_url || ''} />
+            <AvatarFallback className="text-sm sm:text-base md:text-lg">{getInitials()}</AvatarFallback>
+          </Avatar>
+        </button>
+      );
+    }
+
+    // For web, show the full dropdown menu
     return (
       <>
         <DropdownMenu>
