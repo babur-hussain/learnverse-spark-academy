@@ -1,11 +1,11 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/UI/dialog";
+import { Button } from "@/components/UI/button";
+import { Input } from "@/components/UI/input";
+import { Label } from "@/components/UI/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/UI/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/UI/card";
+import { Separator } from "@/components/UI/separator";
 import { Eye, EyeOff, Mail, Lock, User, Phone, X } from 'lucide-react';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -116,7 +116,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
     try {
       await signInWithPhone(data.phoneNumber);
       toast.success("OTP sent to your phone!");
-      onOpenChange(false);
+          onOpenChange(false);
     } catch (error) {
       toast.error("Failed to send OTP");
     } finally {
@@ -338,7 +338,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
                     <CrossPlatformInput
                       id="login-email"
                       label="Email Address"
-                      type="email"
+                            type="email" 
                       placeholder="Enter your email"
                       icon={<Mail size={18} />}
                       autoComplete="email"
@@ -358,16 +358,16 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
                       onTogglePassword={() => setShowPassword(!showPassword)}
                       error={loginForm.formState.errors.password?.message}
                       {...loginForm.register("password")}
-                    />
+                  />
 
-                    <Button
-                      type="submit"
+                  <Button 
+                    type="submit" 
                       className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
                     >
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
-                  </form>
+                </form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -431,16 +431,16 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
                       onTogglePassword={() => setShowConfirmPassword(!showConfirmPassword)}
                       error={signupForm.formState.errors.confirmPassword?.message}
                       {...signupForm.register("confirmPassword")}
-                    />
+                  />
 
-                    <Button
-                      type="submit"
+                  <Button 
+                    type="submit" 
                       className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
-                    >
+                  >
                       {isLoading ? "Creating account..." : "Create Account"}
-                    </Button>
-                  </form>
+                  </Button>
+                </form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -459,22 +459,22 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
                     <CrossPlatformInput
                       id="phone-number"
                       label="Phone Number"
-                      type="tel"
+                              type="tel"
                       placeholder="Enter your phone number"
                       icon={<Phone size={18} />}
                       autoComplete="tel"
                       error={phoneForm.formState.errors.phoneNumber?.message}
                       {...phoneForm.register("phoneNumber")}
-                    />
+                  />
 
-                    <Button
-                      type="submit"
+                  <Button 
+                    type="submit" 
                       className={`w-full ${platform.isMobile ? 'h-11 text-sm' : 'h-12 text-base'} font-medium bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200`}
                       disabled={isLoading}
-                    >
+                  >
                       {isLoading ? "Sending OTP..." : "Send OTP"}
-                    </Button>
-                  </form>
+                  </Button>
+                </form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -488,7 +488,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
               {" "}and{" "}
               <a href="#" className="text-purple-600 hover:underline">Privacy Policy</a>
             </p>
-          </div>
+              </div>
         </div>
       </DialogContent>
     </Dialog>
