@@ -5,8 +5,8 @@ import { useUserRole } from '@/hooks/use-user-role';
 import UserMenu from './UserMenu';
 import { Button } from '@/components/UI/button';
 import { useThemeContext } from '@/contexts/ThemeContext';
-import { usePlatform } from '@/contexts/PlatformContext';
-import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown, Building2, Globe } from 'lucide-react';
+import useIsMobile from '@/hooks/use-mobile';
+import { Moon, Sun, GraduationCap, Book, Users, Video, MessageCircle, Brain, Compass, Heart, Menu, ShoppingBag, Coffee, Baby, Headphones, ChevronDown, Building2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -20,11 +20,8 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, selectedCollege, setSelectedCollege }) => {
   const { user } = useAuth();
   const { role } = useUserRole();
-  const { theme, resolvedTheme, toggleTheme, isDark, isLight, isSystem } = useThemeContext();
-  const { platform } = usePlatform();
-  
-  // Window width state for responsive behavior
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { theme, toggleTheme } = useThemeContext();
+  const isMobile = useIsMobile();
   
   // Custom dropdown state
   const [isClassDropdownOpen, setIsClassDropdownOpen] = useState(false);
@@ -125,69 +122,133 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
     };
   }, []);
 
-  // Track window resize for responsive behavior
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  // Fetch classes and colleges data
-  const { data: classes = [] } = useQuery({
-    queryKey: ['classes'],
+  // Fetch active classes for Class dropdown
+  const { data: classes = [], isLoading: isLoadingClasses, error: classesError, refetch: refetchClasses } = useQuery({
+    queryKey: ['active-classes'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('classes')
         .select('*')
-        .order('name');
-      
+        .eq('is_active', true)
+        .order('order_index', { ascending: true });
       if (error) throw error;
-      return data || [];
+      console.log('Navbar: Fetched classes:', data); // Debug log
+      return data;
     },
+    retry: 3, // Retry up to 3 times
+    retryDelay: 1000, // Wait 1 second between retries
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
   });
 
-  const { data: colleges = [] } = useQuery({
+  // Fetch colleges for College dropdown
+  const { data: colleges = [], isLoading: isLoadingColleges, error: collegesError, refetch: refetchColleges } = useQuery({
     queryKey: ['colleges'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('colleges')
-        .select('*')
-        .order('name');
-      
-      if (error) throw error;
-      return data || [];
+      console.log('Navbar: Fetching colleges...'); // Debug log
+      try {
+        const { data, error } = await supabase
+          .from('colleges')
+          .select('*')
+          .order('name', { ascending: true });
+        
+        if (error) {
+          console.error('Navbar: Error fetching colleges:', error); // Debug log
+          throw error;
+        }
+        
+        console.log('Navbar: Fetched colleges successfully:', data); // Debug log
+        console.log('Navbar: Colleges count:', data?.length || 0); // Debug log
+        
+        return data || [];
+      } catch (err) {
+        console.error('Navbar: Exception in colleges query:', err); // Debug log
+        throw err;
+      }
     },
+    retry: 3, // Retry up to 3 times
+    retryDelay: 1000, // Wait 1 second between retries
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
-  // Load saved selections from localStorage
+  const selectedClassObj = classes.find(cls => cls.id === selectedClass);
+  const selectedCollegeObj = colleges.find(col => col.id === selectedCollege);
+
+  // Debug log for classes and colleges state
   useEffect(() => {
-    try {
-      const savedClass = localStorage.getItem('selectedClass');
-      const savedCollege = localStorage.getItem('selectedCollege');
-      
-      if (savedClass && setSelectedClass) {
-        setSelectedClass(savedClass);
-      }
-      if (savedCollege && setSelectedCollege) {
-        setSelectedCollege(savedCollege);
-      }
-    } catch (error) {
-      console.log('Failed to load saved selections:', error);
+    console.log('Navbar: Classes state updated:', { classes, selectedClass, selectedClassObj, isLoadingClasses, classesError });
+  }, [classes, selectedClass, selectedClassObj, isLoadingClasses, classesError]);
+
+  useEffect(() => {
+    console.log('Navbar: Colleges state updated:', { 
+      colleges, 
+      selectedCollege, 
+      selectedCollegeObj, 
+      isLoadingColleges, 
+      collegesError,
+      collegesLength: colleges?.length || 0
+    });
+  }, [colleges, selectedCollege, selectedCollegeObj, isLoadingColleges, collegesError]);
+
+  // Auto-refetch classes if there's an error or no data
+  useEffect(() => {
+    if (classesError || (!isLoadingClasses && (!classes || classes.length === 0))) {
+      console.log('Navbar: Attempting to refetch classes due to error or empty data');
+      refetchClasses();
     }
+  }, [classesError, classes, isLoadingClasses, refetchClasses]);
+
+  // Auto-refetch colleges if there's an error or no data
+  useEffect(() => {
+    if (collegesError || (!isLoadingColleges && (!colleges || colleges.length === 0))) {
+      console.log('Navbar: Attempting to refetch colleges due to error or empty data');
+      refetchColleges();
+    }
+  }, [collegesError, colleges, isLoadingColleges, refetchColleges]);
+
+  const handleClassSelect = useCallback((classObj: any) => {
+    if (setSelectedClass) {
+      setSelectedClass(classObj.id);
+      // Auto-deselect college when class is selected
+      if (setSelectedCollege) {
+        setSelectedCollege('');
+      }
+      try {
+        localStorage.setItem('selectedClass', classObj.id);
+        localStorage.removeItem('selectedCollege');
+      } catch {}
+    }
+    setIsClassDropdownOpen(false);
   }, [setSelectedClass, setSelectedCollege]);
+
+  const handleCollegeSelect = useCallback((collegeObj: any) => {
+    if (setSelectedCollege) {
+
+      setSelectedCollege(collegeObj.id);
+      // Auto-deselect class when college is selected
+      if (setSelectedClass) {
+        setSelectedClass('');
+      }
+      try {
+        localStorage.setItem('selectedCollege', collegeObj.id);
+        localStorage.removeItem('selectedClass');
+      } catch {}
+    }
+    setIsCollegeDropdownOpen(false);
+  }, [setSelectedCollege, setSelectedClass]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        classDropdownRef.current && !classDropdownRef.current.contains(event.target as Node) &&
-        collegeDropdownRef.current && !collegeDropdownRef.current.contains(event.target as Node) &&
-        communityDropdownRef.current && !communityDropdownRef.current.contains(event.target as Node) &&
-        resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(event.target as Node)
-      ) {
+      const target = event.target as Node;
+      
+      // Check if click is outside all dropdown containers
+      if (!classDropdownRef.current?.contains(target) && 
+          !collegeDropdownRef.current?.contains(target) &&
+          !communityDropdownRef.current?.contains(target) && 
+          !resourcesDropdownRef.current?.contains(target)) {
         closeAllDropdowns();
       }
     };
@@ -196,144 +257,309 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [closeAllDropdowns]);
 
+  // Close dropdowns when pressing Escape
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        closeAllDropdowns();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [closeAllDropdowns]);
+
   return (
     <>
-      <nav className="bg-white border-b border-gray-200 px-4 py-3 fixed top-0 left-0 right-0 z-50 transition-all duration-300">
-        <div className="flex items-center justify-between">
-          {/* Left side - Logo and main navigation */}
-          <div className="flex items-center space-x-6">
-            {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <GraduationCap className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">LearnVerse</span>
-            </Link>
+      <nav 
+        className="w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/80 shadow-sm fixed top-0 left-0 right-0 z-50"
+      >
+        <div className="mx-auto px-2 sm:px-4 flex items-center justify-between max-w-7xl h-12">
+          {/* Logo - Responsive sizing */}
+          <Link to="/" className="text-lg md:text-2xl font-bold text-learn-purple flex items-center gap-1 md:gap-2 touch-feedback flex-shrink-0">
+            <GraduationCap className="h-5 w-5 md:h-8 md:w-8" />
+            <span className="text-base sm:text-lg md:text-2xl">LearnVerse</span>
+          </Link>
 
-            {/* Desktop Navigation Items - Only show on large screens and non-mobile devices */}
-            {!platform.isMobile && windowWidth > 1024 && (
-              <div className="flex items-center space-x-1">
-                <Link to="/web" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Globe size={18} />
-                  <span>Web</span>
-                </Link>
-                
-                {/* Class Dropdown */}
-                <div 
-                  ref={classDropdownRef}
-                  className="relative"
-                  onMouseEnter={() => handleClassDropdownHover(true)}
-                  onMouseLeave={() => handleClassDropdownHover(false)}
-                >
-                  <button className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                    <Book size={18} />
-                    <span>Class</span>
-                    <ChevronDown size={16} className="transition-transform duration-200" />
+          {/* Desktop Navigation */}
+          {!isMobile && (
+            <div className="hidden md:flex items-center space-x-2">
+              {/* Custom Class Dropdown */}
+              {setSelectedClass && (
+                <div className="relative" ref={classDropdownRef}>
+                  <button
+                    onMouseEnter={() => handleClassDropdownHover(true)}
+                    onMouseLeave={() => handleClassDropdownHover(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                    disabled={isLoadingClasses}
+                  >
+                    {isLoadingClasses ? 'Loading...' : (selectedClassObj ? selectedClassObj.name : 'Class')}
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isClassDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   
                   {isClassDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
-                      {classes.map((cls: any) => (
-                        <button
-                          key={cls.id}
-                          onClick={() => {
-                            setSelectedClass?.(cls.id);
-                            localStorage.setItem('selectedClass', cls.id);
-                            if (setSelectedCollege) {
-                              setSelectedCollege('');
-                              localStorage.removeItem('selectedCollege');
-                            }
-                            setIsClassDropdownOpen(false);
-                          }}
-                          className="w-full text-left px-4 py-2 hover:bg-gray-50 transition text-sm"
-                        >
-                          {cls.name}
-                        </button>
-                      ))}
+                    <div 
+                      className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                      onMouseEnter={() => handleClassDropdownHover(true)}
+                      onMouseLeave={() => handleClassDropdownHover(false)}
+                    >
+                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select Class</span>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              refetchClasses();
+                            }}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            title="Refresh classes"
+                          >
+                            Refresh
+                          </button>
+                        </div>
+                      </div>
+                      <ul className="p-2">
+                        {isLoadingClasses ? (
+                          <li className="p-2 text-center text-muted-foreground">Loading classes...</li>
+                        ) : classesError ? (
+                          <li className="p-2 text-center text-red-500">
+                            <div>Error loading classes</div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                refetchClasses();
+                              }}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                            >
+                              Try again
+                            </button>
+                          </li>
+                        ) : classes && classes.length > 0 ? (
+                          classes.map((cls) => (
+                            <li key={cls.id}>
+                              <button
+                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedClass === cls.id ? 'bg-accent font-bold' : ''}`}
+                                onClick={() => handleClassSelect(cls)}
+                              >
+                                {cls.name}
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-center text-muted-foreground">No classes available</li>
+                        )}
+                      </ul>
                     </div>
                   )}
                 </div>
+              )}
 
-                {/* College Dropdown */}
-                {setSelectedCollege && (
-                  <div 
-                    ref={collegeDropdownRef}
-                    className="relative"
+              {/* Custom College Dropdown */}
+              {setSelectedCollege && (
+                <div className="relative" ref={collegeDropdownRef}>
+                  <button
                     onMouseEnter={() => handleCollegeDropdownHover(true)}
                     onMouseLeave={() => handleCollegeDropdownHover(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                    disabled={isLoadingColleges}
                   >
-                    <button className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                      <Building2 size={18} />
-                      <span>College</span>
-                      <ChevronDown size={16} className="transition-transform duration-200" />
-                    </button>
-                    
-                    {isCollegeDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1 z-50">
-                        {colleges.map((col: any) => (
+                    <Building2 className="h-4 w-4" />
+                    {isLoadingColleges ? 'Loading...' : (selectedCollegeObj ? selectedCollegeObj.name : 'College')}
+                    <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCollegeDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {isCollegeDropdownOpen && (
+                    <div 
+                      className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                      onMouseEnter={() => handleCollegeDropdownHover(true)}
+                      onMouseLeave={() => handleCollegeDropdownHover(false)}
+                    >
+                      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Select College</span>
                           <button
-                            key={col.id}
-                            onClick={() => {
-                              setSelectedCollege(col.id);
-                              localStorage.setItem('selectedCollege', col.id);
-                              if (setSelectedClass) {
-                                setSelectedClass('');
-                                localStorage.removeItem('selectedClass');
-                              }
-                              setIsCollegeDropdownOpen(false);
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              refetchColleges();
                             }}
-                            className="w-full text-left px-4 py-2 hover:bg-gray-50 transition text-sm"
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            title="Refresh colleges"
                           >
-                            {col.name}
+                            Refresh
                           </button>
-                        ))}
+                        </div>
                       </div>
-                    )}
+                      <ul className="p-2">
+                        {isLoadingColleges ? (
+                          <li className="p-2 text-center text-muted-foreground">Loading colleges...</li>
+                        ) : collegesError ? (
+                          <li className="p-2 text-center text-red-500">
+                            <div>Error loading colleges</div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                refetchColleges();
+                              }}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                            >
+                              Try again
+                            </button>
+                          </li>
+                        ) : colleges && colleges.length > 0 ? (
+                          colleges.map((col) => (
+                            <li key={col.id}>
+                              <button
+                                className={`w-full text-left px-4 py-2 rounded hover:bg-accent transition-colors duration-200 ${selectedCollege === col.id ? 'bg-accent font-bold' : ''}`}
+                                onClick={() => handleCollegeSelect(col)}
+                              >
+                                {col.name}
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="p-2 text-center text-muted-foreground">No colleges available</li>
+                        )}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Custom Community Dropdown */}
+              <div className="relative" ref={communityDropdownRef}>
+                <button
+                  onMouseEnter={() => handleCommunityDropdownHover(true)}
+                  onMouseLeave={() => handleCommunityDropdownHover(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                >
+                  Community
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isCommunityDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isCommunityDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                    onMouseEnter={() => handleCommunityDropdownHover(true)}
+                    onMouseLeave={() => handleCommunityDropdownHover(false)}
+                  >
+                    <div className="grid gap-3 p-4 md:grid-cols-2">
+                      <Link
+                        to="/forum"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsCommunityDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <MessageCircle className="h-4 w-4" />
+                          Discussion Forum
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Engage with other learners and share knowledge
+                        </p>
+                      </Link>
+                      <Link
+                        to="/peer-learning"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsCommunityDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Heart className="h-4 w-4" />
+                          Peer Learning
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Study groups and collaborative learning
+                        </p>
+                      </Link>
+                    </div>
                   </div>
                 )}
-
-                <Link to="/community" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Users size={18} />
-                  <span>Community</span>
-                </Link>
-                
-                <Link to="/resources" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Compass size={18} />
-                  <span>Resources</span>
-                </Link>
-                
-                <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <ShoppingBag size={18} />
-                  <span>Stationary</span>
-                </Link>
-                
-                <Link to="/kids" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Baby size={18} />
-                  <span>Kids</span>
-                </Link>
-                <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Headphones size={18} />
-                  <span>Audio</span>
-                </Link>
-                <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
-                  <Coffee size={18} />
-                  <span>Cafes</span>
-                </Link>
               </div>
-            )}
 
-            {/* Mobile Menu Button */}
-            {platform.isMobile && (
-              <button className="lg:hidden p-2 rounded-md hover:bg-accent transition">
-                <Menu size={20} />
-              </button>
-            )}
-          </div>
+              {/* Custom Resources Dropdown */}
+              <div className="relative" ref={resourcesDropdownRef}>
+                <button
+                  onMouseEnter={() => handleResourcesDropdownHover(true)}
+                  onMouseLeave={() => handleResourcesDropdownHover(false)}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                >
+                  Resources
+                  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isResourcesDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isResourcesDropdownOpen && (
+                  <div 
+                    className="absolute top-full left-0 mt-1 w-[400px] bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-[9999]"
+                    onMouseEnter={() => handleResourcesDropdownHover(true)}
+                    onMouseLeave={() => handleResourcesDropdownHover(false)}
+                  >
+                    <div className="grid gap-3 p-4 md:grid-cols-2">
+                      <Link
+                        to="/notes"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Book className="h-4 w-4" />
+                          Notes
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Access and manage your study notes
+                        </p>
+                      </Link>
+                      <Link
+                        to="/personalized"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Brain className="h-4 w-4" />
+                          Personalized Learning
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Your customized learning path
+                        </p>
+                      </Link>
+                      <Link
+                        to="/career-guidance"
+                        className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                        onClick={() => setIsResourcesDropdownOpen(false)}
+                      >
+                        <div className="text-sm font-medium leading-none flex items-center gap-2">
+                          <Compass className="h-4 w-4" />
+                          Career Guidance
+                        </div>
+                        <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                          Explore career paths and get guidance
+                        </p>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Direct Links */}
+              <Link to="/stationary" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <ShoppingBag size={18} />
+                <span>Stationary</span>
+              </Link>
+              <Link to="/kids" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Baby size={18} />
+                <span>Kids</span>
+              </Link>
+              <Link to="/audio" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Headphones size={18} />
+                <span>Audio</span>
+              </Link>
+              <Link to="/cafes" className="flex items-center gap-1 px-3 py-2 rounded-md hover:bg-accent transition">
+                <Coffee size={18} />
+                <span>Cafes</span>
+              </Link>
+            </div>
+          )}
 
           {/* Right side controls - Responsive layout */}
           <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4 flex-shrink-0">
-            {/* Mobile Class/College Selectors - Show for all mobile devices including mobile web */}
-            {(platform.isMobile || windowWidth <= 1024) && setSelectedClass && (
+            {/* Mobile Class/College Selectors */}
+            {isMobile && setSelectedClass && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}
@@ -361,7 +587,7 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
                 ))}
               </select>
             )}
-            {(platform.isMobile || windowWidth <= 1024) && setSelectedCollege && (
+            {isMobile && setSelectedCollege && (
               <select
                 className="rounded border px-1 py-0.5 bg-background text-foreground border-border max-w-[75px] focus:outline-none focus:ring-1 focus:ring-primary h-7"
                 style={{ fontSize: '10px' }}
@@ -390,25 +616,15 @@ const Navbar: React.FC<NavbarProps> = ({ selectedClass, setSelectedClass, select
               </select>
             )}
             
-            {/* Enhanced Theme Toggle Button */}
+            {/* Theme Toggle Button */}
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleTheme}
-              className="touch-feedback transition-all duration-300 hover:scale-110 h-7 w-7 relative"
-              title={`Current theme: ${theme === 'system' ? 'System' : theme} (${resolvedTheme})`}
+              className="touch-feedback transition-all duration-300 hover:scale-110 h-7 w-7"
             >
-              {resolvedTheme === 'dark' ? (
-                <Moon className="h-4 w-4 text-yellow-400" />
-              ) : (
-                <Sun className="h-4 w-4 text-orange-500" />
-              )}
-              {theme === 'system' && (
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border border-background"></div>
-              )}
-              <span className="sr-only">
-                Toggle theme (Current: {theme === 'system' ? 'System' : theme})
-              </span>
+              <Moon className="h-4 w-4" />
+              <span className="sr-only">Toggle theme</span>
             </Button>
             
             {/* User Menu */}

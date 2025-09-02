@@ -137,11 +137,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       }
       setAuthError(null);
       setSuccessMessage(null);
+      setShowOTPDialog(false);
+      setOtp('');
     } catch (error) {
       console.error('Error resetting form:', error);
       // Fallback: manually clear forms
       setAuthError(null);
       setSuccessMessage(null);
+      setShowOTPDialog(false);
+      setOtp('');
     }
   }, [activeTab, loginForm, registerForm, phoneForm]);
 
@@ -174,7 +178,11 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setIsSubmitting(true);
     setAuthError(null);
     setSuccessMessage(null);
+    
     try {
+      // Clear any previous errors
+      loginForm.clearErrors();
+      
       await login(data.email, data.password);
       
       // Show success message and delay closing
@@ -186,7 +194,24 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       }, 1500);
       
     } catch (error: any) {
-      setAuthError(error.message || "Failed to sign in");
+      console.error('Login error:', error);
+      
+      // Set the error message
+      const errorMessage = error.message || "Failed to sign in. Please try again.";
+      setAuthError(errorMessage);
+      
+      // If it's a credential error, focus on the password field
+      if (errorMessage.includes('Invalid email or password')) {
+        loginForm.setError('password', {
+          type: 'manual',
+          message: 'Invalid password'
+        });
+        // Focus on password field for better UX
+        setTimeout(() => {
+          const passwordInput = document.querySelector('input[name="password"]') as HTMLInputElement;
+          if (passwordInput) passwordInput.focus();
+        }, 100);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -197,50 +222,56 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setAuthError(null);
     setSuccessMessage(null);
     
-    try {
-      // Validate form data before submission
-      if (!data.email || !data.password || !data.role) {
-        setAuthError("Please fill in all required fields");
-        return;
-      }
-
-      const response = await signUp(data.email, data.password, {
-        username: data.username || '',
-        full_name: data.fullName || '',
-        role: data.role as UserRole,
-      });
-      
-      // Handle response with proper error checking
-      if (!response) {
-        setAuthError("Registration failed. Please try again.");
-        return;
-      }
-      
-      if (response.error) {
-        setAuthError(response.error);
+          try {
+        // Clear any previous errors
+        registerForm.clearErrors();
         
-        // Don't auto-switch - let user decide what to do
-        // User can manually switch to login if they want
-        return;
-      }
-      
-      // Success case - process referral if provided
-      if (response.user && referralCode) {
-        try {
-          await processReferralSignup(response.user.id);
-        } catch (error) {
-          console.error('Referral processing failed:', error);
-          // Don't fail registration for referral issues
+        const result = await signUp(data.email, data.password, {
+          username: data.username,
+          full_name: data.fullName,
+          role: data.role
+        });
+        
+        if (result?.error) {
+          setAuthError(result.error);
+          
+          // Set specific field errors if available
+          if (result.error.includes('email already exists')) {
+            registerForm.setError('email', {
+              type: 'manual',
+              message: 'An account with this email already exists'
+            });
+          } else if (result.error.includes('Password must be at least')) {
+            registerForm.setError('password', {
+              type: 'manual',
+              message: 'Password must be at least 6 characters'
+            });
+          } else if (result.error.includes('Invalid email')) {
+            registerForm.setError('email', {
+              type: 'manual',
+              message: 'Please enter a valid email address'
+            });
+          }
+          
+          return;
         }
-      }
-      
-      // Show success message and let user choose when to switch
-      setSuccessMessage("Registration successful! You can now sign in.");
-      
-      // Don't auto-switch - let user decide
-      // setTimeout(() => {
-      //   setActiveTab("login");
-      // }, 2000);
+        
+        if (result?.user) {
+          // Show success message
+          setSuccessMessage("Registration successful! Please check your email for verification.");
+          
+          // Process referral if available
+          if (referralCode) {
+            await processReferralSignup(result.user.id);
+          }
+          
+          // Switch to login tab after successful registration
+          setTimeout(() => {
+            setActiveTab("login");
+            setSuccessMessage(null);
+            setAuthError(null);
+          }, 2000);
+        }
       
     } catch (error: any) {
       console.error('Registration error:', error);
@@ -254,9 +285,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setIsSubmitting(true);
     setAuthError(null);
     try {
+      // Clear any previous errors
+      phoneForm.clearErrors();
+      
       let formattedPhone = data.phoneNumber;
       if (!formattedPhone.startsWith('+91')) {
-        formattedPhone = '+91' + formattedPhone.replace(/^\+?91/, '');
+        formattedPhone = '+91' + data.phoneNumber.replace(/^\+?91/, '');
       }
 
       const { error } = await supabase.auth.signInWithOtp({
@@ -272,7 +306,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
         description: "Please check your phone for the verification code.",
       });
     } catch (error: any) {
-      setAuthError(error.message);
+      console.error('Phone OTP error:', error);
+      setAuthError(error.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -280,6 +315,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
   const verifyOTP = async () => {
     setIsSubmitting(true);
+    setAuthError(null);
     try {
       const { error } = await supabase.auth.verifyOtp({
         phone: phoneNumber,
@@ -297,11 +333,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       onOpenChange(false);
 
     } catch (error: any) {
-      toast({
-        title: "Verification Failed",
-        description: error.message,
-        variant: "destructive"
-      });
+      console.error('OTP verification error:', error);
+      setAuthError(error.message || "Verification failed. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -309,6 +342,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
 
   const signInWithGoogle = async () => {
     try {
+      setAuthError(null);
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -318,7 +352,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       
       if (error) throw error;
     } catch (error: any) {
-      setAuthError(error.message);
+      console.error('Google sign-in error:', error);
+      setAuthError(error.message || "Google sign-in failed. Please try again.");
     }
   };
 
@@ -351,8 +386,13 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
             </TabsList>
 
             {authError && (
-              <Alert variant="destructive" className="mt-4">
-                <AlertTitle>{authError}</AlertTitle>
+              <Alert variant="destructive" className="mt-4 border-red-200 bg-red-50 text-red-800">
+                <AlertTitle className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {authError}
+                </AlertTitle>
               </Alert>
             )}
 
@@ -373,7 +413,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="your-email@example.com" type="email" {...field} />
+                          <Input 
+                            placeholder="your-email@example.com" 
+                            type="email" 
+                            name="email"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -387,7 +432,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            name="password"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -401,6 +451,32 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                   >
                     {isSubmitting ? "Signing in..." : "Sign in"}
                   </Button>
+                  
+                  <div className="text-center space-y-2">
+                    <button
+                      type="button"
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => {
+                        toast({
+                          title: "Password Reset",
+                          description: "Please contact support to reset your password.",
+                        });
+                      }}
+                    >
+                      Forgot your password?
+                    </button>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      Don't have an account?{' '}
+                      <button
+                        type="button"
+                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
+                        onClick={() => updateActiveTab("register")}
+                      >
+                        Sign up here
+                      </button>
+                    </div>
+                  </div>
                 </form>
               </Form>
 
@@ -469,7 +545,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                       <FormItem>
                         <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input placeholder="your-email@example.com" type="email" {...field} />
+                          <Input 
+                            placeholder="your-email@example.com" 
+                            type="email" 
+                            name="email"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -518,7 +599,12 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                       <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                          <Input 
+                            type="password" 
+                            placeholder="••••••••" 
+                            name="password"
+                            {...field} 
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -572,6 +658,19 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                   >
                     {isSubmitting ? "Creating account..." : "Create account"}
                   </Button>
+                  
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground">
+                      Already have an account?{' '}
+                      <button
+                        type="button"
+                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
+                        onClick={() => updateActiveTab("login")}
+                      >
+                        Sign in here
+                      </button>
+                    </div>
+                  </div>
                 </form>
               </Form>
 
@@ -657,6 +756,19 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     <Phone className="h-4 w-4" />
                     {isSubmitting ? "Sending OTP..." : "Send OTP"}
                   </Button>
+                  
+                  <div className="text-center">
+                    <div className="text-sm text-muted-foreground">
+                      Prefer email?{' '}
+                      <button
+                        type="button"
+                        className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
+                        onClick={() => updateActiveTab("login")}
+                      >
+                        Sign in with email
+                      </button>
+                    </div>
+                  </div>
                 </form>
               </Form>
             </TabsContent>
@@ -669,6 +781,18 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                 <p className="text-sm text-gray-500">
                   We've sent a code to {phoneNumber}
                 </p>
+                
+                {authError && (
+                  <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+                    <AlertTitle className="flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      {authError}
+                    </AlertTitle>
+                  </Alert>
+                )}
+                
                 <InputOTP
                   value={otp}
                   onChange={(value) => setOtp(value)}
@@ -681,6 +805,22 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                     </InputOTPGroup>
                   )}
                 />
+                
+                <div className="text-center text-sm text-muted-foreground">
+                  Didn't receive the code?{' '}
+                  <button
+                    type="button"
+                    className="text-learn-purple hover:text-purple-700 font-medium transition-colors"
+                    onClick={() => {
+                      setOtp('');
+                      setShowOTPDialog(false);
+                      setActiveTab("phone");
+                    }}
+                  >
+                    Resend OTP
+                  </button>
+                </div>
+                
                 <div className="flex justify-end space-x-2">
                   <Button variant="outline" onClick={() => setShowOTPDialog(false)}>
                     Cancel

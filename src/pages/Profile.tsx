@@ -79,10 +79,10 @@ const Profile = () => {
       <div className="min-h-screen bg-gray-50">
         <div className="text-center py-20">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
-            Please sign in to view your profile
-          </h1>
+              Please sign in to view your profile
+            </h1>
+          </div>
         </div>
-      </div>
     );
   }
 
@@ -262,7 +262,7 @@ const Profile = () => {
         >
           <Settings className="h-6 w-6" />
         </button>
-      </div>
+            </div>
 
       {/* Profile information */}
       <div className="bg-white mx-4 mt-4 rounded-2xl p-6">

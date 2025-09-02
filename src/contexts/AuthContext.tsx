@@ -62,7 +62,24 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        // Handle specific error cases with user-friendly messages
+        let errorMessage = "Login failed. Please try again.";
+        
+        if (error.message.includes('Invalid login credentials')) {
+          errorMessage = "Invalid email or password. Please check your credentials and try again.";
+        } else if (error.message.includes('Email not confirmed')) {
+          errorMessage = "Please check your email and confirm your account before signing in.";
+        } else if (error.message.includes('Too many requests')) {
+          errorMessage = "Too many login attempts. Please wait a moment before trying again.";
+        } else if (error.message.includes('User not found')) {
+          errorMessage = "No account found with this email address. Please sign up instead.";
+        }
+        
+        const authError = new Error(errorMessage);
+        (authError as any).originalMessage = error.message;
+        throw authError;
+      }
 
       if (data.user) {
         toast({
@@ -74,7 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     } catch (err: any) {
       // Special handling for admin account creation on first login
-      if (email === ADMIN_EMAIL && err.message.includes('Invalid login credentials')) {
+      if (email === ADMIN_EMAIL && (err.originalMessage?.includes('Invalid login credentials') || err.message?.includes('Invalid login credentials'))) {
         try {
           // Generate a unique username for admin to avoid conflicts
           const adminUsername = `admin_${Date.now()}`;
@@ -127,11 +144,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           throw createErr;
         }
       } else {
-        toast({
-          title: "Login Failed",
-          description: err.message,
-          variant: "destructive"
-        });
+        // Don't show toast here as the component will handle the error display
         throw err;
       }
     } finally {
