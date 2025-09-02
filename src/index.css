@@ -815,6 +815,18 @@
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     margin: 0 !important;
+    overscroll-behavior: contain !important;
+  }
+
+  /* Ensure dialog content is scrollable */
+  [data-radix-dialog-content] > * {
+    flex-shrink: 0 !important;
+  }
+
+  /* Enhanced scrolling for form content */
+  [data-radix-dialog-content] .space-y-4,
+  [data-radix-dialog-content] form {
+    overflow: visible !important;
   }
 
   /* Universal input styling for all mobile browsers */

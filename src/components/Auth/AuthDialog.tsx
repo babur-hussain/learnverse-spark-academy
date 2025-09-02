@@ -277,7 +277,7 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
         className={`
-          max-w-md w-full mx-auto p-0 gap-0 overflow-hidden
+          max-w-md w-full mx-auto p-0 gap-0 flex flex-col
           ${platform.isAndroid 
             ? 'fixed top-[5vh] left-1/2 transform -translate-x-1/2 max-h-[90vh] w-[95vw]' 
             : 'max-h-[85vh]'
@@ -291,8 +291,8 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
         } : undefined}
       >
-        {/* Header */}
-        <DialogHeader className="p-6 pb-4 space-y-1">
+        {/* Header - Fixed */}
+        <DialogHeader className="flex-shrink-0 p-6 pb-4 space-y-1 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               Welcome to LearnVerse
@@ -311,9 +311,12 @@ export const AuthDialog: React.FC<AuthDialogProps> = ({
           </p>
         </DialogHeader>
 
-        {/* Content */}
-        <div className="px-6 pb-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 pb-6" style={{ 
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'contain'
+        }}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full pt-6">
             <TabsList className="grid w-full grid-cols-3 mb-6">
               <TabsTrigger value="login" className="text-sm">Login</TabsTrigger>
               <TabsTrigger value="signup" className="text-sm">Sign Up</TabsTrigger>
