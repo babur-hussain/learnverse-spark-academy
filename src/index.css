@@ -592,3 +592,59 @@
   transform: translateY(0);
   transition: opacity 300ms ease-out, transform 300ms ease-out;
 }
+
+/* Mobile Web Dialog Fixes - Prevent Autoclosing */
+@media (max-width: 768px) {
+  /* Prevent dialog from closing on scroll */
+  [data-radix-dialog-content] {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent dialog from closing on touch events */
+  [data-radix-dialog-overlay] {
+    touch-action: none;
+  }
+  
+  /* Ensure dialog stays open during form interactions */
+  [data-radix-dialog-content] form {
+    touch-action: manipulation;
+  }
+  
+  /* Prevent unwanted closes on mobile */
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] button,
+  [data-radix-dialog-content] select,
+  [data-radix-dialog-content] textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Better mobile dialog positioning */
+  [data-radix-dialog-content] {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* iOS-specific dialog fixes */
+@supports (-webkit-touch-callout: none) {
+  [data-radix-dialog-content] {
+    /* Prevent iOS Safari from closing dialog on scroll */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Fix iOS input focus issues */
+  [data-radix-dialog-content] input:focus {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  [data-radix-dialog-content] input[type="email"],
+  [data-radix-dialog-content] input[type="password"] {
+    font-size: 16px;
+  }
+}
