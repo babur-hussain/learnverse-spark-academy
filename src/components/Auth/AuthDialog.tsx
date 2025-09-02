@@ -377,108 +377,29 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     onOpenChange(newOpen);
   };
 
-  // Enhanced Android keyboard stability handlers
-  const [isAndroidKeyboardOpen, setIsAndroidKeyboardOpen] = React.useState(false);
-  const inputRefs = React.useRef<Map<string, HTMLInputElement>>(new Map());
-
-  const handleAndroidInputFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+  // Simplified Android keyboard stability handlers
+  const handleAndroidInputInteraction = (e: React.FocusEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
     if (platform.isAndroid) {
-      const target = e.target;
-      setIsAndroidKeyboardOpen(true);
+      const target = e.currentTarget;
       
-      // Store reference to the input
-      inputRefs.current.set(target.name, target);
-      
-      // Prevent any default behavior that might interfere
-      e.preventDefault();
-      e.stopPropagation();
-      
-      // Force focus with multiple attempts
-      const forceFocus = () => {
+      // Ensure the input is focused and keyboard stays open
+      setTimeout(() => {
         if (target && document.activeElement !== target) {
           target.focus();
-          target.click();
         }
-      };
+      }, 50);
       
-      // Multiple focus attempts to ensure stability
-      setTimeout(forceFocus, 0);
-      setTimeout(forceFocus, 50);
-      setTimeout(forceFocus, 100);
-      setTimeout(forceFocus, 200);
-      
-      // Prevent viewport changes
+      // Prevent viewport jumping
       setTimeout(() => {
         if (target) {
           target.scrollIntoView({ 
-            behavior: 'instant', 
-            block: 'nearest',
-            inline: 'nearest'
+            behavior: 'smooth', 
+            block: 'center'
           });
-        }
-      }, 150);
-    }
-  };
-
-  const handleAndroidInputTouch = (e: React.TouchEvent<HTMLInputElement>) => {
-    if (platform.isAndroid) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      const target = e.currentTarget;
-      
-      // Immediate focus
-      target.focus();
-      
-      // Continuous focus maintenance
-      const maintainFocus = () => {
-        if (target && document.activeElement !== target && !target.matches(':focus')) {
-          target.focus();
-        }
-      };
-      
-      setTimeout(maintainFocus, 10);
-      setTimeout(maintainFocus, 50);
-      setTimeout(maintainFocus, 100);
-      setTimeout(maintainFocus, 200);
-    }
-  };
-
-  const handleAndroidInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (platform.isAndroid) {
-      // Delay blur to prevent accidental keyboard closing
-      const target = e.target;
-      setTimeout(() => {
-        // Only allow blur if user has explicitly moved to another input or button
-        const activeElement = document.activeElement;
-        if (!activeElement || (!activeElement.matches('input') && !activeElement.matches('button'))) {
-          target.focus();
-        } else {
-          setIsAndroidKeyboardOpen(false);
         }
       }, 100);
     }
   };
-
-  // Prevent Android keyboard from closing on form interactions
-  React.useEffect(() => {
-    if (platform.isAndroid && isAndroidKeyboardOpen) {
-      const handleVisibilityChange = () => {
-        if (!document.hidden) {
-          // Re-focus the last active input when returning to the page
-          const lastInput = Array.from(inputRefs.current.values()).find(input => 
-            input && input.name && document.querySelector(`input[name="${input.name}"]`)
-          );
-          if (lastInput) {
-            setTimeout(() => lastInput.focus(), 100);
-          }
-        }
-      };
-
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }
-  }, [platform.isAndroid, isAndroidKeyboardOpen]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -577,16 +498,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             name="email"
                             autoComplete="email"
                             inputMode="email"
-                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
-                            onBlur={platform.isAndroid ? handleAndroidInputBlur : undefined}
-                            onTouchStart={platform.isAndroid ? handleAndroidInputTouch : undefined}
-                            onMouseDown={platform.isAndroid ? (e) => e.stopPropagation() : undefined}
-                            style={platform.isAndroid ? { 
-                              fontSize: '16px',
-                              WebkitUserSelect: 'text',
-                              userSelect: 'text',
-                              WebkitTouchCallout: 'default'
+                            onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            readOnly={platform.isAndroid}
+                            onTouchEnd={platform.isAndroid ? (e) => {
+                              const target = e.currentTarget;
+                              target.removeAttribute('readonly');
+                              target.focus();
                             } : undefined}
+                            style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
                           />
                         </FormControl>
@@ -607,16 +527,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             placeholder="••••••••" 
                             name="password"
                             autoComplete="current-password"
-                            onFocus={platform.isAndroid ? handleAndroidInputFocus : undefined}
-                            onBlur={platform.isAndroid ? handleAndroidInputBlur : undefined}
-                            onTouchStart={platform.isAndroid ? handleAndroidInputTouch : undefined}
-                            onMouseDown={platform.isAndroid ? (e) => e.stopPropagation() : undefined}
-                            style={platform.isAndroid ? { 
-                              fontSize: '16px',
-                              WebkitUserSelect: 'text',
-                              userSelect: 'text',
-                              WebkitTouchCallout: 'default'
+                            onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            readOnly={platform.isAndroid}
+                            onTouchEnd={platform.isAndroid ? (e) => {
+                              const target = e.currentTarget;
+                              target.removeAttribute('readonly');
+                              target.focus();
                             } : undefined}
+                            style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
                           />
                         </FormControl>
