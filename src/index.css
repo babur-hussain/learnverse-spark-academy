@@ -784,23 +784,27 @@
   }
 }
 
-/* Targeted Android keyboard fixes - preserving scrolling */
+/* Enhanced Android keyboard fixes - preserving scrolling */
 @media screen and (max-width: 768px) {
-  /* Android dialog positioning without breaking page scrolling */
+  /* Android dialog positioning - stable and keyboard-resistant */
   .android-dialog-fix {
     position: fixed !important;
-    top: 50% !important;
+    top: 10vh !important;
     left: 50% !important;
-    transform: translate(-50%, -50%) !important;
-    width: calc(100vw - 2rem) !important;
-    max-width: calc(100vw - 2rem) !important;
-    max-height: 85vh !important;
+    transform: translateX(-50%) !important;
+    width: calc(100vw - 1rem) !important;
+    max-width: calc(100vw - 1rem) !important;
+    height: 80vh !important;
+    max-height: 80vh !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     z-index: 9999 !important;
+    background: white !important;
+    border-radius: 12px !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
   }
   
-  /* Targeted Android input fixes */
+  /* Enhanced Android input fixes */
   .android-dialog-fix input {
     font-size: 16px !important; /* Prevent zoom */
     -webkit-user-select: text !important;
@@ -808,39 +812,51 @@
     -webkit-tap-highlight-color: transparent !important;
     touch-action: manipulation !important;
     -webkit-appearance: none !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     position: relative !important;
-    z-index: 1 !important;
+    z-index: 10 !important;
+    background: white !important;
+    border: 2px solid #e5e7eb !important;
+    padding: 12px !important;
+    line-height: 1.5 !important;
   }
   
-  /* Android readonly trick to prevent keyboard closing */
-  .android-dialog-fix input[readonly] {
-    background-color: white !important;
-    opacity: 1 !important;
-    cursor: text !important;
-    pointer-events: auto !important;
-  }
-  
-  /* Enhanced input focus for Android */
+  /* Strong input focus state for Android */
   .android-dialog-fix input:focus {
     -webkit-user-select: text !important;
     user-select: text !important;
-    outline: 2px solid #8b5cf6 !important;
-    outline-offset: -2px !important;
+    outline: none !important;
+    border-color: #8b5cf6 !important;
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1) !important;
+    background: white !important;
   }
   
-  /* Prevent dialog overlay interference */
+  /* Prevent dialog overlay from interfering with inputs */
   [data-radix-dialog-overlay] {
-    pointer-events: auto !important;
+    pointer-events: none !important;
     touch-action: none !important;
+    background: rgba(0, 0, 0, 0.8) !important;
   }
   
-  /* Allow input interaction */
+  /* Ensure input interaction works */
   .android-dialog-fix input,
   .android-dialog-fix button,
   .android-dialog-fix form {
     pointer-events: auto !important;
     touch-action: manipulation !important;
+  }
+  
+  /* Prevent form from interfering */
+  .android-dialog-fix form {
+    -webkit-user-select: none !important;
+    user-select: none !important;
+  }
+  
+  /* Allow text selection only in inputs */
+  .android-dialog-fix input {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
   }
 }
 
