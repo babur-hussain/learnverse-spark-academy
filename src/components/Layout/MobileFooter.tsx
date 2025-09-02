@@ -61,18 +61,19 @@ const MobileFooter = () => {
       <Link
         key={item.path}
         to={item.path}
-        className={`flex flex-col items-center gap-0.5 py-1.5 px-3 min-w-[70px] flex-shrink-0 whitespace-nowrap rounded-lg transition-all duration-300 ${
+        className={`flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 w-[70px] min-w-[70px] max-w-[70px] flex-shrink-0 flex-grow-0 whitespace-nowrap rounded-lg transition-all duration-300 ${
           isActive 
             ? 'text-learn-purple dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 scale-105' 
             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-700 dark:hover:text-gray-300'
         }`}
         aria-label={item.label}
+        style={{ flexBasis: '70px' }}
       >
         <item.icon 
-          size={18} 
-          className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'}`} 
+          size={16} 
+          className={`transition-all duration-300 ${isActive ? 'animate-scale-in' : 'group-hover:scale-110'} flex-shrink-0`} 
         />
-        <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''} truncate`}>
+        <span className={`text-[9px] font-medium transition-all duration-300 ${isActive ? 'font-semibold' : ''} truncate text-center leading-tight`}>
           {item.label}
         </span>
       </Link>
@@ -81,8 +82,15 @@ const MobileFooter = () => {
 
   return (
     <footer className={`mobile-footer fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 pt-2 ${getFooterPadding()} shadow-lg safe-area-bottom`}>
-      <div className="w-full overflow-x-auto scrollbar-hide mobile-footer-scrollable">
-        <nav className={`flex items-center px-2 ${getNavGap()}`} style={{ width: `${navItems.length * 70}px` }}>
+      <div className="w-full overflow-x-auto overflow-y-hidden scrollbar-hide mobile-footer-scrollable">
+        <nav 
+          className={`flex items-center px-2 ${getNavGap()} flex-nowrap`} 
+          style={{ 
+            width: `${navItems.length * 75}px`,
+            minWidth: `${navItems.length * 75}px`,
+            height: 'auto'
+          }}
+        >
           {navItems.map((item) => renderNavItem(item))}
         </nav>
       </div>
