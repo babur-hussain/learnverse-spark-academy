@@ -46,7 +46,9 @@ const config: CapacitorConfig = {
       backgroundColor: '#ffffff',
       androidStyle: 'LIGHT',
       iosOverlaysWebView: false,
-      androidOverlaysWebView: false
+      androidOverlaysWebView: false,
+      iosStyle: 'LIGHT',
+      hideStatusBar: true
     }
   }
 };

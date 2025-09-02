@@ -417,6 +417,47 @@ html {
   padding-top: 0 !important;
 }
 
+/* Force status bar area to be hidden */
+.status-bar-area,
+.status-bar,
+[data-status-bar] {
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Force safe area to be 0 */
+:root {
+  --safe-area-inset-top: 0px !important;
+  --status-bar-height: 0px !important;
+}
+
+/* Ensure no padding from status bar */
+body,
+#root,
+.app-header,
+header {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+  top: 0 !important;
+}
+
+/* iOS specific status bar hiding */
+@supports (-webkit-touch-callout: none) {
+  body {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
+  #root {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+}
+
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }

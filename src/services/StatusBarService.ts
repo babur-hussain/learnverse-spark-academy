@@ -31,8 +31,13 @@ class StatusBarService {
         color: isDarkMode ? '#000000' : '#ffffff' 
       });
 
-      // Ensure status bar is hidden initially
-      await StatusBar.hide();
+      // Try to hide status bar completely
+      try {
+        await StatusBar.hide();
+      } catch {
+        // If hiding fails, try setting height to 0
+        await StatusBar.setPadding({ top: 0, left: 0, right: 0, bottom: 0 });
+      }
       
       // Add scroll event listener to prevent status bar from showing
       this.addScrollListener();
@@ -40,11 +45,57 @@ class StatusBarService {
       // Add app state change listener
       this.addAppStateListener();
       
+      // Force viewport adjustments
+      this.adjustViewport();
+      
       this.isConfigured = true;
       console.log('StatusBar configured successfully');
     } catch (error) {
       console.log('StatusBar configuration failed:', error);
+      // Fallback to CSS-only solution
+      this.fallbackCSSSolution();
     }
+  }
+
+  private adjustViewport(): void {
+    // Force viewport adjustments for iOS
+    const viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport) {
+      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no');
+    }
+    
+    // Add CSS variables for status bar height
+    document.documentElement.style.setProperty('--status-bar-height', '0px');
+    document.documentElement.style.setProperty('--safe-area-inset-top', '0px');
+  }
+
+  private fallbackCSSSolution(): void {
+    // CSS-only fallback when StatusBar plugin fails
+    this.adjustViewport();
+    
+    // Add CSS to hide status bar area
+    const style = document.createElement('style');
+    style.textContent = `
+      body { 
+        padding-top: 0 !important; 
+        margin-top: 0 !important; 
+      }
+      #root { 
+        padding-top: 0 !important; 
+        margin-top: 0 !important; 
+      }
+      .app-header { 
+        top: 0 !important; 
+        margin-top: 0 !important; 
+        padding-top: 0 !important; 
+      }
+      .status-bar-area { 
+        height: 0 !important; 
+        min-height: 0 !important; 
+        display: none !important; 
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   private addScrollListener(): void {
