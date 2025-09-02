@@ -9,11 +9,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
-        // Hide status bar completely
-        application.isStatusBarHidden = true
-        
-        // Set status bar style
-        application.statusBarStyle = .lightContent
+        // Hide status bar using modern iOS approach
+        StatusBarManager.shared.hideStatusBar()
         
         return true
     }
@@ -36,22 +33,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
         
         // Ensure status bar stays hidden when app becomes active
-        application.isStatusBarHidden = true
+        StatusBarManager.shared.hideStatusBar()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
     
-    // MARK: - Status Bar Configuration
-    
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
-    
-    override var preferredStatusBarStyle: UIStatusBarStyle {
-        return .lightContent
-    }
+
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         // Called when the app was launched with a url. Feel free to add additional processing here,
