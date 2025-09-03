@@ -378,14 +378,34 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   };
 
   // Simplified Android keyboard stability handlers
-  const handleAndroidInputInteraction = (e: React.FocusEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement>) => {
+  const handleAndroidInputInteraction = (
+    e: React.FocusEvent<HTMLInputElement> | React.TouchEvent<HTMLInputElement> | React.MouseEvent<HTMLInputElement>
+  ) => {
     if (platform.isAndroid) {
-      const target = e.currentTarget;
+      const target = e.currentTarget as HTMLInputElement;
+      // Prevent default scroll/jump on interaction
+      // @ts-ignore - TouchEvent may have preventDefault available
+      if (typeof (e as any).preventDefault === 'function') {
+        (e as any).preventDefault();
+      }
       
       // Ensure the input is focused and keyboard stays open
       setTimeout(() => {
         if (target && document.activeElement !== target) {
-          target.focus();
+          try {
+            // Remove readonly if present (readonly-touch trick)
+            if (target.hasAttribute('readonly')) {
+              target.removeAttribute('readonly');
+            }
+            // Use preventScroll to reduce viewport jumping
+            // @ts-ignore
+            target.focus({ preventScroll: true });
+            // Place caret at end
+            const len = target.value?.length ?? 0;
+            target.setSelectionRange(len, len);
+          } catch {
+            target.focus();
+          }
         }
       }, 50);
       
@@ -405,6 +425,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
         className={`${getDialogSize()} max-h-[90vh] overflow-y-auto android-dialog-fix`}
+        onOpenAutoFocus={(e) => {
+          // Prevent auto-focusing inputs on Android which can trigger keyboard bounce
+          if (platform.isAndroid) {
+            e.preventDefault();
+          }
+        }}
+        onCloseAutoFocus={(e) => {
+          if (platform.isAndroid) {
+            e.preventDefault();
+          }
+        }}
         onPointerDownOutside={(e) => {
           // Prevent closing on Android when clicking outside during form interaction
           if (platform.isAndroid) {
@@ -663,11 +694,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             inputMode="email"
                             onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                             onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            onClick={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                             readOnly={platform.isAndroid}
                             onTouchEnd={platform.isAndroid ? (e) => {
                               const target = e.currentTarget as HTMLInputElement;
                               target.removeAttribute('readonly');
-                              target.focus();
+                              try {
+                                // @ts-ignore
+                                target.focus({ preventScroll: true });
+                              } catch {
+                                target.focus();
+                              }
                             } : undefined}
                             style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
@@ -691,11 +728,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                               autoComplete="username"
                               onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                              onClick={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               readOnly={platform.isAndroid}
                               onTouchEnd={platform.isAndroid ? (e) => {
                                 const target = e.currentTarget as HTMLInputElement;
                                 target.removeAttribute('readonly');
-                                target.focus();
+                                try {
+                                  // @ts-ignore
+                                  target.focus({ preventScroll: true });
+                                } catch {
+                                  target.focus();
+                                }
                               } : undefined}
                               style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                               {...field} 
@@ -718,11 +761,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                               autoComplete="name"
                               onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                              onClick={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               readOnly={platform.isAndroid}
                               onTouchEnd={platform.isAndroid ? (e) => {
                                 const target = e.currentTarget as HTMLInputElement;
                                 target.removeAttribute('readonly');
-                                target.focus();
+                                try {
+                                  // @ts-ignore
+                                  target.focus({ preventScroll: true });
+                                } catch {
+                                  target.focus();
+                                }
                               } : undefined}
                               style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                               {...field} 
@@ -753,11 +802,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                             autoComplete="new-password"
                             onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                             onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                            onClick={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                             readOnly={platform.isAndroid}
                             onTouchEnd={platform.isAndroid ? (e) => {
                               const target = e.currentTarget as HTMLInputElement;
                               target.removeAttribute('readonly');
-                              target.focus();
+                              try {
+                                // @ts-ignore
+                                target.focus({ preventScroll: true });
+                              } catch {
+                                target.focus();
+                              }
                             } : undefined}
                             style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                             {...field} 
@@ -908,11 +963,17 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                               inputMode="numeric"
                               onFocus={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               onTouchStart={platform.isAndroid ? handleAndroidInputInteraction : undefined}
+                              onClick={platform.isAndroid ? handleAndroidInputInteraction : undefined}
                               readOnly={platform.isAndroid}
                               onTouchEnd={platform.isAndroid ? (e) => {
                                 const target = e.currentTarget as HTMLInputElement;
                                 target.removeAttribute('readonly');
-                                target.focus();
+                                try {
+                                  // @ts-ignore
+                                  target.focus({ preventScroll: true });
+                                } catch {
+                                  target.focus();
+                                }
                               } : undefined}
                               style={platform.isAndroid ? { fontSize: '16px' } : undefined}
                               {...field}

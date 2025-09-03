@@ -711,7 +711,7 @@
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%) !important;
-    max-height: calc(100vh - 2rem) !important;
+    max-height: calc(100dvh - 2rem) !important; /* dynamic viewport for keyboard */
     max-width: calc(100vw - 2rem) !important;
     margin: 0 !important;
     overflow-y: auto !important;
@@ -794,7 +794,7 @@
     transform: translate(-50%, -50%) !important;
     width: calc(100vw - 2rem) !important;
     max-width: calc(100vw - 2rem) !important;
-    max-height: 85vh !important;
+    max-height: 85dvh !important; /* dynamic viewport */
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
     z-index: 9999 !important;
