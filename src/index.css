@@ -1,0 +1,954 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme colors */
+    --background: 0 0% 100%;
+    --foreground: 224 71.4% 4.1%;
+    --card: 0 0% 100%;
+    --card-foreground: 224 71.4% 4.1%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 224 71.4% 4.1%;
+    --primary: 262.1 83.3% 57.8%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 220 14.3% 95.9%;
+    --secondary-foreground: 220.9 39.3% 11%;
+    --muted: 220 14.3% 95.9%;
+    --muted-foreground: 220 8.9% 46.1%;
+    --accent: 220 14.3% 95.9%;
+    --accent-foreground: 220.9 39.3% 11%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 262.1 83.3% 57.8%;
+    --radius: 0.75rem;
+    --safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --learn-purple: 262.1 83.3% 57.8%;
+    
+    /* Additional light theme colors */
+    --surface: 0 0% 100%;
+    --surface-foreground: 224 71.4% 4.1%;
+    --surface-hover: 220 14.3% 95.9%;
+    --surface-active: 220 14.3% 90%;
+    --text-primary: 224 71.4% 4.1%;
+    --text-secondary: 220 8.9% 46.1%;
+    --text-muted: 220 8.9% 46.1%;
+    --text-inverse: 210 20% 98%;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    /* Dark theme colors */
+    --background: 224 71.4% 4.1%;
+    --foreground: 210 20% 98%;
+    --card: 224 71.4% 4.1%;
+    --card-foreground: 210 20% 98%;
+    --popover: 224 71.4% 4.1%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 263.4 70% 50.4%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 215 27.9% 16.9%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 215 27.9% 16.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
+    --accent: 215 27.9% 16.9%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 215 27.9% 16.9%;
+    --input: 215 27.9% 16.9%;
+    --ring: 263.4 70% 50.4%;
+    
+    /* Additional dark theme colors */
+    --surface: 224 71.4% 4.1%;
+    --surface-foreground: 210 20% 98%;
+    --surface-hover: 215 27.9% 16.9%;
+    --surface-active: 215 27.9% 22%;
+    --text-primary: 210 20% 98%;
+    --text-secondary: 217.9 10.6% 64.9%;
+    --text-muted: 217.9 10.6% 64.9%;
+    --text-inverse: 224 71.4% 4.1%;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+  }
+
+  /* System theme detection */
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) {
+      --background: 224 71.4% 4.1%;
+      --foreground: 210 20% 98%;
+      --card: 224 71.4% 4.1%;
+      --card-foreground: 210 20% 98%;
+      --popover: 224 71.4% 4.1%;
+      --popover-foreground: 210 20% 98%;
+      --primary: 263.4 70% 50.4%;
+      --primary-foreground: 210 20% 98%;
+      --secondary: 215 27.9% 16.9%;
+      --secondary-foreground: 210 20% 98%;
+      --muted: 215 27.9% 16.9%;
+      --muted-foreground: 217.9 10.6% 64.9%;
+      --accent: 215 27.9% 16.9%;
+      --accent-foreground: 210 20% 98%;
+      --destructive: 0 62.8% 30.6%;
+      --destructive-foreground: 210 20% 98%;
+      --border: 215 27.9% 16.9%;
+      --input: 215 27.9% 16.9%;
+      --ring: 263.4 70% 50.4%;
+      
+      --surface: 224 71.4% 4.1%;
+      --surface-foreground: 210 20% 98%;
+      --surface-hover: 215 27.9% 16.9%;
+      --surface-active: 215 27.9% 22%;
+      --text-primary: 210 20% 98%;
+      --text-secondary: 217.9 10.6% 64.9%;
+      --text-muted: 217.9 10.6% 64.9%;
+      --text-inverse: 224 71.4% 4.1%;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Smooth theme transitions */
+  html {
+    transition: color-scheme 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+  }
+
+  html,
+  body {
+    @apply bg-background text-foreground font-sans;
+    width: 100%;
+    overflow-x: hidden;
+    scroll-behavior: auto;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Enhanced dark mode styles */
+  .dark {
+    color-scheme: dark;
+  }
+  
+  .light {
+    color-scheme: light;
+  }
+  
+  /* Dark mode specific enhancements */
+  .dark body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  .dark nav {
+    background-color: hsl(var(--surface));
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  .dark .bg-white {
+    background-color: hsl(var(--card));
+  }
+  
+  .dark .text-gray-900 {
+    color: hsl(var(--text-primary));
+  }
+  
+  .dark .text-gray-600 {
+    color: hsl(var(--text-secondary));
+  }
+  
+  .dark .text-gray-500 {
+    color: hsl(var(--text-muted));
+  }
+  
+  .dark .border-gray-200 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .border-gray-100 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .divide-gray-100 {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark .hover\:bg-gray-50:hover {
+    background-color: hsl(var(--surface-hover));
+  }
+  
+  .dark .bg-gray-50 {
+    background-color: hsl(var(--surface));
+  }
+  
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .mobile {
+    font-size: 16px;
+  }
+
+  .text-learn-purple {
+    color: hsl(var(--learn-purple));
+  }
+
+  /* Mobile Web and Tablet Styles */
+  @media (max-width: 1024px) {
+    /* Remove the body scrollbar indicators that interfere with mobile footer */
+    body::before,
+    body::after {
+      display: none;
+    }
+
+    /* Ensure mobile footer is properly positioned */
+    .mobile-footer {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 50 !important;
+    }
+
+    /* Ensure main content has proper spacing */
+    .main-content {
+      min-height: calc(100vh - 8rem);
+    }
+  }
+
+  /* Mobile-specific styles (phones) */
+  @media (max-width: 768px) {
+    /* Mobile footer positioning */
+    .mobile-footer {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 50 !important;
+      height: auto !important;
+    }
+
+    /* Main content spacing for mobile */
+    .main-content {
+      min-height: calc(100vh - 10rem);
+      padding-bottom: 6rem !important;
+    }
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+  }
+  
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .btn-outline {
+    @apply border border-input hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .btn-ghost {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  
+  .btn-link {
+    @apply underline-offset-4 hover:underline text-primary;
+  }
+  
+  .btn-sm {
+    @apply h-9 px-3 rounded-md;
+  }
+  
+  .btn-md {
+    @apply h-10 py-2 px-4;
+  }
+  
+  .btn-lg {
+    @apply h-11 px-8 rounded-md;
+  }
+  
+  .btn-icon {
+    @apply h-10 w-10;
+  }
+  
+  .card {
+    @apply rounded-lg border bg-card text-card-foreground shadow-sm;
+  }
+  
+  .card-header {
+    @apply flex flex-col space-y-1.5 p-6;
+  }
+  
+  .card-title {
+    @apply text-2xl font-semibold leading-none tracking-tight;
+  }
+  
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+  
+  .card-content {
+    @apply p-6 pt-0;
+  }
+  
+  .card-footer {
+    @apply flex items-center p-6 pt-0;
+  }
+  
+  .input {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  
+  .label {
+    @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+  
+  .badge {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+  }
+  
+  .badge-default {
+    @apply border-transparent bg-primary text-primary-foreground hover:bg-primary/80;
+  }
+  
+  .badge-secondary {
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+  
+  .badge-destructive {
+    @apply border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80;
+  }
+  
+  .badge-outline {
+    @apply text-foreground;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mobile footer scrollable section */
+  .mobile-footer-scrollable {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+    overflow-y: hidden !important;
+    height: auto !important;
+  }
+  
+  /* Scroll snap for mobile footer items */
+  .mobile-footer-scrollable nav > * {
+    scroll-snap-align: start;
+  }
+  
+  /* Ensure mobile footer stays single line */
+  .mobile-footer-scrollable nav {
+    flex-wrap: nowrap !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    height: auto !important;
+    min-height: 60px !important;
+    max-height: 70px !important;
+  }
+  
+  /* Prevent navigation items from wrapping */
+  .mobile-footer nav a {
+    flex-shrink: 0 !important;
+    flex-grow: 0 !important;
+    width: 70px !important;
+    min-width: 70px !important;
+    max-width: 70px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: nowrap !important;
+  }
+  
+  /* Fade effects for scrollable mobile footer */
+  .mobile-footer-scrollable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, rgba(255,255,255,0.95), transparent);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  .mobile-footer-scrollable::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(255,255,255,0.95), transparent);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  /* Dark mode fade effects */
+  .dark .mobile-footer-scrollable::before {
+    background: linear-gradient(to right, rgba(17,24,39,0.95), transparent);
+  }
+  
+  .dark .mobile-footer-scrollable::after {
+    background: linear-gradient(to left, rgba(17,24,39,0.95), transparent);
+  }
+  
+  /* Show fade effects when scrollable */
+  .mobile-footer-scrollable:hover::before,
+  .mobile-footer-scrollable:hover::after {
+    opacity: 1;
+  }
+  
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+  
+  .line-clamp-5 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+  
+  .line-clamp-6 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+  }
+}
+
+/* iOS and Safari-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix iOS Safari viewport height issues */
+  html, body {
+    height: 100%;
+    height: -webkit-fill-available;
+  }
+  
+  /* Mobile footer safe area handling */
+  .mobile-footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 50 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+  
+  /* Dark mode mobile footer */
+  .dark .mobile-footer {
+    background: rgba(17, 24, 39, 0.95) !important;
+  }
+  
+  /* Main content adjustments for iOS */
+  .main-content {
+    min-height: calc(100vh - env(safe-area-inset-top, 0px) - 12rem) !important;
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  
+  /* Remove problematic pseudo-elements */
+  .main-content::before,
+  .main-content::after {
+    display: none !important;
+  }
+  
+  /* Navigation safe area handling */
+  nav {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* Additional mobile Safari fixes */
+@media screen and (max-width: 768px) {
+  /* Fix Safari mobile viewport */
+  .min-h-screen {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Ensure mobile footer stays at bottom */
+  .mobile-footer {
+    transform: translateZ(0); /* Force hardware acceleration */
+    -webkit-transform: translateZ(0);
+  }
+  
+  /* Fix scrolling issues */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+}
+
+/* Safe area utility classes */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Smooth Auth Dialog Animations */
+.auth-dialog-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.auth-dialog-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+.auth-dialog-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.auth-dialog-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 150ms ease-in, transform 150ms ease-in;
+}
+
+/* Prevent dialog blinking */
+[data-radix-dialog-content] {
+  animation: none !important;
+}
+
+/* Smooth form transitions */
+.form-field-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.form-field-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 200ms ease-out, transform 200ms ease-out;
+}
+
+/* Loading states */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Success message animations */
+.success-message-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.success-message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Error message animations */
+.error-message-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.error-message-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms ease-out, transform 300ms ease-out;
+}
+
+/* Mobile Web Dialog Fixes - Prevent Autoclosing */
+@media (max-width: 768px) {
+  /* Prevent dialog from closing on scroll */
+  [data-radix-dialog-content] {
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent dialog from closing on touch events */
+  [data-radix-dialog-overlay] {
+    touch-action: none;
+  }
+  
+  /* Ensure dialog stays open during form interactions */
+  [data-radix-dialog-content] form {
+    touch-action: manipulation;
+  }
+  
+  /* Prevent unwanted closes on mobile */
+  [data-radix-dialog-content] input,
+  [data-radix-dialog-content] button,
+  [data-radix-dialog-content] select,
+  [data-radix-dialog-content] textarea {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Better mobile dialog positioning */
+  [data-radix-dialog-content] {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    max-width: calc(100vw - 2rem);
+  }
+}
+
+/* iOS-specific dialog fixes */
+@supports (-webkit-touch-callout: none) {
+  [data-radix-dialog-content] {
+    /* Prevent iOS Safari from closing dialog on scroll */
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Fix iOS input focus issues */
+  [data-radix-dialog-content] input:focus {
+    -webkit-appearance: none;
+    border-radius: 0;
+  }
+  
+  /* Prevent iOS zoom on input focus */
+  [data-radix-dialog-content] input[type="email"],
+  [data-radix-dialog-content] input[type="password"] {
+    font-size: 16px;
+  }
+}
+
+/* Android-specific dialog fixes */
+@media screen and (max-width: 768px) {
+  /* Android dialog container fixes */
+  .android-dialog-fix {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: calc(100vh - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  /* Prevent Android dialog from closing on touch */
+  [data-radix-dialog-overlay] {
+    pointer-events: none !important;
+  }
+  
+  .android-dialog-fix {
+    pointer-events: auto !important;
+  }
+  
+  /* Enhanced Android keyboard handling */
+  .android-dialog-fix input {
+    font-size: 16px !important; /* Prevent zoom on Android */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+    -webkit-appearance: none !important;
+    border-radius: 4px !important;
+    background-color: white !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Prevent input focus from triggering viewport changes */
+  .android-dialog-fix input:focus {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    outline: none !important;
+    border: 2px solid #8b5cf6 !important;
+    background-color: white !important;
+    transform: none !important;
+    transition: border-color 0.2s ease !important;
+  }
+  
+  /* Android form interaction fixes */
+  .android-dialog-fix form {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  .android-dialog-fix button {
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent !important;
+    font-size: 16px !important;
+  }
+  
+  /* Prevent Android viewport changes from affecting dialog */
+  .android-dialog-fix {
+    height: auto !important;
+    min-height: auto !important;
+    contain: layout style paint !important;
+  }
+  
+  /* Android keyboard overlay fixes */
+  @media screen and (max-height: 500px) {
+    .android-dialog-fix {
+      max-height: 90vh !important;
+      top: 5vh !important;
+      transform: translateX(-50%) !important;
+    }
+  }
+}
+
+/* Targeted Android keyboard fixes - preserving scrolling */
+@media screen and (max-width: 768px) {
+  /* Android dialog positioning without breaking page scrolling */
+  .android-dialog-fix {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100vw - 2rem) !important;
+    max-width: calc(100vw - 2rem) !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Targeted Android input fixes */
+  .android-dialog-fix input {
+    font-size: 16px !important; /* Prevent zoom */
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-tap-highlight-color: transparent !important;
+    touch-action: manipulation !important;
+    -webkit-appearance: none !important;
+    border-radius: 6px !important;
+    position: relative !important;
+    z-index: 1 !important;
+  }
+  
+  /* Android readonly trick to prevent keyboard closing */
+  .android-dialog-fix input[readonly] {
+    background-color: white !important;
+    opacity: 1 !important;
+    cursor: text !important;
+    pointer-events: auto !important;
+  }
+  
+  /* Enhanced input focus for Android */
+  .android-dialog-fix input:focus {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    outline: 2px solid #8b5cf6 !important;
+    outline-offset: -2px !important;
+  }
+  
+  /* Prevent dialog overlay interference */
+  [data-radix-dialog-overlay] {
+    pointer-events: auto !important;
+    touch-action: none !important;
+  }
+  
+  /* Allow input interaction */
+  .android-dialog-fix input,
+  .android-dialog-fix button,
+  .android-dialog-fix form {
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
+  }
+}
+
+/* Android Chrome specific minimal fixes */
+@supports (-webkit-touch-callout: none) {
+  @media screen and (max-width: 768px) {
+    /* Minimal viewport fixes */
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Input-specific fixes */
+    .android-dialog-fix input {
+      -webkit-touch-callout: default !important;
+      -webkit-user-select: text !important;
+    }
+  }
+}
+
+/* Specific Android browser detection and fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  /* Chrome on Android */
+  .android-dialog-fix [data-radix-dialog-content] {
+    overscroll-behavior-y: contain !important;
+    overflow-anchor: none !important;
+  }
+  
+  /* Prevent accidental dialog closes on Android */
+  [data-radix-dialog-overlay] {
+    background: rgba(0, 0, 0, 0.8) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+}
+
+/* Android Content Alignment Fixes */
+@media screen and (max-width: 768px) {
+  /* Fix Android content shifting right */
+  .main-content {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+  
+  /* Ensure all child elements are properly aligned */
+  .main-content > * {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Fix container alignment issues */
+  .container {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  
+  /* Prevent any transforms that might cause shifting */
+  .main-content,
+  .main-content * {
+    -webkit-transform: none !important;
+    transform: none !important;
+  }
+}
+
+/* Android-specific body and html fixes */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 1) {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    overflow-x: hidden !important;
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+  }
+  
+  /* Prevent content from shifting due to viewport issues */
+  body {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+  }
+  
+  /* Fix flexbox and grid layouts on Android */
+  .flex {
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+  
+  .flex-col {
+    flex-direction: column !important;
+  }
+  
+  .grid {
+    display: grid !important;
+    width: 100% !important;
+  }
+}

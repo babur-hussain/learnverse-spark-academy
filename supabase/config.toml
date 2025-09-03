@@ -1,0 +1,28 @@
+
+project_id = "wdmzylggisbudnddcpfw"
+
+# TEMPORARILY COMMENTED OUT: DeepSeek API integration
+# NEW: This function now uses Google Gemini API
+[functions.gemini-ai]
+verify_jwt = false
+
+[functions.career-guidance]
+verify_jwt = true
+
+[functions.grade-answer]
+verify_jwt = true
+
+[functions.create-razorpay-order]
+verify_jwt = true
+
+[functions.verify-razorpay-payment]
+verify_jwt = true
+
+[functions.send-newsletter]
+verify_jwt = true
+
+[functions.check-live-access]
+verify_jwt = true
+
+[functions.increment-coupon-usage]
+verify_jwt = true
