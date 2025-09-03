@@ -799,6 +799,14 @@
     -webkit-overflow-scrolling: touch !important;
     z-index: 9999 !important;
   }
+
+  /* When keyboard is open, avoid transform centering to reduce bounce */
+  .android-keyboard-open.android-dialog-fix {
+    top: 5% !important;
+    transform: translate(-50%, 0) !important;
+    max-height: calc(var(--vvh, 100dvh) - 1rem) !important;
+    padding-bottom: 16px !important;
+  }
   
   /* Targeted Android input fixes */
   .android-dialog-fix input {

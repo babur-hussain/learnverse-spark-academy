@@ -14,11 +14,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/UI/avatar';
 import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen, HardDrive } from 'lucide-react';
 import AuthDialog from '@/components/Auth/AuthDialog';
+import { usePlatform } from '@/contexts/PlatformContext';
 import { Button } from '@/components/UI/button';
 import { Capacitor } from '@capacitor/core';
 
 const UserMenu = () => {
   const { user, logout } = useAuth();
+  const { platform } = usePlatform();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const navigate = useNavigate();
   
@@ -173,24 +175,36 @@ const UserMenu = () => {
   };
 
   // Separate component for unauthenticated users
-  const UnauthenticatedView = () => (
-    <>
-      <Button 
-        onClick={() => setAuthDialogOpen(true)} 
-        className="gradient-primary px-1.5 py-0.5 h-6"
-        size="sm"
-        style={{ fontSize: '10px' }}
-      >
-        <User className="h-2.5 w-2.5 mr-0.5" />
-        <span>Sign</span>
-      </Button>
-      
-      <AuthDialog 
-        open={authDialogOpen}
-        onOpenChange={setAuthDialogOpen}
-      />
-    </>
-  );
+  const UnauthenticatedView = () => {
+    const handleSignClick = () => {
+      // Simple, robust approach: on Android web, go to standalone auth page instead of modal
+      if (platform.isAndroid && platform.isWeb) {
+        navigate('/auth');
+        return;
+      }
+      setAuthDialogOpen(true);
+    };
+
+    return (
+      <>
+        <Button 
+          onClick={handleSignClick} 
+          className="gradient-primary px-1.5 py-0.5 h-6"
+          size="sm"
+          style={{ fontSize: '10px' }}
+        >
+          <User className="h-2.5 w-2.5 mr-0.5" />
+          <span>Sign</span>
+        </Button>
+        
+        {/* Keep modal for non-Android web */}
+        <AuthDialog 
+          open={authDialogOpen}
+          onOpenChange={setAuthDialogOpen}
+        />
+      </>
+    );
+  };
 
   // Render either authenticated or unauthenticated view
   return (

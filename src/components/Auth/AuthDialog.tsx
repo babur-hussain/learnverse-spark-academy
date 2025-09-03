@@ -99,6 +99,8 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const { toast } = useToast();
+  const dialogContentRef = React.useRef<HTMLDivElement>(null);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -148,6 +150,39 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
       setOtp('');
     }
   }, [activeTab, loginForm, registerForm, phoneForm]);
+
+  // Android: detect keyboard using visualViewport and adjust dialog layout
+  useEffect(() => {
+    if (!platform.isAndroid || !open) return;
+    const vv = (window as any).visualViewport as VisualViewport | undefined;
+
+    const handleResize = () => {
+      const viewportHeight = vv ? vv.height : window.innerHeight;
+      const keyboardVisible = window.innerHeight - viewportHeight > 120;
+      setIsKeyboardOpen(keyboardVisible);
+      const el = dialogContentRef.current;
+      if (!el) return;
+      if (keyboardVisible) {
+        el.classList.add('android-keyboard-open');
+        el.style.setProperty('--vvh', `${viewportHeight}px`);
+        el.style.setProperty('scroll-padding-bottom', '200px');
+      } else {
+        el.classList.remove('android-keyboard-open');
+        el.style.removeProperty('--vvh');
+        el.style.removeProperty('scroll-padding-bottom');
+      }
+    };
+
+    handleResize();
+    if (vv) {
+      vv.addEventListener('resize', handleResize);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => {
+      if (vv) vv.removeEventListener('resize', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [platform.isAndroid, open]);
 
   const processReferralSignup = async (newUserId: string) => {
     if (!referralCode) return;
@@ -424,6 +459,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
+        ref={dialogContentRef}
         className={`${getDialogSize()} max-h-[90vh] overflow-y-auto android-dialog-fix`}
         onOpenAutoFocus={(e) => {
           // Prevent auto-focusing inputs on Android which can trigger keyboard bounce
