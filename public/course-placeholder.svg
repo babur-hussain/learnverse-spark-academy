@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" fill="none" viewBox="0 0 400 300">
+  <!-- Background -->
+  <rect width="400" height="300" fill="url(#gradient)" rx="8"/>
+  
+  <!-- Book icon -->
+  <g transform="translate(150, 100)">
+    <!-- Book base -->
+    <rect x="0" y="0" width="100" height="80" rx="4" fill="#E0E7FF" stroke="#6366F1" stroke-width="2"/>
+    
+    <!-- Book pages -->
+    <rect x="2" y="2" width="96" height="76" rx="2" fill="#F8FAFC"/>
+    
+    <!-- Book spine -->
+    <rect x="0" y="0" width="8" height="80" rx="2" fill="#6366F1"/>
+    
+    <!-- Text lines -->
+    <rect x="15" y="15" width="70" height="2" rx="1" fill="#CBD5E1"/>
+    <rect x="15" y="25" width="60" height="2" rx="1" fill="#CBD5E1"/>
+    <rect x="15" y="35" width="65" height="2" rx="1" fill="#CBD5E1"/>
+    <rect x="15" y="45" width="55" height="2" rx="1" fill="#CBD5E1"/>
+    <rect x="15" y="55" width="70" height="2" rx="1" fill="#CBD5E1"/>
+    <rect x="15" y="65" width="45" height="2" rx="1" fill="#CBD5E1"/>
+  </g>
+  
+  <!-- Course label -->
+  <text x="200" y="220" text-anchor="middle" fill="#6366F1" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="600">COURSE</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="50" cy="50" r="3" fill="#A5B4FC" opacity="0.6"/>
+  <circle cx="350" cy="80" r="2" fill="#A5B4FC" opacity="0.4"/>
+  <circle cx="80" cy="250" r="2" fill="#A5B4FC" opacity="0.5"/>
+  <circle cx="320" cy="220" r="3" fill="#A5B4FC" opacity="0.3"/>
+  
+  <!-- Gradient definitions -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#EEF2FF"/>
+      <stop offset="100%" stop-color="#E0E7FF"/>
+    </linearGradient>
+  </defs>
+</svg>
