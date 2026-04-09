@@ -36,7 +36,7 @@ export default function RootLayout() {
       const isGuest = await AsyncStorage.getItem('guestMode') === 'true';
 
       // Enforce authentication routing securely using either standard auth or our custom bypass flag
-      if (!user && !isGuest && (inTabsGroup || segments.length === 0)) {
+      if (!user && !isGuest && (inTabsGroup || (segments.length as number) === 0)) {
         router.replace('/login');
       } else if ((user || isGuest) && !inTabsGroup) {
         router.replace('/(tabs)');

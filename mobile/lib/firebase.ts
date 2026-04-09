@@ -1,5 +1,6 @@
 import { initializeApp, getApp, getApps } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence, getAuth } from 'firebase/auth';
+// @ts-ignore - getReactNativePersistence exists at runtime in firebase/auth/react-native
+import { initializeAuth, getReactNativePersistence, getAuth, Auth } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -16,7 +17,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Auth with React Native persistence to keep users signed in
-let auth;
+let auth: Auth;
 try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage)

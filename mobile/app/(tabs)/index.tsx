@@ -1,96 +1,87 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image as RNImage, Dimensions, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import api from '../../lib/api';
-import { auth } from '../../lib/firebase';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 
-const { width } = Dimensions.get('window');
+// Home sections
+import HeroBanner from '@/components/home/HeroBanner';
+import ClassSubjectsGrid from '@/components/home/ClassSubjectsGrid';
+import FeaturedCategories from '@/components/home/FeaturedCategories';
+import TrendingCourses from '@/components/home/TrendingCourses';
+import FeaturedSubjects from '@/components/home/FeaturedSubjects';
+import FeaturedCourses from '@/components/home/FeaturedCourses';
+import GoalsSection from '@/components/home/GoalsSection';
+import MyLearnings from '@/components/home/MyLearnings';
+import KidsSection from '@/components/home/KidsSection';
+import TestimonialsCarousel from '@/components/home/TestimonialsCarousel';
+import LearningStats from '@/components/home/LearningStats';
+import NewsletterSection from '@/components/home/NewsletterSection';
 
-interface Course {
-  id: string;
-  title: string;
-  short_description?: string;
-  thumbnail_url?: string;
-  price?: number;
-}
+import { Palette, BorderRadius, Typography, Spacing } from '@/constants/theme';
 
 export default function HomeScreen() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+  const [key, setKey] = React.useState(0);
 
-  const router = useRouter();
-
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const response = await api.get('/admin/courses');
-        setCourses(response.data.data || response.data || []); 
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    setKey(prev => prev + 1); // Force re-render of all sections
+    setTimeout(() => setRefreshing(false), 1500);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await signOut(auth);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const renderCourse = ({ item }: { item: Course }) => (
-    <TouchableOpacity 
-      style={styles.courseCard}
-      onPress={() => router.push(`/course/${item.id}` as any)}
-    >
-      <RNImage 
-        source={{ uri: item.thumbnail_url || 'https://via.placeholder.com/300x150.png?text=Course' }} 
-        style={styles.courseImage} 
-      />
-      <View style={styles.courseInfo}>
-        <Text style={styles.courseTitle} numberOfLines={2}>{item.title}</Text>
-        <Text style={styles.courseDesc} numberOfLines={2}>{item.short_description || 'No description available'}</Text>
-        <View style={styles.courseFooter}>
-          <Text style={styles.coursePrice}>{(item.price ?? 0) > 0 ? `₹${item.price}` : 'Free'}</Text>
-          <View style={styles.exploreBtn}>
-            <Text style={styles.exploreBtnText}>Explore</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const user = auth.currentUser;
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* Top Bar */}
+      <View style={styles.topBar}>
         <View>
-          <Text style={styles.greeting}>Hello, Learner</Text>
-          <Text style={styles.subtitle}>What would you like to learn today?</Text>
+          <Text style={styles.greeting}>
+            Hello, {user?.displayName || 'Learner'} 👋
+          </Text>
+          <Text style={styles.greetingSubtitle}>
+            What would you like to learn today?
+          </Text>
         </View>
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        <View style={styles.topBarActions}>
+          <TouchableOpacity style={styles.iconBtn}>
+            <Ionicons name="notifications-outline" size={22} color={Palette.textPrimary} />
+            <View style={styles.notifDot} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#3b82f6" style={styles.loader} />
-      ) : (
-        <FlatList
-          data={courses}
-          keyExtractor={(item) => item.id || Math.random().toString()}
-          renderItem={renderCourse}
-          contentContainerStyle={styles.listContainer}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <Text style={styles.emptyText}>No courses available right now.</Text>
-          }
-        />
-      )}
+      {/* Scrollable content sections */}
+      <ScrollView
+        key={key}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Palette.primary}
+            colors={[Palette.primary]}
+          />
+        }
+      >
+        <HeroBanner />
+        <ClassSubjectsGrid />
+        <FeaturedCategories />
+        <TrendingCourses />
+        <KidsSection />
+        <FeaturedSubjects />
+        <FeaturedCourses />
+        <GoalsSection />
+        <MyLearnings />
+        <TestimonialsCarousel />
+        <LearningStats />
+        <NewsletterSection />
+
+        {/* Footer spacer */}
+        <View style={styles.footerSpacer} />
+      </ScrollView>
     </View>
   );
 }
@@ -98,98 +89,56 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0f172a',
+    backgroundColor: Palette.bg,
   },
-  header: {
+  topBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 20,
-    backgroundColor: '#1e293b',
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: 56,
+    paddingBottom: Spacing.lg,
+    backgroundColor: Palette.bgCard,
+    borderBottomLeftRadius: BorderRadius['2xl'],
+    borderBottomRightRadius: BorderRadius['2xl'],
   },
   greeting: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: '#f8fafc',
+    ...Typography.h3,
+    color: Palette.textPrimary,
   },
-  subtitle: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginTop: 4,
+  greetingSubtitle: {
+    ...Typography.caption,
+    color: Palette.textSecondary,
+    marginTop: 2,
   },
-  logoutBtn: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+  topBarActions: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  logoutText: {
-    color: '#ef4444',
-    fontWeight: '600',
-  },
-  loader: {
-    flex: 1,
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Palette.bgCardElevated,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
-  listContainer: {
-    padding: 16,
-    paddingBottom: 80,
+  notifDot: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+    borderWidth: 2,
+    borderColor: Palette.bgCardElevated,
   },
-  courseCard: {
-    backgroundColor: '#1e293b',
-    borderRadius: 16,
-    marginBottom: 20,
-    overflow: 'hidden',
+  scrollContent: {
+    paddingBottom: 20,
   },
-  courseImage: {
-    width: '100%',
-    height: 160,
-    backgroundColor: '#334155',
+  footerSpacer: {
+    height: 80,
   },
-  courseInfo: {
-    padding: 16,
-  },
-  courseTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#f1f5f9',
-    marginBottom: 6,
-  },
-  courseDesc: {
-    fontSize: 14,
-    color: '#94a3b8',
-    marginBottom: 16,
-    lineHeight: 20,
-  },
-  courseFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  coursePrice: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#10b981',
-  },
-  exploreBtn: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  exploreBtnText: {
-    color: '#ffffff',
-    fontWeight: '600',
-  },
-  emptyText: {
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 16,
-  }
 });
