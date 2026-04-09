@@ -63,7 +63,7 @@ const TrendingCourses: React.FC = () => {
         title="Trending Courses"
         subtitle="Most popular right now"
         actionText="See All"
-        onAction={() => {}}
+        onAction={() => router.push('/catalog' as any)}
       />
       <FlatList
         horizontal

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import SectionHeader from './SectionHeader';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 
@@ -16,6 +17,7 @@ const KIDS_ITEMS = [
 ];
 
 const KidsSection: React.FC = () => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <LinearGradient
@@ -26,7 +28,7 @@ const KidsSection: React.FC = () => {
           title="Kids Corner 🎨"
           subtitle="Fun learning for young minds"
           actionText="Explore"
-          onAction={() => {}}
+          onAction={() => router.push('/kids' as any)}
         />
         <FlatList
           horizontal
@@ -35,7 +37,7 @@ const KidsSection: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85}>
+            <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85} onPress={() => router.push('/kids' as any)}>
               <LinearGradient
                 colors={item.colors as any}
                 start={{ x: 0, y: 0 }}

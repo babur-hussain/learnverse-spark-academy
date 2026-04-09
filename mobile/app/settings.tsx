@@ -117,7 +117,7 @@ export default function SettingsScreen() {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('Coming Soon', 'Password change will be available soon.')}>
+            <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/change-password' as any)}>
               <View style={[styles.settingIcon, { backgroundColor: `${Palette.warning}15` }]}>
                 <Ionicons name="lock-closed" size={20} color={Palette.warning} />
               </View>

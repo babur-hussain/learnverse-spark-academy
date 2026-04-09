@@ -9,12 +9,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 
 const MENU_ITEMS = [
-  { id: 'favourites', icon: 'heart' as const, label: 'Favourites', color: '#ef4444' },
-  { id: 'downloads', icon: 'download' as const, label: 'Downloads', color: '#3b82f6' },
-  { id: 'languages', icon: 'globe' as const, label: 'Languages', color: '#10b981' },
-  { id: 'subscription', icon: 'card' as const, label: 'Subscription', color: '#f97316' },
-  { id: 'notifications', icon: 'notifications' as const, label: 'Notifications', color: '#8b5cf6' },
-  { id: 'privacy', icon: 'shield-checkmark' as const, label: 'Privacy', color: '#06b6d4' },
+  { id: 'favourites', icon: 'heart' as const, label: 'Favourites', color: '#ef4444', route: '/favourites' },
+  { id: 'downloads', icon: 'download' as const, label: 'Downloads', color: '#3b82f6', route: null },
+  { id: 'explore', icon: 'compass' as const, label: 'Explore Features', color: '#10b981', route: '/explore-features' },
+  { id: 'subscription', icon: 'card' as const, label: 'Subscription', color: '#f97316', route: null },
+  { id: 'notifications', icon: 'notifications' as const, label: 'Notifications', color: '#8b5cf6', route: '/settings' },
+  { id: 'kids', icon: 'happy' as const, label: 'Kids Zone', color: '#ec4899', route: '/kids' },
 ];
 
 const SUPPORT_ITEMS = [
@@ -82,7 +82,8 @@ export default function ProfileScreen() {
         <View style={[styles.menuCard, Shadow.sm]}>
           {MENU_ITEMS.map((item, index) => (
             <React.Fragment key={item.id}>
-              <TouchableOpacity style={styles.menuRow} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.menuRow} activeOpacity={0.7}
+                onPress={() => item.route && router.push(item.route as any)}>
                 <View style={[styles.menuIcon, { backgroundColor: `${item.color}15` }]}>
                   <Ionicons name={item.icon} size={20} color={item.color} />
                 </View>

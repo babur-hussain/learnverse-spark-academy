@@ -56,6 +56,15 @@ const EXPLORE_SECTIONS = [
   },
 ];
 
+const ROUTE_MAP: Record<string, string> = {
+  career: '/career-guidance',
+  school: '/find-school',
+  forum: '/forum',
+  peer: '/forum',
+  videos: '/video-library',
+  stationery: '/stationery',
+};
+
 export default function ExploreScreen() {
   const router = useRouter();
 
@@ -85,6 +94,7 @@ export default function ExploreScreen() {
             key={section.id}
             style={[styles.featureCard, Shadow.md]}
             activeOpacity={0.85}
+            onPress={() => router.push(ROUTE_MAP[section.id] as any)}
           >
             <LinearGradient
               colors={section.gradient as any}

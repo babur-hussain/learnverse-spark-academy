@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
@@ -22,6 +23,7 @@ interface Subject {
 }
 
 const FeaturedSubjects: React.FC = () => {
+  const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -59,7 +61,7 @@ const FeaturedSubjects: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="Featured Subjects" subtitle="Hand-picked for you" actionText="See All" onAction={() => {}} />
+      <SectionHeader title="Featured Subjects" subtitle="Hand-picked for you" actionText="See All" onAction={() => router.push('/catalog' as any)} />
       <FlatList
         horizontal
         data={subjects}
@@ -67,7 +69,8 @@ const FeaturedSubjects: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85}>
+          <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85}
+            onPress={() => router.push(`/subject/${item._id || item.id}` as any)}>
             <Image
               source={{ uri: isValidUrl(item.thumbnail_url) ? item.thumbnail_url : 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=160&fit=crop' }}
               style={styles.image}

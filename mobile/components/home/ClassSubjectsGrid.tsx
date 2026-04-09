@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
@@ -34,6 +35,7 @@ const CLASS_COLORS: any[] = [
 ];
 
 const ClassSubjectsGrid: React.FC = () => {
+  const router = useRouter();
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -141,6 +143,7 @@ const ClassSubjectsGrid: React.FC = () => {
               key={subject._id || subject.id}
               style={[styles.subjectCard, Shadow.sm]}
               activeOpacity={0.85}
+              onPress={() => router.push(`/subject/${subject._id || subject.id}` as any)}
             >
               <Image
                 source={{ uri: subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=120&fit=crop' }}

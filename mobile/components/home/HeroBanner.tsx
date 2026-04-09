@@ -2,11 +2,13 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { Palette, BorderRadius, Typography, Spacing } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const HeroBanner: React.FC = () => {
+  const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -62,14 +64,10 @@ const HeroBanner: React.FC = () => {
         </Text>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
+        <TouchableOpacity style={styles.searchContainer} onPress={() => router.push('/catalog' as any)} activeOpacity={0.8}>
           <Ionicons name="search" size={20} color={Palette.textMuted} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search courses, subjects..."
-            placeholderTextColor={Palette.textMuted}
-          />
-        </View>
+          <Text style={styles.searchPlaceholder}>Search courses, subjects...</Text>
+        </TouchableOpacity>
 
         {/* Quick Stats */}
         <View style={styles.statsRow}>
@@ -169,10 +167,10 @@ const styles = StyleSheet.create({
   searchIcon: {
     marginRight: Spacing.sm,
   },
-  searchInput: {
+  searchPlaceholder: {
     flex: 1,
     ...Typography.body,
-    color: Palette.textPrimary,
+    color: Palette.textMuted,
     paddingVertical: 14,
   },
   statsRow: {

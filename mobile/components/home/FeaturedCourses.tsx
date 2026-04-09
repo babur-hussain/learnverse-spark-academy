@@ -51,7 +51,7 @@ const FeaturedCourses: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="Featured Courses" subtitle="Curated just for you" actionText="See All" onAction={() => {}} />
+      <SectionHeader title="Featured Courses" subtitle="Curated just for you" actionText="See All" onAction={() => router.push('/catalog' as any)} />
       {courses.map(item => (
         <View key={item._id || item.id} style={styles.cardWrapper}>
           <CourseCard
