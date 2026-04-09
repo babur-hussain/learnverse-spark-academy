@@ -42,11 +42,15 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       {/* Header with gradient background */}
       <LinearGradient
-        colors={['#3b82f6', '#8b5cf6', '#ec4899']}
+        colors={['#3b82f6', '#8b5cf6', '#ec4899'] as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
+        {/* Settings icon */}
+        <TouchableOpacity style={styles.settingsIcon} onPress={() => router.push('/settings' as any)}>
+          <Ionicons name="settings-outline" size={22} color="rgba(255,255,255,0.8)" />
+        </TouchableOpacity>
         <View style={styles.headerContent}>
           <View style={styles.avatarContainer}>
             {user?.photoURL ? (
@@ -64,7 +68,7 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.userName}>{user?.displayName || 'Learner'}</Text>
           <Text style={styles.userEmail}>{user?.email || 'Guest User'}</Text>
-          <TouchableOpacity style={styles.editBtn} activeOpacity={0.8}>
+          <TouchableOpacity style={styles.editBtn} activeOpacity={0.8} onPress={() => router.push('/edit-profile' as any)}>
             <Text style={styles.editBtnText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -130,6 +134,19 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     borderBottomLeftRadius: BorderRadius['2xl'],
     borderBottomRightRadius: BorderRadius['2xl'],
+    position: 'relative',
+  },
+  settingsIcon: {
+    position: 'absolute',
+    top: 56,
+    right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   headerContent: {
     alignItems: 'center',
