@@ -3,7 +3,7 @@
 import axios from 'axios';
 import { auth } from '@/integrations/firebase/config';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://13.206.99.198';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://13.206.99.198';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
