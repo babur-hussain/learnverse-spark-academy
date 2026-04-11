@@ -23,9 +23,8 @@ fi
 echo "📦 Installing Nginx and Certbot..."
 
 if [[ "$OS" == "amzn" || "$OS" == "rhel" || "$OS" == "centos" ]]; then
-    # Amazon Linux 2 / RHEL / CentOS
+    # Amazon Linux / RHEL / CentOS
     sudo yum install -y nginx
-    sudo amazon-linux-extras install epel -y 2>/dev/null || sudo yum install -y epel-release
     sudo yum install -y certbot python3-certbot-nginx
 elif [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
     # Ubuntu / Debian
