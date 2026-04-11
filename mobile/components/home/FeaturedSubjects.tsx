@@ -92,7 +92,8 @@ const FeaturedSubjects: React.FC = () => {
               </View>
             )}
           </TouchableOpacity>
-        )}
+          );
+        }}
       />
     </View>
   );
