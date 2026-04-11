@@ -26,21 +26,12 @@ const AllCoursesPage: React.FC = () => {
     const fetchCourses = async () => {
       try {
         console.log('AllCoursesPage: Fetching courses...');
-        const { data, error } = await apiClient.get('/api/admin/courses');
-        
-        if (error) {
-          console.error('AllCoursesPage: Error fetching courses:', error);
-          return;
-        }
+        const response = await apiClient.get('/api/courses');
+        const data = response.data;
         
         if (data) {
-          console.log('AllCoursesPage: Fetched courses with thumbnails:', data.map(course => ({
-            id: course.id,
-            title: course.title,
-            thumbnail_url: course.thumbnail_url,
-            banner_url: course.banner_url
-          })));
-          setCourses(data);
+          console.log('AllCoursesPage: Fetched courses:', data.length);
+          setCourses(Array.isArray(data) ? data : []);
         }
       } catch (err) {
         console.error('AllCoursesPage: Exception in fetchCourses:', err);

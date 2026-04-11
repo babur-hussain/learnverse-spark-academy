@@ -26,15 +26,12 @@ const FeaturedCourses = () => {
     queryKey: ['featured-courses'],
     queryFn: async () => {
       try {
-        // Query featured_courses table and join with courses to get full course data
-        const { data, error } = await apiClient.get('/api/admin/featured_courses', {
+        const response = await apiClient.get('/api/admin/featured_courses', {
           params: { is_active: true, order_by: 'order_index', sort: 'asc' }
         });
+        const data = response.data || [];
 
-        if (error) throw error;
-
-        // Transform the data to flatten the nested structure
-        const transformedData = data?.map(item => ({
+        const transformedData = data.map((item: any) => ({
           id: item.courses?.id || item.course_id,
           title: item.courses?.title || 'Unknown Course',
           description: item.courses?.description || 'No description available',
@@ -44,15 +41,7 @@ const FeaturedCourses = () => {
           currency: item.courses?.currency || null,
           promotional_text: item.promotional_text,
           cta_text: item.cta_text
-        })).filter(course => course.id) || [];
-
-        // Debug logging to see what thumbnail data we're getting
-        console.log('FeaturedCourses: Fetched featured courses with thumbnails:', transformedData.map(course => ({
-          id: course.id,
-          title: course.title,
-          thumbnail_url: course.thumbnail_url,
-          banner_url: course.banner_url
-        })));
+        })).filter((course: any) => course.id) || [];
 
         return transformedData;
       } catch (err) {
@@ -67,18 +56,8 @@ const FeaturedCourses = () => {
     queryKey: ['fallback-courses'],
     queryFn: async () => {
       try {
-        const { data, error } = await apiClient.get('/api/admin/courses');
-
-        if (error) throw error;
-
-        console.log('FeaturedCourses: Fallback courses with thumbnails:', data?.map(course => ({
-          id: course.id,
-          title: course.title,
-          thumbnail_url: course.thumbnail_url,
-          banner_url: course.banner_url
-        })));
-
-        return data || [];
+        const response = await apiClient.get('/api/courses');
+        return response.data || [];
       } catch (err) {
         console.error('Error fetching fallback courses:', err);
         return [];

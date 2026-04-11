@@ -53,19 +53,14 @@ const FeaturedCategories: React.FC = () => {
     queryFn: async () => {
       try {
         console.log('Fetching featured categories');
-        const { data, error } = await apiClient.get('/api/admin/featured_categories', {
+        const response = await apiClient.get('/api/admin/featured_categories', {
           params: { order_by: 'created_at', sort: 'asc' }
         });
-
-        if (error) {
-          console.error('Error fetching featured categories:', error);
-          throw error;
-        }
-
+        const data = response.data || [];
         console.log('Featured categories data:', data);
 
         // Validate and filter data
-        const validCategories = (data || []).filter(item =>
+        const validCategories = data.filter((item: any) =>
           item &&
           item.category &&
           item.category.name &&
@@ -75,7 +70,6 @@ const FeaturedCategories: React.FC = () => {
         );
 
         console.log('Valid featured categories:', validCategories);
-
         return validCategories as FeaturedCategory[];
       } catch (err) {
         console.error('Error in featured categories query:', err);

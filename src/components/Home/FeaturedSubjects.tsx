@@ -34,26 +34,17 @@ const FeaturedSubjects = ({ selectedCollege }: { selectedCollege?: string }) => 
     queryFn: async () => {
       try {
         let queryParams: any = { is_featured: true, sort: 'title', order: 'asc' };
-
-        // If a college is selected, filter by that college
         if (selectedCollege) {
           queryParams.college_id = selectedCollege;
         }
-
-        const { data } = await apiClient.get(`/api/admin/subjects`, { params: queryParams });
-
-        if (error) {
-          throw error;
-        }
-
-        // Validate data structure
-        const validData = (data || []).filter(item =>
+        const response = await apiClient.get(`/api/admin/subjects`, { params: queryParams });
+        const data = response.data || [];
+        const validData = data.filter((item: any) =>
           item &&
           typeof item.id === 'string' &&
           typeof item.title === 'string' &&
           item.title.trim() !== ''
         );
-
         return validData as Subject[];
       } catch (err) {
         console.error('Error fetching featured subjects:', err);
@@ -67,21 +58,14 @@ const FeaturedSubjects = ({ selectedCollege }: { selectedCollege?: string }) => 
     queryKey: ['subject-chapters-count'],
     queryFn: async () => {
       if (!featuredSubjects?.length) return {};
-
-      const subjectIds = featuredSubjects.map(subject => subject.id);
-
-      const { data, error } = await apiClient.get('/api/admin/chapters');
-
-      if (error) throw error;
-
-      // Count chapters per subject
+      const response = await apiClient.get('/api/admin/chapters');
+      const data = response.data || [];
       const counts: Record<string, number> = {};
-      data?.forEach(item => {
+      data.forEach((item: any) => {
         if (item && item.subject_id) {
           counts[item.subject_id] = (counts[item.subject_id] || 0) + 1;
         }
       });
-
       return counts;
     },
     enabled: !!featuredSubjects?.length

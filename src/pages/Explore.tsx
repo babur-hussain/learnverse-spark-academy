@@ -22,25 +22,15 @@ const Explore = () => {
   const { data: category, isLoading: categoryLoading, error: categoryError } = useQuery({
     queryKey: ['category', categorySlug],
     queryFn: async () => {
-      if (!categorySlug) {
-        console.log('No category slug provided');
-        return null;
-      }
+      if (!categorySlug) return null;
 
       console.log('Fetching category with slug:', categorySlug);
-      const { data, error } = await apiClient.get(`/api/admin/categories`, { params: { slug: categorySlug } });
+      const response = await apiClient.get(`/api/admin/categories`, { params: { slug: categorySlug } });
+      const data = response.data;
 
-      if (error) {
-        console.error('Error fetching category:', error);
-        throw error;
+      if (Array.isArray(data)) {
+        return data.find((c: any) => c.slug === categorySlug) || data[0] || null;
       }
-
-      if (!data) {
-        console.log('No category found for slug:', categorySlug);
-      } else {
-        console.log('Found category:', data);
-      }
-
       return data;
     },
     enabled: !!categorySlug
@@ -48,27 +38,21 @@ const Explore = () => {
 
   // Then fetch content for that category if we found it
   const { data: content, isLoading: contentLoading } = useQuery({
-    queryKey: ['category-content', category?.id],
+    queryKey: ['category-content', category?._id || category?.id],
     queryFn: async () => {
-      console.log('Fetching content for category ID:', category?.id);
-      const { data, error } = await apiClient.get('/api/admin/content_category_mappings', {
-        params: { category_id: category?.id, include: 'courses,videos' }
+      const catId = category?._id || category?.id;
+      console.log('Fetching content for category ID:', catId);
+      const response = await apiClient.get('/api/admin/content_category_mappings', {
+        params: { category_id: catId, include: 'courses,videos' }
       });
-
-      if (error) {
-        console.error('Error fetching content:', error);
-        throw error;
-      }
-
+      const data = response.data || [];
       console.log('Content results:', data);
-
-      // Group content by type
       return {
-        courses: data.filter(item => item.content_type === 'course').map(item => item.courses),
-        videos: data.filter(item => item.content_type === 'video').map(item => item.videos),
+        courses: data.filter((item: any) => item.content_type === 'course').map((item: any) => item.courses),
+        videos: data.filter((item: any) => item.content_type === 'video').map((item: any) => item.videos),
       };
     },
-    enabled: !!category?.id
+    enabled: !!(category?._id || category?.id)
   });
 
   // Show a more informative loading state

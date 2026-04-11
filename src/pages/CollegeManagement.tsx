@@ -40,9 +40,8 @@ const CollegeManagement = () => {
   const { data: colleges = [], isLoading } = useQuery({
     queryKey: ['colleges'],
     queryFn: async () => {
-      const { data, error } = await apiClient.get('/api/admin/colleges');
-      if (error) throw error;
-      return data;
+      const response = await apiClient.get('/api/admin/colleges');
+      return response.data || [];
     }
   });
 
@@ -51,9 +50,8 @@ const CollegeManagement = () => {
     queryKey: ['college-subjects', selectedCollege?.id],
     queryFn: async () => {
       if (!selectedCollege) return [];
-      const { data, error } = await apiClient.get(`/api/admin/subjects`, { params: { college_id: selectedCollege.id } });
-      if (error) throw error;
-      return data;
+      const response = await apiClient.get(`/api/admin/subjects`, { params: { college_id: selectedCollege.id } });
+      return response.data || [];
     },
     enabled: !!selectedCollege
   });
@@ -63,9 +61,8 @@ const CollegeManagement = () => {
     queryKey: ['subject-chapters', selectedSubjectId],
     queryFn: async () => {
       if (!selectedSubjectId) return [];
-      const { data, error } = await apiClient.get(`/api/admin/chapters`, { params: { subject_id: selectedSubjectId } });
-      if (error) throw error;
-      return data;
+      const response = await apiClient.get(`/api/admin/chapters`, { params: { subject_id: selectedSubjectId } });
+      return response.data || [];
     },
     enabled: !!selectedSubjectId
   });
@@ -75,30 +72,25 @@ const CollegeManagement = () => {
     queryKey: ['subject-resources', selectedSubjectId, selectedChapterId],
     queryFn: async () => {
       if (!selectedSubjectId) return [];
-      let query = apiClient.get(`/api/admin/subject_resources`, { params: { subject_id: selectedSubjectId } });
-
-      if (selectedChapterId) {
-        query = query.eq('chapter_id', selectedChapterId);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      const params: any = { subject_id: selectedSubjectId };
+      if (selectedChapterId) params.chapter_id = selectedChapterId;
+      const response = await apiClient.get(`/api/admin/subject_resources`, { params });
+      return response.data || [];
     },
     enabled: !!selectedSubjectId
   });
 
   // Create or update college
   const upsertCollege = useMutation({
-    mutationFn: async (college) => {
+    mutationFn: async (college: any) => {
       if (editingCollege) {
-        const { error } = await apiClient /* colleges */
-          .update({ name: college.name, description: college.description, updated_at: new Date().toISOString() })
-          .eq('id', editingCollege.id);
-        if (error) throw error;
+        await apiClient.put(`/api/admin/colleges/${(editingCollege as any).id}`, {
+          name: college.name,
+          description: college.description,
+          updated_at: new Date().toISOString()
+        });
       } else {
-        const { error } = await apiClient.post('/api/admin/colleges', [{ name: college.name, description: college.description }]);
-        if (error) throw error;
+        await apiClient.post('/api/admin/colleges', { name: college.name, description: college.description });
       }
     },
     onSuccess: () => {
@@ -111,9 +103,8 @@ const CollegeManagement = () => {
 
   // Delete college
   const deleteCollege = useMutation({
-    mutationFn: async (id) => {
-      const { error } = await apiClient.delete(`/api/admin/colleges/${id}`);
-      if (error) throw error;
+    mutationFn: async (id: any) => {
+      await apiClient.delete(`/api/admin/colleges/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['colleges'] });
@@ -124,25 +115,24 @@ const CollegeManagement = () => {
   const uploadNote = useMutation({
     mutationFn: async () => {
       if (!noteFile || !selectedCollege) throw new Error('Select a college and file');
-      const fileExt = noteFile.name.split('.').pop();
-      const filePath = `college-notes/${selectedCollege.id}/${Date.now()}.${fileExt}`;
+      const fileExt = (noteFile as any).name.split('.').pop();
+      const filePath = `college-notes/${(selectedCollege as any).id}/${Date.now()}.${fileExt}`;
       setUploading(true);
-      const { data: urlData, error: uploadError } = await uploadFileToS3(noteFile, filePath);
-      if (uploadError) throw uploadError;
-      const { error } = await apiClient.post('/api/admin/subject_resources', [{
+      const uploadResult = await uploadFileToS3(noteFile as File, filePath);
+      const publicUrl = uploadResult.url;
+      await apiClient.post('/api/admin/subject_resources', [{
         title: noteTitle,
         description: noteDescription,
-        file_url: urlData?.publicUrl,
-        file_name: noteFile.name,
-        file_size: noteFile.size,
-        file_type: noteFile.type,
+        file_url: publicUrl,
+        file_name: (noteFile as any).name,
+        file_size: (noteFile as any).size,
+        file_type: (noteFile as any).type,
         resource_type: 'document',
         is_published: true,
-        subject_id: null, // General college notes don't belong to a specific subject
+        subject_id: null,
         chapter_id: null
       }]);
       setUploading(false);
-      if (error) throw error;
     },
     onSuccess: () => {
       setNoteFile(null);
@@ -157,11 +147,8 @@ const CollegeManagement = () => {
     queryKey: ['college-notes', selectedCollege?.id],
     queryFn: async () => {
       if (!selectedCollege) return [];
-      // For now, we'll fetch all general notes (not tied to specific subjects)
-      // In the future, you might want to add a college_id column to subject_resources
-      const { data, error } = await apiClient.get(`/api/admin/subject_resources`, { params: { resource_type: 'document' } });
-      if (error) throw error;
-      return data;
+      const response = await apiClient.get(`/api/admin/subject_resources`, { params: { resource_type: 'document' } });
+      return response.data || [];
     },
     enabled: !!selectedCollege
   });

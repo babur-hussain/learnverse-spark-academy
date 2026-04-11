@@ -17,18 +17,14 @@ const StudyClass: React.FC = () => {
     queryKey: ['class', classSlugOrId],
     queryFn: async () => {
       console.log('StudyClass: classSlugOrId param =', classSlugOrId);
-      let { data, error } = await apiClient.get('/api/admin/classes');
-      if (error) {
-        console.warn('StudyClass: initial class query error:', error);
-        // Fallback: try slug only
-        const { data: data2, error: error2 } = await apiClient.get(`/api/admin/classes`, { params: { slug: classSlugOrId } });
-        if (error2) {
-          console.error('StudyClass: fallback class query error:', error2);
-          throw error2;
-        }
-        data = data2;
-      }
+      // Try by ID first, then slug
+      const response = await apiClient.get('/api/admin/classes', { params: { slug: classSlugOrId } });
+      const data = response.data;
       console.log('StudyClass: classData result =', data);
+      // Backend may return array; find match
+      if (Array.isArray(data)) {
+        return data.find((c: any) => c.slug === classSlugOrId || c._id === classSlugOrId || c.id === classSlugOrId) || data[0] || null;
+      }
       return data;
     },
     enabled: !!classSlugOrId
@@ -36,16 +32,16 @@ const StudyClass: React.FC = () => {
 
   // Fetch mapped subjects
   const { data: subjects, isLoading: isLoadingSubjects, error: subjectsError } = useQuery({
-    queryKey: ['class-subjects', classData?.id],
+    queryKey: ['class-subjects', classData?._id || classData?.id],
     queryFn: async () => {
-      if (!classData?.id) return [];
-      const { data, error } = await apiClient.get('/api/admin/class_subjects', {
-        params: { class_id: classData.id, order_by: 'order_index', sort: 'asc' }
+      if (!classData) return [];
+      const classId = classData._id || classData.id;
+      const response = await apiClient.get('/api/admin/class_subjects', {
+        params: { class_id: classId, order_by: 'order_index', sort: 'asc' }
       });
-      if (error) throw error;
-      return (data || []).map((row: any) => row.subjects);
+      return (response.data || []).map((row: any) => row.subjects || row);
     },
-    enabled: !!classData?.id
+    enabled: !!(classData?._id || classData?.id)
   });
 
   if (isLoadingClass) {

@@ -14,9 +14,8 @@ const GoalsSection = () => {
   const { data: goals, isLoading } = useQuery({
     queryKey: ['goals'],
     queryFn: async () => {
-      const { data, error } = await apiClient.get(`/api/admin/goals`, { params: { active: true } });
-      if (error) throw error;
-      return data;
+      const response = await apiClient.get(`/api/admin/goals`, { params: { active: true } });
+      return response.data || [];
     },
   });
 
