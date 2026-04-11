@@ -2,6 +2,7 @@
 import React from 'react';
 import Navbar from './Navbar';
 import MobileFooter from './MobileFooter';
+import Footer from './Footer';
 import { usePlatform } from '@/contexts/PlatformContext';
 
 interface MainLayoutProps {
@@ -48,7 +49,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       </main>
       
       {/* Mobile footer only on mobile */}
-      {platform.isMobile && <MobileFooter />}
+      {platform.isMobile ? <MobileFooter /> : <Footer />}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import Catalog from './pages/Catalog';
 import StudyClass from './pages/StudyClass';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import DataDeletionPolicy from './pages/DataDeletionPolicy';
 import FindYourSchool from './pages/FindYourSchool';
 import CourseDetailPage from './pages/CourseDetailPage';
 import AllCoursesPage from './pages/AllCoursesPage';
@@ -139,6 +140,10 @@ export const router = createBrowserRouter([
   {
     path: '/terms-of-service',
     element: <TermsOfService />,
+  },
+  {
+    path: '/data-deletion-policy',
+    element: <DataDeletionPolicy />,
   },
   {
     path: '*',
