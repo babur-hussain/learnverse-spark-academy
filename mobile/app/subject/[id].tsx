@@ -16,6 +16,7 @@ interface Subject {
   name?: string;
   description?: string;
   thumbnail_url?: string;
+  icon_url?: string;
   is_featured?: boolean;
 }
 
@@ -133,7 +134,7 @@ export default function SubjectDetailScreen() {
         {/* Hero Image */}
         <View style={styles.heroContainer}>
           <Image
-            source={{ uri: subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&h=300&fit=crop' }}
+            source={{ uri: subject.icon_url || subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=600&h=300&fit=crop' }}
             style={styles.heroImage}
             resizeMode="cover"
           />

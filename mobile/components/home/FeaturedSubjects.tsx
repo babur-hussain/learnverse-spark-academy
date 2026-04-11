@@ -19,6 +19,7 @@ interface Subject {
   id?: string;
   title: string;
   thumbnail_url?: string;
+  icon_url?: string;
   is_featured?: boolean;
 }
 
@@ -68,14 +69,16 @@ const FeaturedSubjects: React.FC = () => {
         keyExtractor={item => item._id || item.id || Math.random().toString()}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85}
-            onPress={() => router.push(`/subject/${item._id || item.id}` as any)}>
-            <Image
-              source={{ uri: isValidUrl(item.thumbnail_url) ? item.thumbnail_url : 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=160&fit=crop' }}
-              style={styles.image}
-              resizeMode="cover"
-            />
+        renderItem={({ item }) => {
+          const imageUrl = item.icon_url || item.thumbnail_url;
+          return (
+            <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85}
+              onPress={() => router.push(`/subject/${item._id || item.id}` as any)}>
+              <Image
+                source={{ uri: isValidUrl(imageUrl) ? imageUrl : 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=160&fit=crop' }}
+                style={styles.image}
+                resizeMode="cover"
+              />
             <LinearGradient
               colors={['transparent', 'rgba(15, 23, 42, 0.95)']}
               style={styles.overlay}

@@ -17,6 +17,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { SubjectDialog } from './SubjectDialog';
 import { useNavigate } from 'react-router-dom';
 import { Switch } from '@/components/UI/switch';
+import { InlineIconUploader } from './InlineIconUploader';
 
 interface Subject {
   id: string;
@@ -215,6 +216,7 @@ const SubjectsList: React.FC<SubjectsListProps> = ({ onSelectSubject, selectedSu
           <TableCaption>List of all subjects</TableCaption>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-16">Icon</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Description</TableHead>
               <TableHead>Mapped To</TableHead>
@@ -230,6 +232,12 @@ const SubjectsList: React.FC<SubjectsListProps> = ({ onSelectSubject, selectedSu
                 onClick={() => onSelectSubject(subject.id)}
                 className={`cursor-pointer hover:bg-muted/50 ${selectedSubjectId === subject.id ? 'bg-muted' : ''}`}
               >
+                <TableCell>
+                  <InlineIconUploader 
+                    subject={subject} 
+                    onSuccess={handleSubjectSuccess} 
+                  />
+                </TableCell>
                 <TableCell className="font-medium">{subject.title || subject.name}</TableCell>
                 <TableCell className="max-w-xs truncate">{subject.description || '—'}</TableCell>
                 <TableCell>

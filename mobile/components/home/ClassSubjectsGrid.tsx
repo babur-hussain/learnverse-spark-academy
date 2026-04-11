@@ -23,6 +23,7 @@ interface SubjectItem {
   id?: string;
   title: string;
   thumbnail_url?: string;
+  icon_url?: string;
 }
 
 const CLASS_COLORS: any[] = [
@@ -146,7 +147,8 @@ const ClassSubjectsGrid: React.FC = () => {
               onPress={() => router.push(`/subject/${subject._id || subject.id}` as any)}
             >
               <Image
-                source={{ uri: subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=120&fit=crop' }}
+                source={{ uri: subject.icon_url || subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=120&fit=crop' }}
+
                 style={styles.subjectImage}
                 resizeMode="cover"
               />
