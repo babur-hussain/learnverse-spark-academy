@@ -1,5 +1,3 @@
-import { Capacitor } from '@capacitor/core';
-
 export type Platform = 'web' | 'mobile' | 'ios' | 'android';
 
 export interface PlatformConfig {
@@ -49,8 +47,8 @@ const isTabletDevice = (): boolean => {
  * Detect the current platform and return configuration
  */
 export const detectPlatform = (): PlatformConfig => {
-  const isCapacitor = Capacitor.isNativePlatform();
-  const isWeb = !isCapacitor;
+  const isCapacitor = false;
+  const isWeb = true;
   const isMobileWeb = isWeb && isMobileDevice();
   const isTablet = isTabletDevice();
   
@@ -59,18 +57,7 @@ export const detectPlatform = (): PlatformConfig => {
   let isIOS = false;
   let isAndroid = false;
 
-  if (isCapacitor) {
-    isMobile = true;
-    if (Capacitor.getPlatform() === 'ios') {
-      platform = 'ios';
-      isIOS = true;
-    } else if (Capacitor.getPlatform() === 'android') {
-      platform = 'android';
-      isAndroid = true;
-    } else {
-      platform = 'mobile';
-    }
-  } else if (isMobileWeb) {
+  if (isMobileWeb) {
     // Mobile web browser
     isMobile = true;
     platform = 'mobile';

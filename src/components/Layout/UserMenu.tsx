@@ -16,16 +16,14 @@ import { User, LogOut, Settings, Shield, Video, GraduationCap, BookOpen, HardDri
 import AuthDialog from '@/components/Auth/AuthDialog';
 import { usePlatform } from '@/contexts/PlatformContext';
 import { Button } from '@/components/UI/button';
-import { Capacitor } from '@capacitor/core';
-
 const UserMenu = () => {
   const { user, logout } = useAuth();
   const { platform } = usePlatform();
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const navigate = useNavigate();
   
-  // Check if we're in a Capacitor app
-  const isCapacitorApp = Capacitor.isNativePlatform();
+  // Check if we're in a native app
+  const isCapacitorApp = platform.isCapacitor;
   
   // Get the first letter of the username for the avatar fallback
   const getInitials = () => {

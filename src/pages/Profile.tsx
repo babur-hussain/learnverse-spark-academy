@@ -21,7 +21,7 @@ import {
   LogOut,
   Lock
 } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
+import { platform } from '@/utils/platform';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -38,8 +38,8 @@ const Profile = () => {
     gender: ''
   });
 
-  // Check if we're in a Capacitor app
-  const isCapacitorApp = Capacitor.isNativePlatform();
+  // Check if we're in a native app
+  const isCapacitorApp = platform.isCapacitor;
   
   console.log('Profile page - Capacitor Native:', isCapacitorApp);
   console.log('Profile page - User:', user);
