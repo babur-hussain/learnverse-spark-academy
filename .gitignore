@@ -31,3 +31,6 @@ backend/firebase-service-account.json
 backend/Key-2.pem
 .env
 *.pem
+
+# Android Keystore
+*.keystore
