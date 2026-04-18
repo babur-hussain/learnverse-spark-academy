@@ -29,8 +29,8 @@ const Profile = () => {
   const { role } = useUserRole();
   const [isEditMode, setIsEditMode] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: user?.user_metadata?.first_name || 'Sabrina',
-    lastName: user?.user_metadata?.last_name || 'Aryan',
+    firstName: (user?.user_metadata as any)?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'Sabrina',
+    lastName: (user?.user_metadata as any)?.last_name || user?.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Aryan',
     username: user?.user_metadata?.username || '@Sabrina',
     email: user?.email || 'SabrinaAry208@gmailcom',
     phone: '+234 904 6470',
@@ -281,7 +281,7 @@ const Profile = () => {
           </div>
           
           <h2 className="text-xl font-bold text-gray-900 mb-1">
-            {user?.user_metadata?.first_name || 'Sabrina'} {user?.user_metadata?.last_name || 'Aryan'}
+            {(user?.user_metadata as any)?.first_name || user?.user_metadata?.full_name?.split(' ')[0] || 'Sabrina'} {(user?.user_metadata as any)?.last_name || user?.user_metadata?.full_name?.split(' ').slice(1).join(' ') || 'Aryan'}
           </h2>
           <p className="text-gray-600 mb-4">{user?.email || 'SabrinaAry208@gmailcom'}</p>
           
