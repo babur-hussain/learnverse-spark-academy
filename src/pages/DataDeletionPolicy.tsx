@@ -1,8 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
+import { Button } from '@/components/UI/button';
+import { Trash2 } from 'lucide-react';
 
 const DataDeletionPolicy = () => {
+  const navigate = useNavigate();
+
   return (
     <MainLayout>
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -37,6 +41,18 @@ const DataDeletionPolicy = () => {
                 <span>Send an email to <strong>privacy@learnverse.lfvs.in</strong> from the email address associated with your account, containing the subject line "Account Deletion Request".</span>
               </li>
             </ul>
+            
+            <div className="mt-8 flex justify-center border-t border-gray-200 dark:border-gray-800 pt-6">
+              <Button 
+                onClick={() => navigate('/delete-account')}
+                variant="destructive"
+                size="lg"
+                className="gap-2"
+              >
+                <Trash2 className="w-5 h-5" />
+                Proceed to Delete Account
+              </Button>
+            </div>
           </section>
 
           <section className="mb-12">
