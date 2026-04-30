@@ -7,6 +7,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
   type User as FirebaseUser,
 } from 'firebase/auth';
 
@@ -31,5 +32,6 @@ export {
   signOut,
   onAuthStateChanged,
   updateProfile,
+  deleteUser,
 };
 export type { FirebaseUser };

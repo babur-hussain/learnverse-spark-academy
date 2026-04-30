@@ -18,6 +18,7 @@ import DataDeletionPolicy from './pages/DataDeletionPolicy';
 import FindYourSchool from './pages/FindYourSchool';
 import CourseDetailPage from './pages/CourseDetailPage';
 import AllCoursesPage from './pages/AllCoursesPage';
+import DeleteAccount from './pages/DeleteAccount';
 
 // Lazy loaded pages
 const Stationary = React.lazy(() => import('./pages/Stationary'));
@@ -144,6 +145,10 @@ export const router = createBrowserRouter([
   {
     path: '/data-deletion-policy',
     element: <DataDeletionPolicy />,
+  },
+  {
+    path: '/delete-account',
+    element: <DeleteAccount />,
   },
   {
     path: '*',

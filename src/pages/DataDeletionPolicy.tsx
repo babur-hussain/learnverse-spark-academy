@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import MainLayout from '@/components/Layout/MainLayout';
 
 const DataDeletionPolicy = () => {
@@ -27,7 +28,9 @@ const DataDeletionPolicy = () => {
             <ul className="list-none space-y-3 mt-4">
               <li className="flex gap-3">
                 <strong className="min-w-[120px]">In-App:</strong>
-                <span>Navigate to <em>Settings Account Manage Account Request Account Deletion</em> in the web or mobile app.</span>
+                <span>
+                  Navigate to <em>Settings Account Manage Account Request Account Deletion</em> in the web or mobile app, or visit the <Link to="/delete-account" className="font-semibold text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400">Account Deletion Page</Link> directly.
+                </span>
               </li>
               <li className="flex gap-3">
                 <strong className="min-w-[120px]">Via Email:</strong>
