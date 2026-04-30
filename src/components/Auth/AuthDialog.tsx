@@ -74,7 +74,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setActiveTab(tab);
     localStorage.setItem('authActiveTab', tab);
   };
-  const { login, signUp, testConnection, loginWithGoogle } = useAuth();
+  const { login, signUp, loginWithGoogle } = useAuth();
 
   // Platform-specific styling
   const getDialogSize = () => {
@@ -338,11 +338,9 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
         formattedPhone = '+91' + data.phoneNumber.replace(/^\+?91/, '');
       }
 
-      const { error } = await apiClient.post('/api/auth/otp', {
+      await apiClient.post('/api/auth/otp', {
         phone: formattedPhone
       });
-
-      if (error) throw error;
 
       setPhoneNumber(formattedPhone);
       setShowOTPDialog(true);
@@ -362,13 +360,11 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setIsSubmitting(true);
     setAuthError(null);
     try {
-      const { error } = await apiClient.post('/api/auth/verify-otp', {
+      await apiClient.post('/api/auth/verify-otp', {
         phone: phoneNumber,
         token: otp,
         type: 'sms'
       });
-
-      if (error) throw error;
 
       toast({
         title: "Success!",
