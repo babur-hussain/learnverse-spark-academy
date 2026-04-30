@@ -19,4 +19,5 @@ export interface AuthContextType {
   // Aliases for consistency with component usage
   signIn: (email: string, password: string) => Promise<{ success: boolean; user?: any } | undefined>;
   signOut: () => Promise<void>;
+  loginWithGoogle?: () => Promise<{ success?: boolean; user?: any; error?: string } | undefined>;
 }

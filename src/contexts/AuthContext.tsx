@@ -10,6 +10,10 @@ import {
 import { User, AuthContextType } from '@/types/auth';
 import { useToast } from '@/hooks/use-toast';
 import apiClient from '@/integrations/api/client';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+} from 'firebase/auth';
 
 // Define admin credentials
 export const ADMIN_EMAIL = 'admin@sparkacademy.edu';
@@ -237,11 +241,51 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const loginWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+
+      // Register user in backend (MongoDB) if they are new, or just to sync
+      // We default to 'student' role for Google sign-ups, or the backend can handle it
+      try {
+        await apiClient.post('/api/users/register', {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          username: `user_${firebaseUser.uid.slice(0, 5)}`,
+          full_name: firebaseUser.displayName,
+          role: 'student',
+        });
+      } catch (apiErr) {
+        console.warn('Failed to register/sync Google user in backend:', apiErr);
+      }
+
+      toast({
+        title: "Login Successful",
+        description: "Welcome to Spark Academy!",
+      });
+
+      return { success: true, user: firebaseUser };
+    } catch (err: any) {
+      console.error('Google sign-in error:', err);
+      toast({
+        title: "Google Sign-In Failed",
+        description: err.message || "An error occurred during Google sign-in.",
+        variant: "destructive",
+      });
+      return { error: err.message };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Alias for logout for better component compatibility
   const signOut = logout;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signIn, signUp, logout, signOut }}>
+    <AuthContext.Provider value={{ user, loading, login, signIn, signUp, logout, signOut, loginWithGoogle }}>
       {children}
     </AuthContext.Provider>
   );

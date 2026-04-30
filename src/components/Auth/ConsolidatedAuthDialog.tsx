@@ -53,7 +53,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     return (savedTab as "login" | "register" | "phone") || "login";
   });
 
-  const { login, signUp } = useAuth();
+  const { login, signUp, loginWithGoogle } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -473,11 +473,21 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => {
-                toast({
-                  title: "Google Sign In",
-                  description: `Signing in with Google on ${platform.platform}`,
-                });
+              onClick={async () => {
+                if (loginWithGoogle) {
+                  const result = await loginWithGoogle();
+                  if (result?.success) {
+                    onOpenChange(false);
+                  } else if (result?.error) {
+                    setAuthError(result.error);
+                  }
+                } else {
+                  toast({
+                    title: "Google Sign In",
+                    description: `Google sign-in is not configured`,
+                    variant: "destructive",
+                  });
+                }
               }}
               disabled={isSubmitting}
             >

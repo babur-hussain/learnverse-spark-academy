@@ -74,7 +74,7 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     setActiveTab(tab);
     localStorage.setItem('authActiveTab', tab);
   };
-  const { login, signUp, testConnection } = useAuth();
+  const { login, signUp, testConnection, loginWithGoogle } = useAuth();
 
   // Platform-specific styling
   const getDialogSize = () => {
@@ -388,14 +388,15 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
   const signInWithGoogle = async () => {
     try {
       setAuthError(null);
-      const { error } = await apiClient.post('/api/auth/oauth', {
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/`
+      if (loginWithGoogle) {
+        const result = await loginWithGoogle();
+        if (result?.error) throw new Error(result.error);
+        if (result?.success) {
+          onOpenChange(false);
         }
-      });
-
-      if (error) throw error;
+      } else {
+        throw new Error("Google login is not configured.");
+      }
     } catch (error: any) {
       console.error('Google sign-in error:', error);
       setAuthError(error.message || "Google sign-in failed. Please try again.");
