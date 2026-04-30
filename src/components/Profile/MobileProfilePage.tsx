@@ -19,7 +19,8 @@ import {
   Trash2, 
   Clock, 
   LogOut,
-  Lock
+  Lock,
+  AlertTriangle
 } from 'lucide-react';
 
 const MobileProfilePage = () => {
@@ -34,8 +35,8 @@ const MobileProfilePage = () => {
   
   const [isEditMode, setIsEditMode] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: user?.user_metadata?.first_name || 'Sabrina',
-    lastName: user?.user_metadata?.last_name || 'Aryan',
+    firstName: user?.user_metadata?.full_name?.split(' ')[0] || 'User',
+    lastName: user?.user_metadata?.full_name?.split(' ').slice(1).join(' ') || '',
     username: user?.user_metadata?.username || '@Sabrina',
     email: user?.email || 'SabrinaAry208@gmailcom',
     phone: '+234 904 6470',
@@ -206,6 +207,15 @@ const MobileProfilePage = () => {
               Change Password
             </Button>
 
+            <Button
+              onClick={() => navigate('/delete-account')}
+              variant="destructive"
+              className="w-full py-3 rounded-lg flex items-center justify-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Account
+            </Button>
+
             <div className="flex gap-3 pt-4">
               <Button
                 onClick={() => setIsEditMode(false)}
@@ -267,7 +277,7 @@ const MobileProfilePage = () => {
           </div>
           
           <h2 className="text-xl font-bold text-gray-900 mb-1">
-            {user?.user_metadata?.first_name || 'Sabrina'} {user?.user_metadata?.last_name || 'Aryan'}
+            {user?.user_metadata?.full_name || 'User'}
           </h2>
           <p className="text-gray-600 mb-4">{user?.email || 'SabrinaAry208@gmailcom'}</p>
           
@@ -349,6 +359,17 @@ const MobileProfilePage = () => {
               <span className="text-gray-900">Clear History</span>
             </div>
             <ArrowLeft className="h-4 w-4 text-gray-400 rotate-180" />
+          </button>
+
+          <button 
+            onClick={() => navigate('/delete-account')}
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-red-50"
+          >
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              <span className="text-red-500">Delete Account</span>
+            </div>
+            <ArrowLeft className="h-4 w-4 text-red-400 rotate-180" />
           </button>
 
           <button 

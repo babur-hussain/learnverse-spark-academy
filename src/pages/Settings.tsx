@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthGuard from '@/components/Layout/AuthGuard';
 import Navbar from '@/components/Layout/Navbar';
@@ -7,13 +8,14 @@ import MobileFooter from '@/components/Layout/MobileFooter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/UI/card';
 import { Button } from '@/components/UI/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/UI/tabs';
-import { Bell, Shield, Moon } from 'lucide-react';
+import { Bell, Shield, Moon, AlertTriangle, Trash2 } from 'lucide-react';
 import { Switch } from '@/components/UI/switch';
 import { Label } from '@/components/UI/label';
 
 const Settings = () => {
   const { user } = useAuth();
   const { platform } = usePlatform();
+  const navigate = useNavigate();
 
   return (
     <AuthGuard>
@@ -44,6 +46,28 @@ const Settings = () => {
                     These settings allow you to customize your account preferences.
                   </p>
                   <Button>Update Password</Button>
+                </CardContent>
+              </Card>
+
+              <Card className="mt-6 border-red-200 dark:border-red-900">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                    <AlertTriangle className="h-5 w-5" />
+                    Danger Zone
+                  </CardTitle>
+                  <CardDescription>
+                    Permanently delete your account and all associated data. This action cannot be undone.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    variant="destructive"
+                    onClick={() => navigate('/delete-account')}
+                    className="flex items-center gap-2"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete My Account
+                  </Button>
                 </CardContent>
               </Card>
             </TabsContent>
