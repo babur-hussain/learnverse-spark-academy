@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import CourseCard from '@/components/ui/CourseCard';
@@ -22,21 +23,28 @@ interface Course {
 const TrendingCourses: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetch = async () => {
       try {
-        const res = await api.get('/admin/courses');
+        setError(null);
+        const res = await api.get('/admin/courses', { signal: controller.signal });
         const data = res.data?.data || res.data || [];
         setCourses(data.slice(0, 8));
-      } catch (e) {
-        console.error('Error fetching trending courses:', e);
+      } catch (e: any) {
+        if (e.name !== 'CanceledError') {
+          console.error('Error fetching trending courses:', e);
+          setError('Failed to load courses.');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetch();
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -51,6 +59,18 @@ const TrendingCourses: React.FC = () => {
           contentContainerStyle={styles.list}
           renderItem={() => <ShimmerCard style={{ width: CARD_WIDTH, marginRight: 16 }} />}
         />
+      </View>
+    );
+  }
+
+  if (error && courses.length === 0) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Trending Courses" subtitle="Most popular right now" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={24} color={Palette.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </View>
     );
   }
@@ -93,6 +113,20 @@ const TrendingCourses: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: Spacing['2xl'],
+  },
+  errorContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    backgroundColor: `${Palette.danger}15`,
+    marginHorizontal: Spacing.xl,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  errorText: {
+    color: Palette.danger,
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.xl,

@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, Image, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '@/lib/firebase';
 import { updateProfile } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from '@/lib/api';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 
 export default function EditProfileScreen() {
@@ -16,6 +18,49 @@ export default function EditProfileScreen() {
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const [classes, setClasses] = useState<any[]>([]);
+  const [selectedClass, setSelectedClass] = useState<string>('');
+  const [loadingInitial, setLoadingInitial] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Try backend first
+        let backendProfile = null;
+        try {
+          const profileRes = await api.get('/users/profile');
+          backendProfile = profileRes.data;
+        } catch (err) {
+          console.log('Could not fetch backend profile', err);
+        }
+
+        // Fallback to local storage if backend fields are missing
+        const [phoneData, bioData, classData] = await Promise.all([
+          AsyncStorage.getItem('user_phone'),
+          AsyncStorage.getItem('user_bio'),
+          AsyncStorage.getItem('user_class_id'),
+        ]);
+
+        const finalPhone = backendProfile?.phone || phoneData || '';
+        const finalBio = backendProfile?.bio || bioData || '';
+        const finalClass = backendProfile?.class_id || classData || '';
+
+        setPhone(finalPhone);
+        setBio(finalBio);
+        setSelectedClass(finalClass);
+
+        // Fetch classes
+        const res = await api.get('/admin/classes', { params: { is_active: true } });
+        setClasses(res.data?.data || res.data || []);
+      } catch (e) {
+        console.error('Failed to load profile data', e);
+      } finally {
+        setLoadingInitial(false);
+      }
+    };
+    loadData();
+  }, []);
 
   const handleSave = async () => {
     if (!displayName.trim()) {
@@ -29,6 +74,24 @@ export default function EditProfileScreen() {
         await updateProfile(user, {
           displayName: displayName.trim(),
         });
+      }
+
+      // Save to backend
+      try {
+        await api.put('/users/profile', {
+          phone,
+          bio,
+          class_id: selectedClass || null
+        });
+      } catch (err) {
+        console.error('Failed to save to backend profile', err);
+      }
+
+      // Save locally
+      await AsyncStorage.setItem('user_phone', phone);
+      await AsyncStorage.setItem('user_bio', bio);
+      if (selectedClass) {
+        await AsyncStorage.setItem('user_class_id', selectedClass);
       }
       Alert.alert('Success', 'Profile updated successfully', [
         { text: 'OK', onPress: () => router.back() }
@@ -148,6 +211,43 @@ export default function EditProfileScreen() {
                   textAlignVertical="top"
                 />
               </View>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Class / College</Text>
+              <Text style={styles.fieldHint}>Select your class to customize your homepage.</Text>
+              {loadingInitial ? (
+                <ActivityIndicator size="small" color={Palette.primary} style={{ alignSelf: 'flex-start', marginTop: 10 }} />
+              ) : (
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.classScroll}>
+                  {classes.map(cls => {
+                    const id = cls._id || cls.id;
+                    const isSelected = selectedClass === id;
+                    return (
+                      <TouchableOpacity
+                        key={id}
+                        onPress={() => setSelectedClass(id)}
+                        activeOpacity={0.8}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={Palette.gradientPrimary as any}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.classPill}
+                          >
+                            <Text style={styles.classPillTextActive}>{cls.name}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.classPillInactive}>
+                            <Text style={styles.classPillText}>{cls.name}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
             </View>
           </View>
 
@@ -357,5 +457,32 @@ const styles = StyleSheet.create({
     ...Typography.button,
     color: '#fff',
     fontSize: 15,
+  },
+  classScroll: {
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
+    gap: 10,
+  },
+  classPill: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.full,
+  },
+  classPillInactive: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Palette.bgCard,
+    borderWidth: 1,
+    borderColor: Palette.border,
+  },
+  classPillTextActive: {
+    ...Typography.caption,
+    color: '#fff',
+    fontWeight: '700',
+  },
+  classPillText: {
+    ...Typography.caption,
+    color: Palette.textSecondary,
   },
 });

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions }
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
@@ -37,55 +38,83 @@ const CLASS_COLORS: any[] = [
 
 const ClassSubjectsGrid: React.FC = () => {
   const router = useRouter();
-  const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchClasses = async () => {
+    const fetchClassId = async () => {
       try {
-        const res = await api.get('/admin/classes', { params: { is_active: true } });
-        const data = res.data?.data || res.data || [];
-        setClasses(data);
-        if (data.length > 0) {
-          const firstId = data[0]._id || data[0].id;
-          setSelectedClass(firstId);
-        }
+        const classId = await AsyncStorage.getItem('user_class_id');
+        if (classId) setSelectedClass(classId);
       } catch (e) {
-        console.error('Error fetching classes:', e);
+        console.error('Error fetching class from storage:', e);
       } finally {
         setLoading(false);
       }
     };
-    fetchClasses();
+    fetchClassId();
   }, []);
 
   useEffect(() => {
     if (!selectedClass) return;
+    const controller = new AbortController();
     const fetchSubjects = async () => {
       setSubjectsLoading(true);
       try {
-        const res = await api.get('/admin/subjects', { params: { class_id: selectedClass } });
+        const res = await api.get('/admin/subjects', { 
+          params: { class_id: selectedClass },
+          signal: controller.signal
+        });
         setSubjects(res.data?.data || res.data || []);
-      } catch (e) {
-        console.error('Error fetching subjects:', e);
+      } catch (e: any) {
+        if (e.name !== 'CanceledError') {
+          console.error('Error fetching subjects:', e);
+        }
       } finally {
         setSubjectsLoading(false);
       }
     };
     fetchSubjects();
+    return () => controller.abort();
   }, [selectedClass]);
 
   if (loading) {
     return (
       <View style={styles.container}>
-        <SectionHeader title="Your Class" subtitle="Pick your class to see subjects" />
+        <SectionHeader title="Your Subjects" subtitle="Loading your configuration..." />
         <View style={styles.shimmerRow}>
-          {[1, 2, 3, 4].map(i => (
-            <Shimmer key={i} width={80} height={36} borderRadius={18} style={{ marginRight: 10 }} />
-          ))}
+          <Shimmer width={CARD_WIDTH} height={120} borderRadius={16} />
+          <Shimmer width={CARD_WIDTH} height={120} borderRadius={16} style={{ marginLeft: 16 }} />
+        </View>
+      </View>
+    );
+  }
+
+  if (!selectedClass) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Your Subjects" subtitle="Configure your class to see subjects" />
+        <View style={styles.emptyContainer}>
+          <Ionicons name="settings-outline" size={40} color={Palette.textMuted} />
+          <Text style={styles.emptyText}>Please configure your Class/College in Profile</Text>
+          <TouchableOpacity onPress={() => router.push('/edit-profile' as any)} style={styles.profileBtn}>
+            <Text style={styles.profileBtnText}>Go to Profile</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Your Subjects" subtitle="Explore subjects for your class" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={24} color={Palette.danger} />
+          <Text style={styles.errorText}>{error}</Text>
         </View>
       </View>
     );
@@ -93,42 +122,7 @@ const ClassSubjectsGrid: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SectionHeader title="Your Class" subtitle="Pick your class to see subjects" />
-
-      {/* Class pills */}
-      <FlatList
-        data={classes}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item._id || item.id || item.name}
-        contentContainerStyle={styles.pillsContainer}
-        renderItem={({ item, index }) => {
-          const id = item._id || item.id || '';
-          const isSelected = id === selectedClass;
-          const colors = CLASS_COLORS[index % CLASS_COLORS.length];
-          return (
-            <TouchableOpacity
-              onPress={() => setSelectedClass(id)}
-              activeOpacity={0.8}
-            >
-              {isSelected ? (
-                <LinearGradient
-                  colors={colors as any}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 0 }}
-                  style={styles.classPill}
-                >
-                  <Text style={styles.classPillTextActive}>{item.name}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={styles.classPillInactive}>
-                  <Text style={styles.classPillText}>{item.name}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        }}
-      />
+      <SectionHeader title="Your Subjects" subtitle="Explore subjects for your class" />
 
       {/* Subject grid */}
       {subjectsLoading ? (
@@ -180,32 +174,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: Spacing.xl,
   },
-  pillsContainer: {
+  errorContainer: {
     paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.xl,
-    gap: 10,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    backgroundColor: `${Palette.danger}15`,
+    marginHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    gap: Spacing.sm,
   },
-  classPill: {
-    paddingHorizontal: 18,
-    paddingVertical: 10,
-    borderRadius: BorderRadius.full,
+  errorText: {
+    ...Typography.body,
+    color: Palette.danger,
+    flex: 1,
   },
-  classPillInactive: {
-    paddingHorizontal: 18,
+  profileBtn: {
+    marginTop: 16,
+    paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Palette.bgCard,
+    backgroundColor: Palette.bgCardElevated,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     borderColor: Palette.border,
   },
-  classPillTextActive: {
-    ...Typography.caption,
-    color: '#fff',
-    fontWeight: '700',
-  },
-  classPillText: {
-    ...Typography.caption,
-    color: Palette.textSecondary,
+  profileBtnText: {
+    color: Palette.primary,
+    ...Typography.button,
   },
   subjectGrid: {
     flexDirection: 'row',

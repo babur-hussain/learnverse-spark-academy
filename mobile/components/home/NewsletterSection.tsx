@@ -19,7 +19,7 @@ const NewsletterSection: React.FC = () => {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#1e293b', '#0f172a']}
+        colors={['#FFF5EB', '#FFF0E5']}
         style={styles.card}
       >
         {/* Decorative */}

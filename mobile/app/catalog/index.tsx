@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Image, Dimensions, TextInput } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import api from '@/lib/api';
@@ -32,7 +32,8 @@ export default function CatalogScreen() {
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>('all');
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const params = useLocalSearchParams();
+  const [search, setSearch] = useState((params.q as string) || '');
   const router = useRouter();
 
   useEffect(() => {

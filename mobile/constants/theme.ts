@@ -1,80 +1,86 @@
 /**
  * LearnVerse Design System
- * Premium dark theme with vibrant accents
+ * Warm light theme inspired by Smart Learn / Chegg UI
+ * Orange primary accent with creamy backgrounds
  */
 
 export const Colors = {
   light: {
-    text: '#1e293b',
-    textSecondary: '#64748b',
-    textMuted: '#94a3b8',
-    background: '#f8fafc',
-    card: '#ffffff',
-    cardElevated: '#f1f5f9',
-    tint: '#3b82f6',
-    border: '#e2e8f0',
-    tabIconDefault: '#94a3b8',
-    tabIconSelected: '#3b82f6',
+    text: '#1A1A2E',
+    textSecondary: '#6B7280',
+    textMuted: '#9CA3AF',
+    background: '#FFF8F0',
+    card: '#FFFFFF',
+    cardElevated: '#FFF0E5',
+    tint: '#FF6B35',
+    border: '#F0E6DB',
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: '#FF6B35',
   },
   dark: {
-    text: '#f8fafc',
-    textSecondary: '#94a3b8',
-    textMuted: '#64748b',
-    background: '#0f172a',
-    card: '#1e293b',
-    cardElevated: '#334155',
-    tint: '#3b82f6',
-    border: '#334155',
-    tabIconDefault: '#64748b',
-    tabIconSelected: '#3b82f6',
+    text: '#1A1A2E',
+    textSecondary: '#6B7280',
+    textMuted: '#9CA3AF',
+    background: '#FFF8F0',
+    card: '#FFFFFF',
+    cardElevated: '#FFF0E5',
+    tint: '#FF6B35',
+    border: '#F0E6DB',
+    tabIconDefault: '#9CA3AF',
+    tabIconSelected: '#FF6B35',
   },
 };
 
 export const Palette = {
-  // Primary
-  primary: '#3b82f6',
-  primaryLight: '#60a5fa',
-  primaryDark: '#2563eb',
+  // Primary — warm orange
+  primary: '#FF6B35',
+  primaryLight: '#FF8C5A',
+  primaryDark: '#E85A2A',
 
   // Gradients (start, end)
-  gradientPrimary: ['#3b82f6', '#8b5cf6'] as const,
-  gradientWarm: ['#f97316', '#ef4444'] as const,
-  gradientCool: ['#06b6d4', '#3b82f6'] as const,
-  gradientSuccess: ['#10b981', '#06b6d4'] as const,
-  gradientKids: ['#f472b6', '#a855f7'] as const,
-  gradientGold: ['#f59e0b', '#ef4444'] as const,
-  gradientDark: ['#1e293b', '#0f172a'] as const,
+  gradientPrimary: ['#FF6B35', '#FF8C5A'] as const,
+  gradientWarm: ['#FF6B35', '#FFB84D'] as const,
+  gradientCool: ['#00BFA6', '#00D4AA'] as const,
+  gradientSuccess: ['#10B981', '#34D399'] as const,
+  gradientKids: ['#FF6B9D', '#C084FC'] as const,
+  gradientGold: ['#FFB84D', '#FF6B35'] as const,
+  gradientDark: ['#1A1A2E', '#2D2D44'] as const,
+  gradientAI: ['#E8F5E8', '#F0FFF0'] as const,
 
   // Accent colors
-  success: '#10b981',
-  successLight: '#34d399',
-  warning: '#f59e0b',
-  warningLight: '#fbbf24',
-  danger: '#ef4444',
-  dangerLight: '#f87171',
-  info: '#06b6d4',
-  infoLight: '#22d3ee',
-  purple: '#8b5cf6',
-  purpleLight: '#a78bfa',
-  pink: '#ec4899',
-  pinkLight: '#f472b6',
-  orange: '#f97316',
-  teal: '#14b8a6',
+  success: '#10B981',
+  successLight: '#34D399',
+  warning: '#FFB84D',
+  warningLight: '#FBBF24',
+  danger: '#EF4444',
+  dangerLight: '#F87171',
+  info: '#00BFA6',
+  infoLight: '#00D4AA',
+  purple: '#8B5CF6',
+  purpleLight: '#A78BFA',
+  pink: '#EC4899',
+  pinkLight: '#F472B6',
+  orange: '#FF6B35',
+  teal: '#00BFA6',
 
-  // Backgrounds (dark theme)
-  bg: '#0f172a',
-  bgCard: '#1e293b',
-  bgCardElevated: '#334155',
-  bgOverlay: 'rgba(15, 23, 42, 0.85)',
+  // Backgrounds (warm light theme)
+  bg: '#FFF8F0',
+  bgCard: '#FFFFFF',
+  bgCardElevated: '#FFF0E5',
+  bgOverlay: 'rgba(26, 26, 46, 0.5)',
+  bgAI: '#F0F7F0',
+  bgCream: '#FFF5EB',
+  bgSubtle: '#FAF5F0',
 
   // Text
-  textPrimary: '#f8fafc',
-  textSecondary: '#94a3b8',
-  textMuted: '#64748b',
+  textPrimary: '#1A1A2E',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
+  textAccent: '#FF6B35',
 
   // Borders
-  border: '#334155',
-  borderLight: '#475569',
+  border: '#F0E6DB',
+  borderLight: '#F5EDE5',
 };
 
 export const Spacing = {
@@ -154,30 +160,30 @@ export const Typography = {
 
 export const Shadow = {
   sm: {
-    shadowColor: '#000',
+    shadowColor: '#C8B8A8',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.08,
     shadowRadius: 4,
-    elevation: 3,
+    elevation: 2,
   },
   md: {
-    shadowColor: '#000',
+    shadowColor: '#C8B8A8',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.12,
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 4,
   },
   lg: {
-    shadowColor: '#000',
+    shadowColor: '#C8B8A8',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 6,
   },
   glow: (color: string) => ({
     shadowColor: color,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.3,
     shadowRadius: 12,
     elevation: 6,
   }),

@@ -45,22 +45,32 @@ const GRADIENT_COLORS: any[] = [
 const FeaturedCategories: React.FC = () => {
   const [categories, setCategories] = useState<FeaturedCategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetch = async () => {
       try {
-        const res = await api.get('/admin/featured_categories', { params: { order_by: 'created_at', sort: 'asc' } });
+        setError(null);
+        const res = await api.get('/admin/featured_categories', { 
+          params: { order_by: 'created_at', sort: 'asc' },
+          signal: controller.signal
+        });
         const data = (res.data?.data || res.data || []).filter(
           (item: any) => item?.category?.name
         );
         setCategories(data);
-      } catch (e) {
-        console.error('Error fetching featured categories:', e);
+      } catch (e: any) {
+        if (e.name !== 'CanceledError') {
+          console.error('Error fetching featured categories:', e);
+          setError('Failed to load categories.');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetch();
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -70,6 +80,18 @@ const FeaturedCategories: React.FC = () => {
         {[1, 2, 3].map(i => (
           <Shimmer key={i} width="90%" height={80} borderRadius={16} style={{ marginHorizontal: 20, marginBottom: 12 }} />
         ))}
+      </View>
+    );
+  }
+
+  if (error && categories.length === 0) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Explore Categories" subtitle="Discover learning pathways" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={24} color={Palette.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </View>
     );
   }
@@ -124,6 +146,21 @@ const FeaturedCategories: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: Spacing['2xl'],
+  },
+  errorContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    backgroundColor: `${Palette.danger}15`,
+    marginHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  errorText: {
+    ...Typography.body,
+    color: Palette.danger,
+    flex: 1,
   },
   card: {
     flexDirection: 'row',

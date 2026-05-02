@@ -1,113 +1,145 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import { View, StyleSheet, Platform, TouchableOpacity, Text } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Palette, Typography } from '@/constants/theme';
+import { Palette, Shadow } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+function CustomTabBar({ state, descriptors, navigation }: any) {
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+      <View style={[styles.tabBar, Shadow.md]}>
+        {state.routes.map((route: any, index: number) => {
+          const { options } = descriptors[route.key];
+          
+          // Only show specific tabs
+          if (['explore', 'profile'].includes(route.name)) {
+            return null;
+          }
+
+          const isFocused = state.index === index;
+          const isCenter = route.name === 'ai';
+
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
+            }
+          };
+
+          let iconName: any = 'home';
+          if (route.name === 'index') iconName = isFocused ? 'home' : 'home-outline';
+          if (route.name === 'courses') iconName = isFocused ? 'book' : 'book-outline';
+          if (route.name === 'ai') iconName = 'sparkles';
+          if (route.name === 'live') iconName = isFocused ? 'videocam' : 'videocam-outline';
+          if (route.name === 'notes') iconName = isFocused ? 'document-text' : 'document-text-outline';
+
+          if (isCenter) {
+            return (
+              <TouchableOpacity
+                key={route.key}
+                onPress={onPress}
+                style={styles.centerTabBtn}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.centerTabInner, Shadow.sm]}>
+                  <Ionicons name={iconName} size={24} color="#FFFFFF" />
+                </View>
+              </TouchableOpacity>
+            );
+          }
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabBtn}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.iconContainer, isFocused && styles.activeIconContainer]}>
+                <Ionicons name={iconName} size={22} color={isFocused ? Palette.primary : Palette.textMuted} />
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
 
 export default function TabLayout() {
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: Palette.primary,
-        tabBarInactiveTintColor: Palette.textMuted,
-        tabBarLabelStyle: styles.tabLabel,
-        tabBarItemStyle: styles.tabItem,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? styles.activeIconContainer : undefined}>
-              <Ionicons name={focused ? 'home' : 'home-outline'} size={22} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="courses"
-        options={{
-          title: 'Courses',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? styles.activeIconContainer : undefined}>
-              <Ionicons name={focused ? 'book' : 'book-outline'} size={22} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="live"
-        options={{
-          title: 'Live',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? styles.activeIconContainer : undefined}>
-              <Ionicons name={focused ? 'videocam' : 'videocam-outline'} size={22} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="notes"
-        options={{
-          title: 'Notes',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? styles.activeIconContainer : undefined}>
-              <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={22} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color, focused }) => (
-            <View style={focused ? styles.activeIconContainer : undefined}>
-              <Ionicons name={focused ? 'person' : 'person-outline'} size={22} color={color} />
-            </View>
-          ),
-        }}
-      />
-      {/* Hide the explore tab (replaced by courses) */}
-      <Tabs.Screen
-        name="explore"
-        options={{
-          href: null,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen name="courses" options={{ title: 'Courses' }} />
+      <Tabs.Screen name="ai" options={{ title: 'AI Buddy' }} />
+      <Tabs.Screen name="live" options={{ title: 'Live' }} />
+      <Tabs.Screen name="notes" options={{ title: 'Notes' }} />
+      
+      {/* Hidden tabs that we moved out or don't want in the bar */}
+      <Tabs.Screen name="explore" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
+  tabBarContainer: {
+    backgroundColor: Palette.bg, // Match screen background so it looks transparent
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+    paddingTop: 10,
+    paddingHorizontal: 20,
+  },
   tabBar: {
-    backgroundColor: '#1e293b',
-    borderTopWidth: 0,
-    borderTopColor: 'transparent',
-    elevation: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    height: Platform.OS === 'ios' ? 88 : 65,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-    paddingTop: 8,
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 40,
+    height: 70,
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    ...Shadow.md,
   },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
+  tabBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
   },
-  tabItem: {
-    paddingTop: 4,
+  iconContainer: {
+    padding: 8,
+    borderRadius: 20,
   },
   activeIconContainer: {
-    backgroundColor: 'rgba(59, 130, 246, 0.12)',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+  },
+  centerTabBtn: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  centerTabInner: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF6B35', 
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 4,
+    borderColor: Palette.bg, // Cutout effect against the screen background
+    marginTop: -30, 
+    ...Shadow.md,
   },
 });

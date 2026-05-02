@@ -1,9 +1,8 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, TextInput } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Palette, BorderRadius, Typography, Spacing } from '@/constants/theme';
+import { Palette, BorderRadius, Typography, Spacing, Shadow } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -12,6 +11,15 @@ const HeroBanner: React.FC = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      router.push({ pathname: '/catalog', params: { q: searchQuery.trim() } } as any);
+    } else {
+      router.push('/catalog' as any);
+    }
+  };
 
   useEffect(() => {
     Animated.parallel([
@@ -19,7 +27,6 @@ const HeroBanner: React.FC = () => {
       Animated.timing(slideAnim, { toValue: 0, duration: 800, useNativeDriver: true }),
     ]).start();
 
-    // Pulse animation for the AI badge
     Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, { toValue: 1.05, duration: 1500, useNativeDriver: true }),
@@ -29,34 +36,23 @@ const HeroBanner: React.FC = () => {
   }, []);
 
   return (
-    <LinearGradient
-      colors={['#1e293b', '#0f172a', '#1e1b4b']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       {/* Decorative circles */}
       <View style={[styles.circle, styles.circle1]} />
       <View style={[styles.circle, styles.circle2]} />
-      <View style={[styles.circle, styles.circle3]} />
 
       <Animated.View style={[styles.content, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         {/* AI Badge */}
         <Animated.View style={[styles.aiBadge, { transform: [{ scale: pulseAnim }] }]}>
-          <LinearGradient
-            colors={Palette.gradientPrimary as any}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.aiBadgeGradient}
-          >
-            <Ionicons name="sparkles" size={14} color="#fff" />
+          <View style={styles.aiBadgeInner}>
+            <Ionicons name="sparkles" size={14} color={Palette.primary} />
             <Text style={styles.aiBadgeText}>AI-Powered Learning</Text>
-          </LinearGradient>
+          </View>
         </Animated.View>
 
         <Text style={styles.title}>
           Learn Without{'\n'}
-          <Text style={styles.titleGradient}>Limits</Text>
+          <Text style={styles.titleAccent}>Limits</Text>
         </Text>
 
         <Text style={styles.subtitle}>
@@ -64,10 +60,18 @@ const HeroBanner: React.FC = () => {
         </Text>
 
         {/* Search Bar */}
-        <TouchableOpacity style={styles.searchContainer} onPress={() => router.push('/catalog' as any)} activeOpacity={0.8}>
+        <View style={[styles.searchContainer, Shadow.sm]}>
           <Ionicons name="search" size={20} color={Palette.textMuted} style={styles.searchIcon} />
-          <Text style={styles.searchPlaceholder}>Search courses, subjects...</Text>
-        </TouchableOpacity>
+          <TextInput
+            style={styles.searchPlaceholder}
+            placeholder="Search courses, subjects..."
+            placeholderTextColor={Palette.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+          />
+        </View>
 
         {/* Quick Stats */}
         <View style={styles.statsRow}>
@@ -76,28 +80,31 @@ const HeroBanner: React.FC = () => {
             { value: '500+', label: 'Courses' },
             { value: '50+', label: 'Educators' },
           ].map((stat, i) => (
-            <View key={i} style={styles.statItem}>
+            <View key={i} style={[styles.statItem, Shadow.sm]}>
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
           ))}
         </View>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: Palette.bgCream,
     paddingTop: 20,
     paddingBottom: 30,
     position: 'relative',
     overflow: 'hidden',
+    borderBottomLeftRadius: BorderRadius['2xl'],
+    borderBottomRightRadius: BorderRadius['2xl'],
   },
   circle: {
     position: 'absolute',
     borderRadius: 999,
-    opacity: 0.06,
+    opacity: 0.1,
   },
   circle1: {
     width: 200,
@@ -109,16 +116,9 @@ const styles = StyleSheet.create({
   circle2: {
     width: 150,
     height: 150,
-    backgroundColor: Palette.purple,
+    backgroundColor: Palette.warning,
     bottom: -30,
     left: -30,
-  },
-  circle3: {
-    width: 100,
-    height: 100,
-    backgroundColor: Palette.pink,
-    top: 60,
-    left: SCREEN_WIDTH * 0.6,
   },
   content: {
     paddingHorizontal: Spacing.xl,
@@ -127,17 +127,18 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginBottom: Spacing.lg,
   },
-  aiBadgeGradient: {
+  aiBadgeInner: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
     gap: 6,
+    backgroundColor: '#FFF0E5',
   },
   aiBadgeText: {
     ...Typography.small,
-    color: '#fff',
+    color: Palette.primary,
     fontWeight: '700',
   },
   title: {
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     color: Palette.textPrimary,
     marginBottom: Spacing.md,
   },
-  titleGradient: {
+  titleAccent: {
     color: Palette.primary,
   },
   subtitle: {
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
   searchPlaceholder: {
     flex: 1,
     ...Typography.body,
-    color: Palette.textMuted,
+    color: Palette.textPrimary,
     paddingVertical: 14,
   },
   statsRow: {
@@ -179,6 +180,10 @@ const styles = StyleSheet.create({
   },
   statItem: {
     alignItems: 'center',
+    backgroundColor: Palette.bgCard,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
   },
   statValue: {
     ...Typography.h2,

@@ -60,7 +60,7 @@ export default function CoursesScreen() {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1e293b', '#0f172a']}
+        colors={['#FFF8F0', '#FFF5EB']}
         style={styles.header}
       >
         <Text style={styles.title}>Courses</Text>

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
@@ -27,19 +29,37 @@ const FeaturedSubjects: React.FC = () => {
   const router = useRouter();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetch = async () => {
       try {
-        const res = await api.get('/admin/subjects', { params: { is_featured: true, sort: 'title', order: 'asc' } });
+        setError(null);
+        const classId = await AsyncStorage.getItem('user_class_id');
+        
+        if (!classId) {
+          setSubjects([]);
+          setLoading(false);
+          return;
+        }
+
+        const res = await api.get('/admin/subjects', { 
+          params: { is_featured: true, class_id: classId, sort: 'title', order: 'asc' },
+          signal: controller.signal
+        });
         setSubjects(res.data?.data || res.data || []);
-      } catch (e) {
-        console.error('Error fetching featured subjects:', e);
+      } catch (e: any) {
+        if (e.name !== 'CanceledError') {
+          console.error('Error fetching featured subjects:', e);
+          setError('Failed to load featured subjects.');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetch();
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -54,6 +74,18 @@ const FeaturedSubjects: React.FC = () => {
           contentContainerStyle={styles.list}
           renderItem={() => <Shimmer width={CARD_WIDTH} height={160} borderRadius={16} style={{ marginRight: 12 }} />}
         />
+      </View>
+    );
+  }
+
+  if (error && subjects.length === 0) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Featured Subjects" subtitle="Hand-picked for you" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={24} color={Palette.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </View>
     );
   }
@@ -102,6 +134,21 @@ const FeaturedSubjects: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: Spacing['2xl'],
+  },
+  errorContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    backgroundColor: `${Palette.danger}15`,
+    marginHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.md,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  errorText: {
+    ...Typography.body,
+    color: Palette.danger,
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.xl,

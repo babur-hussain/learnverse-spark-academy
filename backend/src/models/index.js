@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
   education: String,
   current_grade: String,
   school: String,
+  class_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Class' },
+  college_id: { type: mongoose.Schema.Types.ObjectId, ref: 'College' },
   interests: [String],
 }, { timestamps: true });
 

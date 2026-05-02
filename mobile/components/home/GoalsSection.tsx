@@ -36,19 +36,29 @@ const GOAL_ICONS: (keyof typeof Ionicons.glyphMap)[] = [
 const GoalsSection: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
     const fetch = async () => {
       try {
-        const res = await api.get('/admin/goals', { params: { active: true } });
+        setError(null);
+        const res = await api.get('/admin/goals', { 
+          params: { active: true },
+          signal: controller.signal
+        });
         setGoals(res.data?.data || res.data || []);
-      } catch (e) {
-        console.error('Error fetching goals:', e);
+      } catch (e: any) {
+        if (e.name !== 'CanceledError') {
+          console.error('Error fetching goals:', e);
+          setError('Failed to load goals.');
+        }
       } finally {
         setLoading(false);
       }
     };
     fetch();
+    return () => controller.abort();
   }, []);
 
   if (loading) {
@@ -63,6 +73,18 @@ const GoalsSection: React.FC = () => {
           contentContainerStyle={styles.list}
           renderItem={() => <Shimmer width={150} height={140} borderRadius={16} style={{ marginRight: 12 }} />}
         />
+      </View>
+    );
+  }
+
+  if (error && goals.length === 0) {
+    return (
+      <View style={styles.container}>
+        <SectionHeader title="Learning Goals" subtitle="Set your targets" />
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={24} color={Palette.danger} />
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
       </View>
     );
   }
@@ -108,6 +130,20 @@ const GoalsSection: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: Spacing['2xl'],
+  },
+  errorContainer: {
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    backgroundColor: `${Palette.danger}15`,
+    marginHorizontal: Spacing.xl,
+    borderRadius: 8,
+    flexDirection: 'row',
+    gap: Spacing.sm,
+  },
+  errorText: {
+    color: Palette.danger,
+    flex: 1,
   },
   list: {
     paddingHorizontal: Spacing.xl,
