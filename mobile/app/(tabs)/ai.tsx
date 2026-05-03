@@ -716,7 +716,6 @@ const markdownStyles: any = {
     color: Palette.textPrimary,
     fontSize: 15,
     lineHeight: 22,
-    fontFamily: Typography.body?.fontFamily,
   },
   strong: {
     fontWeight: '700',
