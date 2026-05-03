@@ -12,6 +12,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import CustomSplashScreen from '@/components/CustomSplashScreen';
 import { SidebarProvider } from '@/components/SidebarContext';
 import CustomSidebar from '@/components/CustomSidebar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -34,11 +35,30 @@ export default function RootLayout() {
   const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    const subscriber = onAuthStateChanged(auth, (usr) => {
-      setUser(usr);
+    // Safety timeout: if Firebase never responds (e.g. wrong config, network issue on Android),
+    // stop showing the splash screen after 6 seconds and proceed to routing.
+    const timeout = setTimeout(() => {
       setInitializing(false);
-    });
-    return subscriber; // unsubscribe on unmount
+    }, 6000);
+
+    const subscriber = onAuthStateChanged(
+      auth,
+      (usr) => {
+        clearTimeout(timeout);
+        setUser(usr);
+        setInitializing(false);
+      },
+      (error) => {
+        // Firebase auth error — clear timeout and proceed without a user
+        clearTimeout(timeout);
+        console.error('Firebase auth error:', error);
+        setInitializing(false);
+      }
+    );
+    return () => {
+      clearTimeout(timeout);
+      subscriber();
+    };
   }, []); // Empty deps to prevent multiple subscriptions
 
   useEffect(() => {
@@ -78,9 +98,10 @@ export default function RootLayout() {
   }
 
   return (
-    <SidebarProvider>
-      <ErrorBoundary>
-        <View style={{ flex: 1 }}>
+    <SafeAreaProvider>
+      <SidebarProvider>
+        <ErrorBoundary>
+          <View style={{ flex: 1 }}>
           <ThemeProvider value={DefaultTheme}>
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
@@ -120,5 +141,6 @@ export default function RootLayout() {
         </View>
       </ErrorBoundary>
     </SidebarProvider>
+    </SafeAreaProvider>
   );
 }

@@ -11,7 +11,16 @@ router.post('/register', async (req, res) => {
       return res.json(existingUser);
     }
 
-    const user = new User({ uid, email, username, full_name, role: role || 'student' });
+    // Generate a fallback username to avoid unique constraint errors if missing
+    const generatedUsername = username || `${email.split('@')[0]}_${Math.floor(Math.random() * 10000)}`;
+
+    const user = new User({ 
+      uid, 
+      email, 
+      username: generatedUsername, 
+      full_name, 
+      role: role || 'student' 
+    });
     await user.save();
     res.status(201).json(user);
   } catch (error) {

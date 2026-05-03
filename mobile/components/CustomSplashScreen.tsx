@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Animated, View } from 'react-native';
-import { DotLottie } from '@lottiefiles/dotlottie-react-native';
+import LottieView from 'lottie-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { Palette } from '@/constants/theme';
 
@@ -38,14 +38,23 @@ export default function CustomSplashScreen({ onFinish, isAppReady }: CustomSplas
     }
   }, [isAppReady, isAnimationFinished, fadeAnim, onFinish]);
 
+  // Safety fallback: if Lottie never fires onComplete (e.g. fails on Android),
+  // mark animation as finished after a timeout so the splash always clears.
+  useEffect(() => {
+    const fallback = setTimeout(() => {
+      setIsAnimationFinished(true);
+    }, 4000);
+    return () => clearTimeout(fallback);
+  }, []);
+
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.animationWrapper}>
-        <DotLottie
+        <LottieView
           source={require('@/assets/Lottie/Welcome.lottie')}
-          autoplay
+          autoPlay
           loop={false}
-          onComplete={() => setIsAnimationFinished(true)}
+          onAnimationFinish={() => setIsAnimationFinished(true)}
           style={styles.animation}
         />
       </View>

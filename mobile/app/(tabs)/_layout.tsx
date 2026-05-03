@@ -7,10 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 function CustomTabBar({ state, descriptors, navigation }: any) {
   const insets = useSafeAreaInsets();
+  const currentRouteName = state.routes[state.index].name;
   
+  if (currentRouteName === 'ai') return null;
+
+
   return (
-    <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-      <View style={[styles.tabBar, Shadow.md]}>
+    <View style={[styles.tabBarContainer, { paddingBottom: Math.max(insets.bottom, 4) }]}>
+      <View style={styles.tabBar}>
         {state.routes.map((route: any, index: number) => {
           const { options } = descriptors[route.key];
           
@@ -97,21 +101,19 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   tabBarContainer: {
-    backgroundColor: Palette.bg, // Match screen background so it looks transparent
-    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
-    paddingTop: 10,
-    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.05)',
+    // The paddingBottom will be applied inline in the component based on insets
   },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: '#FFFFFF',
-    borderRadius: 40,
-    height: 70,
+    height: 65,
     width: '100%',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    ...Shadow.md,
+    paddingHorizontal: 8,
   },
   tabBtn: {
     flex: 1,
@@ -138,8 +140,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 4,
-    borderColor: Palette.bg, // Cutout effect against the screen background
-    marginTop: -30, 
+    borderColor: '#FFFFFF', 
+    marginTop: -25, 
     ...Shadow.md,
   },
 });

@@ -3,7 +3,7 @@
     "name": "Padhaai Wala",
     "slug": "padhaaiwala",
     "description": "Padhaai Wala is a comprehensive learning platform.",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "padhaaiwala",
@@ -15,10 +15,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.padhaaiwala.app"
+      "bundleIdentifier": "com.padhaaiwala.app",
+      "buildNumber": "4",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow Padhaai Wala to access your camera to attach photos.",
+        "NSMicrophoneUsageDescription": "Allow Padhaai Wala to access your microphone to record audio questions.",
+        "NSPhotoLibraryUsageDescription": "Allow Padhaai Wala to access your photo library to attach images."
+      }
     },
     "android": {
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "INTERNET",
         "ACCESS_NETWORK_STATE"
@@ -56,7 +63,7 @@
     ],
     "experiments": {
       "typedRoutes": true,
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }

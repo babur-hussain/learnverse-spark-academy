@@ -2,11 +2,11 @@ import axios from 'axios';
 
 const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-const MODEL = 'google/gemma-4-31b-it:free';
+const MODEL = 'google/gemini-2.5-flash-free';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
-  content: string;
+  content: string | Array<{ type: string; text?: string; image_url?: { url: string } }>;
 }
 
 const SYSTEM_PROMPT = `You are Padhaai Wala, a friendly, knowledgeable, and encouraging AI study buddy. You help students of all ages with their studies — from school homework to advanced topics.
@@ -62,14 +62,19 @@ export async function sendChatMessage(
   } catch (error: any) {
     if (error.response) {
       console.error('OpenRouter API error:', error.response.status, error.response.data);
+      const detail = error.response.data?.error?.message || JSON.stringify(error.response.data);
       if (error.response.status === 429) {
-        throw new Error('Too many requests. Please wait a moment and try again.');
+        throw new Error(`Too many requests. Real issue: ${detail}`);
       }
       if (error.response.status === 401) {
         throw new Error('AI service authentication failed.');
       }
+      throw new Error(`API Error ${error.response.status}: ${detail}`);
+    } else if (error.request) {
+      console.error('Network error - no response received:', error.request);
+      throw new Error('Network error: Unable to reach the AI service. Please check your internet connection.');
     }
     console.error('Chat error:', error.message);
-    throw new Error('Failed to get response from Padhaai Wala. Please try again.');
+    throw new Error(`Unexpected error: ${error.message}`);
   }
 }

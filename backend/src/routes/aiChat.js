@@ -46,6 +46,21 @@ router.get('/sessions/:id/messages', async (req, res) => {
   }
 });
 
+// DELETE /api/ai-chat/sessions/:id
+router.delete('/sessions/:id', async (req, res) => {
+  try {
+    const session = await AIChatSession.findOneAndDelete({ _id: req.params.id, user_id: req.user.uid });
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    // Delete all messages associated with this session
+    await AIChatMessage.deleteMany({ session_id: req.params.id });
+    res.json({ message: 'Session deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/ai-chat/ask — send question to AI
 router.post('/ask', async (req, res) => {
   try {

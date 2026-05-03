@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { DotLottie } from '@lottiefiles/dotlottie-react-native';
+import LottieView from 'lottie-react-native';
 import { Palette, BorderRadius, Typography, Spacing, Shadow } from '@/constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -51,9 +51,9 @@ const AIBuddyCard: React.FC = () => {
             </Text>
           </View>
           <View style={styles.animationContainer}>
-            <DotLottie
-              source={require('@/assets/Lottie/Mapping for machine learning.lottie')}
-              autoplay
+            <LottieView
+              source={require('@/assets/Lottie/machine-learning.lottie')}
+              autoPlay
               loop
               style={styles.lottie}
             />
