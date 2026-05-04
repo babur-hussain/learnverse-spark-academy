@@ -11,7 +11,7 @@ interface AdminRoleGuardProps {
 }
 
 const AdminRoleGuard: React.FC<AdminRoleGuardProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { isAdmin, isLoading, error } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -19,15 +19,6 @@ const AdminRoleGuard: React.FC<AdminRoleGuardProps> = ({ children }) => {
   const isAdminByEmail = user?.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase();
   
   useEffect(() => {
-    if (!isLoading && !isAdmin && !isAdminByEmail && user) {
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the admin area.",
-        variant: "destructive"
-      });
-      navigate('/', { replace: true });
-    }
-    
     if (error && user && !isAdminByEmail) {
       toast({
         title: "Role Verification Issue",
@@ -35,7 +26,8 @@ const AdminRoleGuard: React.FC<AdminRoleGuardProps> = ({ children }) => {
         variant: "destructive"
       });
     }
-  }, [isAdmin, isLoading, user, toast, error, isAdminByEmail, navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, isLoading, user, error, isAdminByEmail]);
 
   if (isLoading) {
     return (
@@ -49,7 +41,28 @@ const AdminRoleGuard: React.FC<AdminRoleGuardProps> = ({ children }) => {
     return <>{children}</>;
   }
 
-  return <Navigate to="/" replace />;
+  return (
+    <div className="flex flex-col items-center justify-center h-screen bg-gray-50 text-center px-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+        <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
+        <p className="text-gray-600 mb-6">
+          You don't have permission to access the admin area. Please sign in with an administrator account.
+        </p>
+        <button 
+          onClick={() => {
+            if (logout) {
+              logout().then(() => navigate('/auth'));
+            } else {
+              navigate('/auth');
+            }
+          }} 
+          className="w-full py-2 px-4 bg-primary text-white rounded hover:opacity-90 transition-opacity"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default AdminRoleGuard;

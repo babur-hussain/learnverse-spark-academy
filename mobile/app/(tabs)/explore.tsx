@@ -72,7 +72,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Palette.bg,
+    backgroundColor: '#0f172a',
   },
   header: {
     paddingHorizontal: 20,

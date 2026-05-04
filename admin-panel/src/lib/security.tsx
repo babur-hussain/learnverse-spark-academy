@@ -108,7 +108,7 @@ export const sanitizeUrl = (url: string): string | null => {
 /**
  * Validate and sanitize user input using Zod schemas
  */
-export const validateInput = <T>(schema: z.ZodSchema<T>, data: unknown): T => {
+export const validateInput = <T extends unknown>(schema: z.ZodSchema<T>, data: unknown): T => {
   try {
     return schema.parse(data);
   } catch (error) {

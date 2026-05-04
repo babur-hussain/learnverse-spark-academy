@@ -36,6 +36,11 @@ interface Instructor {
   full_name?: string;
 }
 
+interface Category {
+  id: string;
+  name: string;
+}
+
 interface Course {
   id: string;
   title: string;
@@ -44,6 +49,8 @@ interface Course {
   instructor_id: string | null;
   subscription_required: boolean;
   college_id?: string | null;
+  category_id?: { id: string } | string | null;
+  banner_url?: string | null;
 }
 
 interface College {
@@ -66,6 +73,7 @@ const formSchema = z.object({
   instructor_id: z.string().optional().nullable(),
   subscription_required: z.boolean().default(false),
   college_id: z.string().optional().nullable(),
+  category_id: z.string().optional().nullable(),
 });
 
 export function CourseDialog({ 
@@ -88,15 +96,23 @@ export function CourseDialog({
       instructor_id: '',
       subscription_required: false,
       college_id: '',
+      category_id: '',
     },
   });
 
   const { data: colleges = [] } = useQuery({
     queryKey: ['colleges'],
     queryFn: async () => {
-      const { data, error } = await apiClient.get('/api/admin/colleges');
-      if (error) throw error;
-      return data as College[];
+      const response = await apiClient.get('/api/admin/colleges');
+      return response.data as College[];
+    }
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: async () => {
+      const response = await apiClient.get('/api/admin/categories');
+      return response.data as Category[];
     }
   });
 
@@ -112,6 +128,7 @@ export function CourseDialog({
           instructor_id: course.instructor_id || '',
           subscription_required: course.subscription_required ?? false,
           college_id: course.college_id || '',
+          category_id: typeof course.category_id === 'object' && course.category_id !== null ? course.category_id.id : (course.category_id as string || ''),
         });
       } else {
         // Reset to default values when creating a new course
@@ -123,6 +140,7 @@ export function CourseDialog({
           instructor_id: '',
           subscription_required: false,
           college_id: '',
+          category_id: '',
         });
       }
     }
@@ -131,19 +149,8 @@ export function CourseDialog({
   useEffect(() => {
     async function fetchInstructors() {
       try {
-        const { data, error } = await apiClient.get('/api/admin/profiles');
-        
-        if (error) {
-          console.error('Error fetching instructors:', error);
-          toast({
-            title: 'Error',
-            description: 'Failed to load instructors',
-            variant: 'destructive',
-          });
-          return;
-        }
-        
-        setInstructors(data as Instructor[]);
+        const response = await apiClient.get('/api/admin/profiles');
+        setInstructors(response.data as Instructor[]);
       } catch (error) {
         console.error('Error fetching instructors:', error);
         toast({
@@ -166,14 +173,14 @@ export function CourseDialog({
     const fileExt = file.name.split('.').pop();
     const fileName = `banner_${Date.now()}.${fileExt}`;
     const filePath = `banners/${fileName}`;
-    const { error } = await uploadFileToS3(file, 'uploads');
-    if (error) {
+    try {
+      await uploadFileToS3(file, 'uploads');
+      const publicUrl = `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${filePath}`;
+      form.setValue('banner_url', publicUrl);
+      toast({ title: 'Banner uploaded', description: 'Banner image uploaded successfully.' });
+    } catch (error: any) {
       toast({ title: 'Banner upload error', description: error.message, variant: 'destructive' });
-      return;
     }
-      const { data } = await { data: { publicUrl: `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${filePath}` } };
-    form.setValue('banner_url', data?.publicUrl || '');
-    toast({ title: 'Banner uploaded', description: 'Banner image uploaded successfully.' });
   };
 
   // Thumbnail upload handler
@@ -206,14 +213,9 @@ export function CourseDialog({
     const filePath = `thumbnails/${fileName}`;
     
     try {
-      const { error } = await uploadFileToS3(file, 'uploads');
-      if (error) {
-        toast({ title: 'Thumbnail upload error', description: error.message, variant: 'destructive' });
-        return;
-      }
-      
-        const { data } = await { data: { publicUrl: `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${filePath}` } };
-      form.setValue('thumbnail_url', data?.publicUrl || '');
+      await uploadFileToS3(file, 'uploads');
+      const publicUrl = `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${filePath}`;
+      form.setValue('thumbnail_url', publicUrl);
       toast({ title: 'Thumbnail uploaded', description: 'Thumbnail image uploaded successfully.' });
     } catch (error: any) {
       toast({ 
@@ -237,6 +239,7 @@ export function CourseDialog({
         ...values,
         instructor_id: sanitizeUUIDField(values.instructor_id),
         college_id: sanitizeUUIDField(values.college_id),
+        category_id: sanitizeUUIDField(values.category_id),
       };
 
       // Debug logging to see what values are being sent
@@ -244,33 +247,33 @@ export function CourseDialog({
       console.log('CourseDialog: Sanitized values:', sanitizedValues);
 
       if (isEditing && course) {
-        const { error } = await apiClient.put(`/api/admin/courses/${course.id}`, {
-            title: sanitizedValues.title,
-            description: sanitizedValues.description,
-            thumbnail_url: sanitizedValues.thumbnail_url,
-            banner_url: sanitizedValues.banner_url,
-            instructor_id: sanitizedValues.instructor_id,
-            subscription_required: sanitizedValues.subscription_required,
-            college_id: sanitizedValues.college_id,
-          });
+        await apiClient.put(`/api/admin/courses/${course.id}`, {
+          title: sanitizedValues.title,
+          description: sanitizedValues.description,
+          thumbnail_url: sanitizedValues.thumbnail_url,
+          banner_url: sanitizedValues.banner_url,
+          instructor_id: sanitizedValues.instructor_id,
+          subscription_required: sanitizedValues.subscription_required,
+          college_id: sanitizedValues.college_id,
+          category_id: sanitizedValues.category_id,
+        });
 
-        if (error) throw error;
         toast({
           title: 'Course updated',
           description: 'The course has been successfully updated.',
         });
       } else {
-        const { error } = await apiClient.post('/api/admin/courses', {
-            title: sanitizedValues.title,
-            description: sanitizedValues.description,
-            thumbnail_url: sanitizedValues.thumbnail_url,
-            banner_url: sanitizedValues.banner_url,
-            instructor_id: sanitizedValues.instructor_id,
-            subscription_required: sanitizedValues.subscription_required,
-            college_id: sanitizedValues.college_id,
-          });
+        await apiClient.post('/api/admin/courses', {
+          title: sanitizedValues.title,
+          description: sanitizedValues.description,
+          thumbnail_url: sanitizedValues.thumbnail_url,
+          banner_url: sanitizedValues.banner_url,
+          instructor_id: sanitizedValues.instructor_id,
+          subscription_required: sanitizedValues.subscription_required,
+          college_id: sanitizedValues.college_id,
+          category_id: sanitizedValues.category_id,
+        });
 
-        if (error) throw error;
         toast({
           title: 'Course created',
           description: 'The course has been successfully created.',
@@ -434,6 +437,34 @@ export function CourseDialog({
                         {instructors.map((instructor) => (
                           <SelectItem key={instructor.id} value={instructor.id}>
                             {instructor.full_name || instructor.username}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {categories.map((category) => (
+                          <SelectItem key={category.id} value={category.id}>
+                            {category.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

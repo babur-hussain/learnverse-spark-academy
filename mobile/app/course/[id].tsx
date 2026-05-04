@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,11 +22,14 @@ interface Course {
 }
 
 interface ResourceNode {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
+  title?: string;
   path: string;
-  type: 'file' | 'folder';
+  type: 'file' | 'folder' | string;
   url?: string;
+  mime_type?: string;
 }
 
 const FILE_ICONS: Record<string, { icon: keyof typeof Ionicons.glyphMap; color: string }> = {
@@ -53,13 +56,12 @@ export default function CourseDetailScreen() {
   const [course, setCourse] = useState<Course | null>(null);
   const [resources, setResources] = useState<ResourceNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [courseRes, resourceRes] = await Promise.all([
-          api.get('/admin/courses', { params: { id } }),
+          api.get(`/admin/courses/${id}`),
           api.get('/admin/course_resources', { params: { course_id: id } })
         ]);
 
@@ -75,13 +77,7 @@ export default function CourseDetailScreen() {
     if (id) fetchData();
   }, [id]);
 
-  const normalize = (p: string) => p.replace(/\\/g, '/').replace(/(^\/|\/\$)/g, '');
-  const normCurrent = normalize(currentPath);
-  const children = resources.filter(n => {
-    const nodeParent = normalize(n.path.split('/').slice(0, -1).join('/'));
-    return nodeParent === normCurrent;
-  });
-  const isRoot = !currentPath;
+
 
   if (loading) {
     return (
@@ -163,19 +159,19 @@ export default function CourseDetailScreen() {
         {/* Course Info Cards */}
         <View style={styles.infoRow}>
           <View style={[styles.infoCard, Shadow.sm]}>
-            <Ionicons name="folder-open" size={22} color={Palette.primary} />
-            <Text style={styles.infoValue}>{resources.filter(r => r.type === 'file').length}</Text>
-            <Text style={styles.infoLabel}>Files</Text>
+            <Ionicons name="document-text" size={22} color={Palette.primary} />
+            <Text style={styles.infoValue}>{resources.length}</Text>
+            <Text style={styles.infoLabel}>Resources</Text>
           </View>
           <View style={[styles.infoCard, Shadow.sm]}>
-            <Ionicons name="folder" size={22} color={Palette.warning} />
-            <Text style={styles.infoValue}>{resources.filter(r => r.type === 'folder').length}</Text>
-            <Text style={styles.infoLabel}>Folders</Text>
+            <Ionicons name="videocam" size={22} color={Palette.warning} />
+            <Text style={styles.infoValue}>{resources.filter(r => r.type === 'video').length}</Text>
+            <Text style={styles.infoLabel}>Videos</Text>
           </View>
           <View style={[styles.infoCard, Shadow.sm]}>
             <Ionicons name="layers" size={22} color={Palette.success} />
-            <Text style={styles.infoValue}>{children.length}</Text>
-            <Text style={styles.infoLabel}>In View</Text>
+            <Text style={styles.infoValue}>{resources.filter(r => r.type !== 'video').length}</Text>
+            <Text style={styles.infoLabel}>Documents</Text>
           </View>
         </View>
 
@@ -183,42 +179,37 @@ export default function CourseDetailScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Course Resources</Text>
 
-          {!isRoot && (
-            <TouchableOpacity
-              style={styles.folderBackBtn}
-              onPress={() => setCurrentPath(currentPath.split('/').slice(0, -1).join('/'))}
-            >
-              <Ionicons name="arrow-up" size={16} color={Palette.primary} />
-              <Text style={styles.folderBackText}>Go Back</Text>
-            </TouchableOpacity>
-          )}
-
-          {children.length === 0 ? (
+          {resources.length === 0 ? (
             <View style={styles.emptySection}>
               <Ionicons name="folder-open-outline" size={48} color={Palette.textMuted} />
-              <Text style={styles.emptyText}>No files or folders here</Text>
+              <Text style={styles.emptyText}>No files or resources here</Text>
             </View>
           ) : (
             <View style={styles.resourceGrid}>
-              {children.map(item => {
-                const { icon, color } = getFileInfo(item.name, item.type);
+              {resources.map((item, index) => {
+                const title = item.title || item.name || `Resource ${index + 1}`;
+                const { icon, color } = getFileInfo(title, item.type);
                 return (
                   <TouchableOpacity
-                    key={item.path}
+                    key={item.id || item._id || index}
                     style={[styles.resourceCard, Shadow.sm]}
                     activeOpacity={0.85}
                     onPress={() => {
-                      if (item.type === 'folder') setCurrentPath(item.path);
-                      else if (item.url) Linking.openURL(item.url);
+                      if (item.url) {
+                        router.push({
+                          pathname: '/resource-viewer' as any,
+                          params: { url: item.url, title: title, type: item.mime_type || item.type || 'document' }
+                        });
+                      }
                     }}
                   >
                     <View style={[styles.resourceIconContainer, { backgroundColor: `${color}15` }]}>
                       <Ionicons name={icon} size={32} color={color} />
                     </View>
-                    <Text style={styles.resourceName} numberOfLines={2}>{item.name}</Text>
-                    {item.type === 'file' && item.url && (
+                    <Text style={styles.resourceName} numberOfLines={2}>{title}</Text>
+                    {item.url && (
                       <View style={styles.viewOnlineTag}>
-                        <Text style={styles.viewOnlineText}>Open</Text>
+                        <Text style={styles.viewOnlineText}>Open File</Text>
                       </View>
                     )}
                   </TouchableOpacity>

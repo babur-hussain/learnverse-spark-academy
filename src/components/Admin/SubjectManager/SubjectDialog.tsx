@@ -336,54 +336,14 @@ export function SubjectDialog({
         console.log('Updating subject:', subject.id);
 
         const updateData = {
-          title: finalValues.title,
+          name: finalValues.title, // Backend schema uses 'name'
           description: finalValues.description,
-          icon: iconUrl || finalValues.icon,
-          thumbnail_url: finalValues.thumbnail_url,
-          updated_at: new Date().toISOString()
+          icon_url: iconUrl || finalValues.icon, // Backend schema uses 'icon_url'
+          class_id: finalValues.classId || null,
+          college_id: finalValues.collegeId || null,
         };
 
-        const { error } = await apiClient.put(`/api/admin/subjects/${subject.id}`, updateData);
-
-        if (error) {
-          console.error('Error updating subject:', error);
-          throw error;
-        }
-
-        console.log('Subject updated successfully');
-
-        // Update categories mapping
-        if (finalValues.categoryIds && finalValues.categoryIds.length > 0) {
-          // Remove existing mappings
-          const { error: deleteError } = await apiClient.delete(`/api/admin/content_category_mappings/${subject.id}`);
-
-          if (deleteError) {
-            console.error('Error deleting category mappings:', deleteError);
-          }
-
-          // Add new mappings
-          const mappings = finalValues.categoryIds.map(categoryId => ({
-            content_id: subject.id,
-            category_id: categoryId,
-            content_type: 'subject'
-          }));
-
-          const { error: mappingError } = await apiClient.post('/api/admin/content_category_mappings', mappings);
-
-          if (mappingError) {
-            console.error('Error creating category mappings:', mappingError);
-            throw mappingError;
-          }
-        }
-
-        // Update class mapping (single class)
-        await apiClient.delete(`/api/admin/class_subjects/${subject.id}`);
-        if (finalValues.classId) {
-          await apiClient.insert({
-            class_id: finalValues.classId,
-            subject_id: subject.id
-          });
-        }
+        const response = await apiClient.put(`/api/admin/subjects/${subject.id}`, updateData);
 
         toast({
           title: 'Subject updated',
@@ -392,58 +352,16 @@ export function SubjectDialog({
       } else {
         // Create new subject
         console.log('Creating new subject');
-        const { data, error } = await apiClient.post('/api/admin/subjects', {
-          title: finalValues.title,
+        const createData = {
+          name: finalValues.title, // Backend schema uses 'name'
           description: finalValues.description,
-          icon: iconUrl || finalValues.icon,
-          thumbnail_url: finalValues.thumbnail_url,
+          icon_url: iconUrl || finalValues.icon, // Backend schema uses 'icon_url'
+          class_id: finalValues.classId || null,
           college_id: finalValues.collegeId || null,
-        });
+        };
+        const response = await apiClient.post('/api/admin/subjects', createData);
 
-        if (error) {
-          console.error('Error creating subject:', error);
-          throw error;
-        }
-
-        console.log('Subject created successfully:', data);
-
-        // Add category mappings if categories were selected
-        if (finalValues.categoryIds && finalValues.categoryIds.length > 0 && data && data.length > 0) {
-          const newSubjectId = data[0].id;
-          console.log('Adding category mappings for new subject:', newSubjectId);
-
-          const mappings = finalValues.categoryIds.map(categoryId => ({
-            content_id: newSubjectId,
-            category_id: categoryId,
-            content_type: 'subject'
-          }));
-
-          const { error: mappingError } = await apiClient.post('/api/admin/content_category_mappings', mappings);
-
-          if (mappingError) {
-            console.error('Error creating category mappings:', mappingError);
-            throw mappingError;
-          }
-        }
-
-        // Add class mapping (single class)
-        if (finalValues.classId && data && data.length > 0) {
-          const newSubjectId = data[0].id;
-          const { error: classMapError } = await apiClient.insert({
-            class_id: finalValues.classId,
-            subject_id: newSubjectId
-          });
-          if (classMapError) {
-            console.error('Error creating class-subject mapping:', classMapError);
-            toast({
-              title: 'Error',
-              description: 'Failed to assign class to subject: ' + (classMapError.message || classMapError.details),
-              variant: 'destructive',
-            });
-          } else {
-            console.log('Class-subject mapping created:', { class_id: finalValues.classId, subject_id: newSubjectId });
-          }
-        }
+        console.log('Subject created successfully:', response.data);
 
         toast({
           title: 'Subject created',
@@ -464,11 +382,6 @@ export function SubjectDialog({
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleCategoryChange = (selected: string[]) => {
-    setSelectedCategoryIds(selected);
-    form.setValue('categoryIds', selected);
   };
 
   const handleClassChange = (e: React.ChangeEvent<HTMLSelectElement>) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -69,7 +69,14 @@ export default function VideoLibraryScreen() {
             ) : (
               videos.map(video => (
                 <TouchableOpacity key={video._id || video.id} style={[styles.videoCard, Shadow.md]}
-                  activeOpacity={0.85} onPress={() => video.video_url && Linking.openURL(video.video_url)}>
+                  activeOpacity={0.85} onPress={() => {
+                    if (video.video_url) {
+                      router.push({
+                        pathname: '/resource-viewer' as any,
+                        params: { url: video.video_url, title: video.title, type: 'video/mp4' }
+                      });
+                    }
+                  }}>
                   <View style={styles.videoThumbContainer}>
                     <Image
                       source={{ uri: video.thumbnail_url || 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=225&fit=crop' }}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -135,7 +135,14 @@ export default function KidsScreen() {
                       ) : (
                         catContent.map(item => (
                           <TouchableOpacity key={item._id || item.id} style={[styles.contentCard, Shadow.sm]}
-                            onPress={() => item.content_url && Linking.openURL(item.content_url)} activeOpacity={0.85}>
+                            onPress={() => {
+                              if (item.content_url) {
+                                router.push({
+                                  pathname: '/resource-viewer' as any,
+                                  params: { url: item.content_url, title: item.title, type: item.content_type || 'video/mp4' }
+                                });
+                              }
+                            }} activeOpacity={0.85}>
                             {item.thumbnail_url ? (
                               <Image source={{ uri: item.thumbnail_url }} style={styles.contentThumb} resizeMode="cover" />
                             ) : (

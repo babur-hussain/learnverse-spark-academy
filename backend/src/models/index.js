@@ -107,7 +107,7 @@ const chapterSchema = new mongoose.Schema({
 // ─── Resource ──────────────────────────────────────────────────────────────────
 const resourceSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  type: { type: String, enum: ['video', 'note', 'audio', 'document'] },
+  type: { type: String, enum: ['video', 'note', 'audio', 'document', 'file', 'folder'] },
   url: String,
   chapter_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Chapter' },
   course_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
@@ -115,6 +115,11 @@ const resourceSchema = new mongoose.Schema({
   duration: Number,
   is_free: { type: Boolean, default: false },
   order_index: { type: Number, default: 0 },
+  // Added for Virtual File System support in CourseResourceManager
+  path: String,
+  name: String,
+  size: Number,
+  mime_type: String,
 }, { timestamps: true });
 
 // ─── Live Session ──────────────────────────────────────────────────────────────

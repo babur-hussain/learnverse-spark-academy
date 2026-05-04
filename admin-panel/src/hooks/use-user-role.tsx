@@ -54,7 +54,8 @@ export const useUserRole = () => {
     };
 
     fetchUserRole();
-  }, [user, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const isAdmin = role === 'admin';
   const isTeacher = role === 'teacher' || role === 'admin';

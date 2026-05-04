@@ -103,28 +103,28 @@ const CourseDetailPage: React.FC = () => {
   const [course, setCourse] = useState<Course | null>(null);
   const [resources, setResources] = useState<ResourceNode[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState('');
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCourse = async () => {
-      const { data, error } = await apiClient.get(`/api/admin/courses`, { params: { id: courseId } });
-      if (!error && data) setCourse(data);
+      try {
+        const { data, error } = await apiClient.get(`/api/admin/courses/${courseId}`);
+        if (!error && data) setCourse(data);
+      } catch (err) {
+        console.error('Error fetching course:', err);
+      }
     };
     const fetchResources = async () => {
-      const { data, error } = await apiClient.get(`/api/admin/course_resources`, { params: { course_id: courseId } });
-      if (!error && data) setResources(data);
+      try {
+        const { data, error } = await apiClient.get(`/api/admin/course_resources`, { params: { course_id: courseId } });
+        if (!error && data) setResources(data);
+      } catch (err) {
+        console.error('Error fetching resources:', err);
+      }
     };
     setLoading(true);
     Promise.all([fetchCourse(), fetchResources()]).then(() => setLoading(false));
   }, [courseId]);
-
-  const normCurrent = normalize(currentPath);
-  const children = resources.filter(n => {
-    const nodeParent = normalize(n.path.split('/').slice(0, -1).join('/'));
-    return nodeParent === normCurrent;
-  });
-  const isRoot = !currentPath;
 
   if (loading) return <div className="py-16 text-center">Loading...</div>;
   if (!course) return <div className="py-16 text-center">Course not found.</div>;
@@ -145,39 +145,35 @@ const CourseDetailPage: React.FC = () => {
         <Card className="mb-8 bg-white/80 shadow-lg">
           <CardTitle className="p-4 pb-0 text-2xl font-semibold text-indigo-700">Course Resources</CardTitle>
           <CardContent>
-            {!isRoot && (
-              <button className="mb-4 text-indigo-600 underline" onClick={() => setCurrentPath(currentPath.split('/').slice(0, -1).join('/'))}>
-                ← Back
-              </button>
-            )}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-4">
-              {children.length === 0 && <div className="col-span-full text-center text-gray-400">No files or folders</div>}
-              {children.map(node => (
-                <div key={node.path} className="flex flex-col items-center cursor-pointer group">
-                  <div className="mb-2">
-                    {node.type === 'folder'
-                      ? <FolderIcon size={48} className="text-indigo-500 group-hover:text-indigo-700" onClick={() => setCurrentPath(node.path)} />
-                      : getFileIcon(node.name.split('.').pop()?.toLowerCase() || '', node.type)}
+              {resources.length === 0 && <div className="col-span-full text-center text-gray-400">No resources available</div>}
+              {resources.map((item, index) => {
+                const title = item.title || item.name || `Resource ${index + 1}`;
+                return (
+                  <div key={item.id || item._id || index} className="flex flex-col items-center cursor-pointer group">
+                    <div className="mb-2">
+                      {getFileIcon(title.split('.').pop()?.toLowerCase() || '', item.type)}
+                    </div>
+                    <div className="font-medium text-center text-xs break-all w-full" title={title}>{title}</div>
+                    {item.url && (
+                      title.toLowerCase().includes('.pdf') || item.type === 'document' ? (
+                        <div className="mt-1">
+                          <PDFLink 
+                            url={item.url}
+                            title={title}
+                            variant="button"
+                            showDownloadButton={true}
+                          />
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-xs text-indigo-600 group-hover:underline">
+                          <button onClick={() => window.open(item.url, '_blank')}>View Online</button>
+                        </div>
+                      )
+                    )}
                   </div>
-                  <div className="font-medium text-center text-xs break-all w-full" title={node.name}>{node.name}</div>
-                  {node.type === 'file' && node.url && (
-                    node.url.toLowerCase().includes('.pdf') ? (
-                      <div className="mt-1">
-                        <PDFLink 
-                          url={node.url}
-                          title={node.name}
-                          variant="button"
-                          showDownloadButton={true}
-                        />
-                      </div>
-                    ) : (
-                      <div className="mt-1 text-xs text-indigo-600 group-hover:underline">
-                        <button onClick={() => window.open(node.url, '_blank')}>View Online</button>
-                      </div>
-                    )
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -74,34 +74,7 @@ async function getAllFileEntries(dataTransferItemList: DataTransferItemList): Pr
   return fileEntries;
 }
 
-// Helper to recursively list all folders in a storage path
-async function listAllFolders(bucket: any, path: string): Promise<string[]> {
-  let folders: string[] = [];
-  const { data, error } = await bucket.list(path, { limit: 1000 });
-  if (!error && data) {
-    for (const item of data) {
-      if (item.name !== '.keep' && item.metadata && item.metadata.type === 'folder') {
-        const folderPath = path ? `${path}/${item.name}` : item.name;
-        folders.push(folderPath);
-        // Recursively list subfolders
-        const subfolders = await listAllFolders(bucket, folderPath);
-        folders = folders.concat(subfolders);
-      }
-    }
-  }
-  return folders;
-}
 
-// Helper to ensure course folder exists in the bucket by uploading a .keep file
-async function ensureCourseFolder(courseId: string) {
-  const folderPath = `${courseId}/.keep`;
-  // Check if .keep file exists
-  const { data, error } = await apiClient /* courses */.list(courseId, { limit: 1 });
-  if (error || !data || data.length === 0) {
-    // Upload a zero-byte file to create the folder
-    await uploadFileToS3(new Blob([], 'uploads'), { upsert: true });
-  }
-}
 
 function getFileIcon(extension: string) {
   switch (extension) {
@@ -229,13 +202,36 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   const [uploadProgress, setUploadProgress] = useState({ uploaded: 0, total: 0 });
   const [isDragActive, setIsDragActive] = useState(false);
 
+  // Helper to upsert resource by path
+  const upsertResource = async (data: any) => {
+    try {
+      const response = await apiClient.get('/api/admin/resources', { 
+        params: { course_id: courseId, path: data.path } 
+      });
+      const existing = response.data;
+      
+      const payload = { ...data, title: data.title || data.name };
+      
+      if (existing && existing.length > 0) {
+        const id = existing[0]._id || existing[0].id;
+        return await apiClient.put(`/api/admin/resources/${id}`, payload);
+      } else {
+        return await apiClient.post('/api/admin/resources', payload);
+      }
+    } catch (error) {
+      console.error('Upsert failed:', error);
+      throw error;
+    }
+  };
+
   // Fetch resources for this course
   const fetchResources = async () => {
-    const { data, error } = await apiClient.get(`/api/admin/course_resources`, { params: { course_id: courseId } });
-    if (!error && data) {
-      setResources(data as ResourceNode[]);
-      // Debug output: log resources after fetching
-      console.log('Fetched resources:', data);
+    try {
+      const response = await apiClient.get(`/api/admin/resources`, { params: { course_id: courseId } });
+      setResources(response.data as ResourceNode[]);
+      console.log('Fetched resources:', response.data);
+    } catch (error) {
+      console.error('Failed to fetch resources', error);
     }
   };
 
@@ -253,42 +249,38 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
     let total = Array.from(files).reduce((sum, file) => sum + file.size, 0);
     setUploadProgress({ uploaded: 0, total });
     try {
-      await ensureCourseFolder(courseId);
       for (const file of Array.from(files)) {
         const uploadPath = currentPath ? `${currentPath}/${file.name}` : file.name;
         const storagePath = `${courseId}/${uploadPath}`;
         // Upload to 'courses' bucket
-        const { error: uploadError } = await uploadFileToS3(file, 'uploads');
-        if (uploadError && uploadError.statusCode !== '409') {
-          console.error('Upload error:', uploadError);
-          toast({ title: 'Upload error', description: uploadError.message, variant: 'destructive' });
-          continue;
-        }
+        await uploadFileToS3(file, 'uploads');
         uploaded += file.size;
         setUploadProgress({ uploaded, total });
         // Get public URL
-        const { data: urlData } = await { data: { publicUrl: `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}` } };
+        const publicUrl = `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}`;
         // Insert metadata in DB
-        await apiClient.upsert({
+        await upsertResource({
           course_id: courseId,
           path: uploadPath,
           name: file.name,
+          title: file.name,
           type: 'file',
           size: file.size,
-          url: urlData?.publicUrl,
+          url: publicUrl,
           mime_type: file.type,
-        }, { onConflict: 'course_id,path' });
+        });
         // Insert folders in the path if not present
         const folders = uploadPath.split('/').slice(0, -1);
         let folderPath = '';
         for (const folder of folders) {
           folderPath = folderPath ? `${folderPath}/${folder}` : folder;
-          await apiClient.upsert({
+          await upsertResource({
             course_id: courseId,
             path: folderPath,
             name: folder,
+            title: folder,
             type: 'folder',
-          }, { onConflict: 'course_id,path' });
+          });
         }
       }
       setUploadProgress({ uploaded: 0, total: 0 });
@@ -311,7 +303,6 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
     let total = Array.from(files).reduce((sum, file) => sum + file.size, 0);
     setUploadProgress({ uploaded: 0, total });
     try {
-      await ensureCourseFolder(courseId);
       // Collect all unique folder paths from files
       const folderSet = new Set<string>();
       for (const file of Array.from(files)) {
@@ -324,44 +315,42 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
         }
       }
       // Insert all unique folders into the database (up to 10 levels deep)
-      const folderUpserts = Array.from(folderSet).map(folderPath => {
+      for (const folderPath of Array.from(folderSet)) {
         const folderName = folderPath.split('/').pop() || folderPath;
-        return apiClient.upsert({
+        await upsertResource({
           course_id: courseId,
           path: normalize(folderPath),
           name: folderName,
+          title: folderName,
           type: 'folder',
-        }, { onConflict: 'course_id,path' });
-      });
-      await Promise.all(folderUpserts);
+        });
+      }
+      
       // Now upload files as before
-      const fileUpserts = Array.from(files).map(async file => {
+      for (const file of Array.from(files)) {
         const relativePath = normalize((file as any).webkitRelativePath || file.name);
         const storagePath = `${courseId}/${relativePath}`;
         // Upload to 'courses' bucket
-        const { error: uploadError } = await uploadFileToS3(file, 'uploads');
-        if (uploadError && uploadError.statusCode !== '409') {
-          console.error('Upload error:', uploadError);
-          toast({ title: 'Upload error', description: uploadError.message, variant: 'destructive' });
-          return;
-        }
+        await uploadFileToS3(file, 'uploads');
         uploaded += file.size;
         setUploadProgress({ uploaded, total });
-        const { data: urlData } = await { data: { publicUrl: `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}` } };
-        await apiClient.upsert({
+        const publicUrl = `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}`;
+        await upsertResource({
           course_id: courseId,
           path: relativePath,
           name: file.name,
+          title: file.name,
           type: 'file',
           size: file.size,
-          url: urlData?.publicUrl,
+          url: publicUrl,
           mime_type: file.type,
-        }, { onConflict: 'course_id,path' });
-      });
-      await Promise.all(fileUpserts);
+        });
+      }
       setUploadProgress({ uploaded: 0, total: 0 });
       // Force UI refresh after upload
       await fetchResources();
+    } catch (err: any) {
+      console.error('Folder upload error:', err);
     } finally {
       setIsUploading(false);
       if (folderInputRef.current) folderInputRef.current.value = '';
@@ -372,12 +361,13 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
     const folderPath = currentPath ? `${currentPath}/${newFolderName}` : newFolderName;
-    await apiClient.upsert({
+    await upsertResource({
       course_id: courseId,
       path: folderPath,
       name: newFolderName,
+      title: newFolderName,
       type: 'folder',
-    }, { onConflict: 'course_id,path' });
+    });
     setNewFolderName('');
     fetchResources();
   };
@@ -400,26 +390,42 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
     }
   };
 
+  const updateResourcePath = async (oldPath: string, newPath: string, newName?: string) => {
+    const res = await apiClient.get('/api/admin/resources', { params: { course_id: courseId, path: oldPath } });
+    if (res.data && res.data.length > 0) {
+      const id = res.data[0]._id || res.data[0].id;
+      const payload: any = { path: newPath };
+      if (newName) {
+        payload.name = newName;
+        payload.title = newName;
+      }
+      await apiClient.put(`/api/admin/resources/${id}`, payload);
+    }
+  };
+
   // Rename handler
   const handleRename = async () => {
     if (!renameTarget || !renameValue.trim()) return;
-    // Update DB path and name (and all children if folder)
-    const oldPath = renameTarget.path;
-    const newPath = oldPath.split('/').slice(0, -1).concat(renameValue).join('/');
-    // Update the target
-    await apiClient.update({
-      name: renameValue,
-      path: newPath,
-    }).eq('course_id', courseId).eq('path', oldPath);
-    // If folder, update all children paths
-    if (renameTarget.type === 'folder') {
-      const { data: children } = await apiClient.select('*').eq('course_id', courseId).like('path', `${oldPath}/%`);
-      if (children) {
-        for (const child of children) {
-          const childNewPath = child.path.replace(oldPath + '/', newPath + '/');
-          await apiClient.update({ path: childNewPath }).eq('course_id', courseId).eq('path', child.path);
+    try {
+      const oldPath = renameTarget.path;
+      const newPath = oldPath.split('/').slice(0, -1).concat(renameValue).join('/');
+      
+      await updateResourcePath(oldPath, newPath, renameValue);
+      
+      // If folder, update all children paths
+      if (renameTarget.type === 'folder') {
+        const childrenRes = await apiClient.get('/api/admin/resources', { params: { course_id: courseId } });
+        if (childrenRes.data) {
+          const children = childrenRes.data.filter((c: any) => c.path && c.path.startsWith(`${oldPath}/`));
+          for (const child of children) {
+            const childNewPath = child.path.replace(oldPath + '/', newPath + '/');
+            const childId = child._id || child.id;
+            await apiClient.put(`/api/admin/resources/${childId}`, { path: childNewPath });
+          }
         }
       }
+    } catch (e) {
+      console.error('Rename error', e);
     }
     setRenameTarget(null);
     setRenameValue('');
@@ -429,14 +435,33 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   // Delete handler
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    // Delete from DB (and all children if folder)
-    await apiClient.delete().eq('course_id', courseId).eq('path', deleteTarget.path);
-    if (deleteTarget.type === 'folder') {
-      await apiClient.delete().eq('course_id', courseId).like('path', `${deleteTarget.path}/%`);
-    }
-    // Optionally, delete from storage if file
-    if (deleteTarget.type === 'file') {
-      await apiClient.delete('/api/storage/files', { data: { paths: [`courses/${courseId}/${deleteTarget.path}`] } });
+    try {
+      const deleteByPath = async (p: string) => {
+        const res = await apiClient.get('/api/admin/resources', { params: { course_id: courseId, path: p } });
+        if (res.data && res.data.length > 0) {
+          const id = res.data[0]._id || res.data[0].id;
+          await apiClient.delete(`/api/admin/resources/${id}`);
+        }
+      };
+
+      await deleteByPath(deleteTarget.path);
+      
+      if (deleteTarget.type === 'folder') {
+        const childrenRes = await apiClient.get('/api/admin/resources', { params: { course_id: courseId } });
+        if (childrenRes.data) {
+          const children = childrenRes.data.filter((c: any) => c.path && c.path.startsWith(`${deleteTarget.path}/`));
+          for (const child of children) {
+            const childId = child._id || child.id;
+            await apiClient.delete(`/api/admin/resources/${childId}`);
+          }
+        }
+      }
+      // Optionally, delete from storage if file
+      if (deleteTarget.type === 'file') {
+        await apiClient.delete('/api/storage/files', { data: { paths: [`courses/${courseId}/${deleteTarget.path}`] } });
+      }
+    } catch (e) {
+      console.error('Delete error', e);
     }
     setDeleteTarget(null);
     fetchResources();
@@ -445,18 +470,26 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
   // Move handler
   const handleMove = async () => {
     if (!moveTarget || !moveDest) return;
-    const oldPath = moveTarget.path;
-    const newPath = moveDest ? `${moveDest}/${moveTarget.name}` : moveTarget.name;
-    await apiClient.update({ path: newPath }).eq('course_id', courseId).eq('path', oldPath);
-    // If folder, update all children paths
-    if (moveTarget.type === 'folder') {
-      const { data: children } = await apiClient.select('*').eq('course_id', courseId).like('path', `${oldPath}/%`);
-      if (children) {
-        for (const child of children) {
-          const childNewPath = child.path.replace(oldPath + '/', newPath + '/');
-          await apiClient.update({ path: childNewPath }).eq('course_id', courseId).eq('path', child.path);
+    try {
+      const oldPath = moveTarget.path;
+      const newPath = moveDest ? `${moveDest}/${moveTarget.name}` : moveTarget.name;
+      
+      await updateResourcePath(oldPath, newPath);
+      
+      // If folder, update all children paths
+      if (moveTarget.type === 'folder') {
+        const childrenRes = await apiClient.get('/api/admin/resources', { params: { course_id: courseId } });
+        if (childrenRes.data) {
+          const children = childrenRes.data.filter((c: any) => c.path && c.path.startsWith(`${oldPath}/`));
+          for (const child of children) {
+            const childNewPath = child.path.replace(oldPath + '/', newPath + '/');
+            const childId = child._id || child.id;
+            await apiClient.put(`/api/admin/resources/${childId}`, { path: childNewPath });
+          }
         }
       }
+    } catch (e) {
+      console.error('Move error', e);
     }
     setMoveTarget(null);
     setMoveDest('');
@@ -471,7 +504,6 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
     let uploaded = 0;
     let total = 0;
     try {
-      await ensureCourseFolder(courseId);
       const files = await getAllFileEntries(e.dataTransfer.items);
       total = files.reduce((sum, file) => sum + file.size, 0);
       setUploadProgress({ uploaded: 0, total });
@@ -480,38 +512,36 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
         const uploadPath = currentPath ? `${currentPath}/${relativePath}` : relativePath;
         const storagePath = `${courseId}/${uploadPath}`;
         // Upload to 'courses' bucket
-        const { error: uploadError } = await uploadFileToS3(file, 'uploads');
-        if (uploadError && uploadError.statusCode !== '409') {
-          console.error('Upload error:', uploadError);
-          toast({ title: 'Upload error', description: uploadError.message, variant: 'destructive' });
-          continue;
-        }
+        await uploadFileToS3(file, 'uploads');
         uploaded += file.size;
         setUploadProgress({ uploaded, total });
         // Get public URL
-        const { data: urlData } = await { data: { publicUrl: `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}` } };
+        const publicUrl = `${import.meta.env.VITE_API_BASE_URL}/api/storage/public/${storagePath}`;
 
         // Insert metadata in DB
-        await apiClient.upsert({
+        await upsertResource({
           course_id: courseId,
           path: uploadPath,
           name: file.name,
+          title: file.name,
           type: 'file',
           size: file.size,
-          url: urlData?.publicUrl,
+          url: publicUrl,
           mime_type: file.type,
-        }, { onConflict: 'course_id,path' });
+        });
+        
         // Insert folders in the path if not present
         const folders = uploadPath.split('/').slice(0, -1);
         let folderPath = '';
         for (const folder of folders) {
           folderPath = folderPath ? `${folderPath}/${folder}` : folder;
-          await apiClient.upsert({
+          await upsertResource({
             course_id: courseId,
             path: folderPath,
             name: folder,
+            title: folder,
             type: 'folder',
-          }, { onConflict: 'course_id,path' });
+          });
         }
       }
     } catch (err: any) {
@@ -563,8 +593,7 @@ export const CourseResourceManager: React.FC<CourseResourceManagerProps> = ({ co
             <UploadIcon size={16} className="mr-1" /> Upload Folder
             <Input
               type="file"
-              webkitdirectory="true"
-              directory="true"
+              {...{ webkitdirectory: "true", directory: "true" } as any}
               multiple
               className="hidden"
               ref={folderInputRef}

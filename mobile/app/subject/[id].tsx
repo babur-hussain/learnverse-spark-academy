@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -33,10 +33,13 @@ interface Resource {
   _id?: string;
   id?: string;
   title: string;
+  name?: string;
   description?: string;
+  type?: string;
   resource_type: string;
   file_url?: string;
   external_url?: string;
+  url?: string;
   chapter_id?: string;
   subject_id?: string;
 }
@@ -95,7 +98,12 @@ export default function SubjectDetailScreen() {
 
   const handleOpenResource = (resource: Resource) => {
     const url = resource.external_url || resource.file_url;
-    if (url) Linking.openURL(url);
+    if (url) {
+      router.push({
+        pathname: '/resource-viewer' as any,
+        params: { url: url, title: resource.title || resource.name || 'Resource', type: resource.type || resource.resource_type || 'document' }
+      });
+    }
   };
 
   if (loading) {
