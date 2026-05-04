@@ -2,7 +2,12 @@ import axios from 'axios';
 
 const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY || '';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
-const MODEL = 'google/gemini-2.5-flash-free';
+// Free models on OpenRouter — tried in order until one succeeds
+const FREE_MODELS = [
+  'meta-llama/llama-3.3-70b-instruct:free',   // 70B, 65K ctx — best quality free
+  'openai/gpt-oss-120b:free',                 // 120B, 131K ctx — fallback
+  'nvidia/nemotron-3-super-120b-a12b:free',   // 120B, 262K ctx — last resort
+];
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -48,10 +53,12 @@ export async function sendChatMessage(
     ];
 
     const response = await openrouterClient.post('/chat/completions', {
-      model: MODEL,
+      model: FREE_MODELS[0],
+      models: FREE_MODELS,       // OpenRouter will auto-fallback down the list
       messages: fullMessages,
       max_tokens: 1024,
       temperature: 0.7,
+      route: 'fallback',          // Enable OpenRouter fallback routing
     });
 
     const content = response.data?.choices?.[0]?.message?.content;
