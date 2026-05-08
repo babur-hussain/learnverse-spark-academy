@@ -23,6 +23,11 @@ export default function GamePlayerScreen() {
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
 
   React.useEffect(() => {
+    if (Platform.OS === 'ios') {
+      setLoading(false);
+      return;
+    }
+
     async function loadHtml() {
       try {
         const asset = Asset.fromModule(GAME_ASSETS[gameId]);
@@ -58,18 +63,26 @@ export default function GamePlayerScreen() {
       </View>
 
       <View style={styles.webviewContainer}>
-        {htmlContent ? (
+        {Platform.OS === 'ios' ? (
+          <WebView
+            source={GAME_ASSETS[gameId]}
+            style={styles.webview}
+            onLoad={() => setLoading(false)}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            mediaPlaybackRequiresUserAction={false}
+            allowsInlineMediaPlayback={true}
+            originWhitelist={['*']}
+          />
+        ) : htmlContent ? (
           <WebView
             source={{ html: htmlContent, baseUrl: '' }}
             style={styles.webview}
+            onLoad={() => setLoading(false)}
             javaScriptEnabled={true}
             domStorageEnabled={true}
-            mediaPlaybackRequiresUserAction={false} // Important for web audio
+            mediaPlaybackRequiresUserAction={false}
             allowsInlineMediaPlayback={true}
-            cacheEnabled={false}
-            allowFileAccess={true}
-            allowFileAccessFromFileURLs={true}
-            allowUniversalAccessFromFileURLs={true}
             originWhitelist={['*']}
           />
         ) : null}
