@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
+import { Asset } from 'expo-asset';
+import * as FileSystem from 'expo-file-system';
 import { Palette, Spacing, Shadow, Typography } from '@/constants/theme';
 
 export default function GamePlayerScreen() {
@@ -15,9 +17,35 @@ export default function GamePlayerScreen() {
     'find-each-other': require('../../public/games/find-each-other/index.html'),
     'keyboard-puzzle': require('../../public/games/keyboard-puzzle/index.html'),
     'letter-jump': require('../../public/games/letter-jump/index.html'),
+    'piano': require('../../public/games/piano/index.html'),
   };
 
-  const gameSource = GAME_ASSETS[gameId];
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function loadHtml() {
+      try {
+        const asset = Asset.fromModule(GAME_ASSETS[gameId]);
+        await asset.downloadAsync();
+        
+        const uri = asset.localUri || asset.uri;
+        
+        if (uri.startsWith('http')) {
+          const response = await fetch(uri);
+          const text = await response.text();
+          setHtmlContent(text);
+        } else {
+          const text = await FileSystem.readAsStringAsync(uri);
+          setHtmlContent(text);
+        }
+      } catch (error) {
+        console.error("Failed to load html asset", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadHtml();
+  }, [gameId]);
 
   return (
     <View style={styles.container}>
@@ -30,20 +58,21 @@ export default function GamePlayerScreen() {
       </View>
 
       <View style={styles.webviewContainer}>
-        <WebView
-          source={gameSource}
-          style={styles.webview}
-          onLoad={() => setLoading(false)}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          mediaPlaybackRequiresUserAction={false} // Important for web audio
-          allowsInlineMediaPlayback={true}
-          cacheEnabled={false}
-          allowFileAccess={true}
-          allowFileAccessFromFileURLs={true}
-          allowUniversalAccessFromFileURLs={true}
-          originWhitelist={['*']}
-        />
+        {htmlContent ? (
+          <WebView
+            source={{ html: htmlContent, baseUrl: '' }}
+            style={styles.webview}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            mediaPlaybackRequiresUserAction={false} // Important for web audio
+            allowsInlineMediaPlayback={true}
+            cacheEnabled={false}
+            allowFileAccess={true}
+            allowFileAccessFromFileURLs={true}
+            allowUniversalAccessFromFileURLs={true}
+            originWhitelist={['*']}
+          />
+        ) : null}
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#f472b6" />

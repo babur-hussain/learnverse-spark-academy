@@ -1,0 +1,419 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+.piano-shell{
+  width:100%;
+  background:#0a0a0e;
+  border-radius:20px;
+  overflow:hidden;
+  font-family:'Orbitron',monospace;
+  user-select:none;
+}
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 14px 6px;
+  background:#111116;
+  border-bottom:1px solid #222230;
+}
+.brand{font-size:11px;color:#a78bfa;letter-spacing:3px;font-weight:700}
+.display{
+  background:#0d0d12;border:1px solid #2a2a40;border-radius:8px;
+  padding:4px 12px;min-width:120px;text-align:center;
+}
+.note-name{font-size:18px;color:#e2c97e;letter-spacing:2px;min-height:22px}
+.controls{display:flex;align-items:center;gap:8px}
+.ctrl-btn{
+  background:#1a1a26;border:1px solid #333350;border-radius:8px;
+  color:#888;font-size:9px;padding:4px 8px;cursor:pointer;
+  font-family:'Orbitron',monospace;letter-spacing:1px;
+}
+.ctrl-btn.active{background:#2a1a4a;border-color:#a78bfa;color:#a78bfa}
+.octave-ctrl{display:flex;align-items:center;gap:4px}
+.oct-btn{
+  background:#1a1a26;border:1px solid #333350;border-radius:6px;
+  color:#a78bfa;font-size:14px;width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.oct-val{font-size:11px;color:#666;min-width:16px;text-align:center}
+
+.keyboard-wrap{
+  position:relative;
+  padding:10px 8px 12px;
+  background:linear-gradient(180deg,#0f0f18 0%,#0a0a0e 100%);
+  overflow-x:auto;
+  overflow-y:hidden;
+}
+.keyboard{
+  position:relative;
+  height:160px;
+  display:flex;
+  width:max-content;
+  margin:0 auto;
+}
+.wkey{
+  position:relative;
+  width:42px;height:160px;
+  background:linear-gradient(180deg,#f5f0e8 0%,#e8e0cc 85%,#d4c89a 100%);
+  border:1px solid #2a2020;
+  border-top:2px solid #e0d8c0;
+  border-bottom-left-radius:6px;
+  border-bottom-right-radius:6px;
+  cursor:pointer;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:10px;
+  transition:background .06s,transform .06s;
+  z-index:1;
+  flex-shrink:0;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,0.15), 2px 0 0 rgba(0,0,0,0.3);
+}
+.wkey:active,.wkey.pressed{
+  background:linear-gradient(180deg,#c8d8ff 0%,#a0b8ff 85%,#7090dd 100%);
+  transform:scaleY(0.97) translateY(2px);
+  box-shadow:inset 0 -2px 0 rgba(0,0,0,0.2);
+}
+.wkey .klabel{font-size:9px;color:#888;font-family:'Orbitron',monospace;letter-spacing:.5px;pointer-events:none}
+.wkey.pressed .klabel,.wkey:active .klabel{color:#4466cc}
+
+.bkey{
+  position:absolute;
+  width:26px;height:96px;
+  background:linear-gradient(180deg,#1a1a22 0%,#0d0d14 60%,#1a1025 100%);
+  border:1px solid #000;
+  border-top:2px solid #2a2a38;
+  border-bottom-left-radius:5px;
+  border-bottom-right-radius:5px;
+  cursor:pointer;
+  z-index:2;
+  display:flex;align-items:flex-end;justify-content:center;
+  padding-bottom:7px;
+  transition:background .06s,transform .06s;
+  box-shadow:0 4px 8px rgba(0,0,0,0.6),inset 0 -3px 0 rgba(0,0,0,0.4);
+}
+.bkey:active,.bkey.pressed{
+  background:linear-gradient(180deg,#3a1a5a 0%,#5a2a8a 60%,#4a1a7a 100%);
+  transform:scaleY(0.96) translateY(2px);
+  box-shadow:0 2px 4px rgba(0,0,0,0.6);
+}
+.bkey .klabel{font-size:8px;color:#444;font-family:'Orbitron',monospace;pointer-events:none}
+.bkey.pressed .klabel,.bkey:active .klabel{color:#cc88ff}
+
+.sustain-bar{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:7px 14px 8px;
+  background:#111116;
+  border-top:1px solid #1e1e2e;
+}
+.sustain-pad{
+  background:#1a1a26;border:1px solid #333350;border-radius:10px;
+  color:#666;font-size:9px;padding:7px 20px;cursor:pointer;
+  font-family:'Orbitron',monospace;letter-spacing:1px;
+  transition:all .1s;
+}
+.sustain-pad.on{background:#1a0a2e;border-color:#a78bfa;color:#a78bfa;box-shadow:0 0 12px #a78bfa33}
+.vol-row{display:flex;align-items:center;gap:8px}
+.vol-row label{font-size:9px;color:#555;letter-spacing:1px}
+.vol-row input[type=range]{width:80px;accent-color:#a78bfa;height:3px}
+.played-notes{
+  display:flex;gap:4px;flex-wrap:wrap;padding:0 14px 8px;
+  min-height:26px;background:#111116;
+  border-top:1px solid #1a1a26;
+}
+.pnote{
+  background:#1e1e30;border:1px solid #333350;border-radius:5px;
+  font-size:9px;color:#a78bfa;padding:2px 7px;
+  font-family:'Orbitron',monospace;letter-spacing:1px;
+  animation:noteIn .15s ease;
+}
+@keyframes noteIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(167,139,250,0.35);
+  transform:scale(0);animation:rpl .4s ease-out forwards;
+  pointer-events:none;
+}
+@keyframes rpl{to{transform:scale(4);opacity:0}}
+</style>
+
+<h2 style="position:absolute;left:-9999px">Mobile piano — tap keys to play real notes with Web Audio</h2>
+
+<div class="piano-shell" id="shell">
+  <div class="top-bar">
+    <div class="brand">GRAND PIANO</div>
+    <div class="display"><div class="note-name" id="noteName">—</div></div>
+    <div class="controls">
+      <div class="octave-ctrl">
+        <div class="oct-btn" id="octDn" aria-label="Octave down">−</div>
+        <div class="oct-val" id="octVal">4</div>
+        <div class="oct-btn" id="octUp" aria-label="Octave up">+</div>
+      </div>
+      <div class="vol-row">
+        <label>VOL</label>
+        <input type="range" id="volSlider" min="0" max="100" value="80" step="1">
+      </div>
+    </div>
+  </div>
+
+  <div class="keyboard-wrap" id="kwrap">
+    <div class="keyboard" id="keyboard"></div>
+  </div>
+
+  <div class="sustain-bar">
+    <div class="sustain-pad" id="sustainBtn">SUSTAIN</div>
+    <div class="sustain-pad" id="reverbBtn">REVERB</div>
+    <div class="sustain-pad" id="clearBtn">CLEAR</div>
+  </div>
+
+  <div class="played-notes" id="playedNotes"></div>
+</div>
+
+<script>
+let actx=null, baseOctave=4, sustain=false, reverb=false, vol=0.8;
+let reverbNode=null, convolverBuffer=null;
+let activeNodes={};
+const MAX_TRAIL=12;
+
+function getCtx(){
+  if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)();
+  if(actx.state==='suspended') actx.resume();
+  return actx;
+}
+
+function makeReverb(ctx){
+  const rate=ctx.sampleRate, len=rate*2.5;
+  const buf=ctx.createBuffer(2,len,rate);
+  for(let c=0;c<2;c++){
+    const d=buf.getChannelData(c);
+    for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.5);
+  }
+  return buf;
+}
+
+function getConvolver(ctx){
+  if(!reverbNode){
+    reverbNode=ctx.createConvolver();
+    if(!convolverBuffer) convolverBuffer=makeReverb(ctx);
+    reverbNode.buffer=convolverBuffer;
+    reverbNode.connect(ctx.destination);
+  }
+  return reverbNode;
+}
+
+const NOTE_NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+function noteFreq(name,oct){
+  const midi=NOTE_NAMES.indexOf(name)+12*(oct+1);
+  return 440*Math.pow(2,(midi-69)/12);
+}
+
+function playNote(name,oct){
+  const ctx=getCtx();
+  const freq=noteFreq(name,oct);
+  const key=name+oct;
+  if(activeNodes[key]) stopNote(name,oct,true);
+
+  const osc1=ctx.createOscillator();
+  const osc2=ctx.createOscillator();
+  const osc3=ctx.createOscillator();
+  const gain=ctx.createGain();
+  const filter=ctx.createBiquadFilter();
+
+  osc1.type='triangle'; osc1.frequency.value=freq;
+  osc2.type='sine'; osc2.frequency.value=freq*2;
+  osc3.type='sine'; osc3.frequency.value=freq*3;
+
+  const g1=ctx.createGain(),g2=ctx.createGain(),g3=ctx.createGain();
+  g1.gain.value=0.7; g2.gain.value=0.2; g3.gain.value=0.08;
+
+  filter.type='lowpass'; filter.frequency.value=4000; filter.Q.value=1.2;
+
+  osc1.connect(g1); osc2.connect(g2); osc3.connect(g3);
+  g1.connect(filter); g2.connect(filter); g3.connect(filter);
+  filter.connect(gain);
+
+  gain.gain.setValueAtTime(0,ctx.currentTime);
+  gain.gain.linearRampToValueAtTime(vol*0.9,ctx.currentTime+0.008);
+  gain.gain.exponentialRampToValueAtTime(vol*0.6,ctx.currentTime+0.1);
+  gain.gain.exponentialRampToValueAtTime(vol*0.45,ctx.currentTime+0.3);
+
+  if(reverb){
+    const rv=getConvolver(ctx);
+    const wet=ctx.createGain(); wet.gain.value=0.35;
+    const dry=ctx.createGain(); dry.gain.value=0.65;
+    gain.connect(dry); dry.connect(ctx.destination);
+    gain.connect(wet); wet.connect(rv);
+  } else {
+    gain.connect(ctx.destination);
+  }
+
+  osc1.start(); osc2.start(); osc3.start();
+  activeNodes[key]={osc1,osc2,osc3,gain,ctx};
+}
+
+function stopNote(name,oct,immediate){
+  const key=name+oct;
+  const n=activeNodes[key];
+  if(!n) return;
+  const {osc1,osc2,osc3,gain,ctx}=n;
+  const t=ctx.currentTime;
+  const rel=sustain?2.5:0.9;
+  gain.gain.cancelScheduledValues(t);
+  gain.gain.setValueAtTime(gain.gain.value,t);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t+(immediate?0.05:rel));
+  setTimeout(()=>{try{osc1.stop();osc2.stop();osc3.stop();}catch(e){}},((immediate?0.05:rel)+0.1)*1000);
+  delete activeNodes[key];
+}
+
+const WHITE=['C','D','E','F','G','A','B'];
+const BLACK_MAP={C:'C#',D:'D#',F:'F#',G:'G#',A:'A#'};
+const KB_MAP={a:'C',w:'C#',s:'D',e:'D#',d:'E',f:'F',t:'F#',g:'G',y:'G#',h:'A',u:'A#',j:'B',k:'C',o:'C#',l:'D'};
+
+function buildKeyboard(){
+  const kb=document.getElementById('keyboard');
+  kb.innerHTML='';
+  const oct=baseOctave;
+  let wIdx=0;
+
+  WHITE.forEach((note,wi)=>{
+    const key=document.createElement('div');
+    key.className='wkey';
+    key.dataset.note=note; key.dataset.oct=oct;
+    const lbl=document.createElement('div');
+    lbl.className='klabel'; lbl.textContent=note+(oct);
+    key.appendChild(lbl);
+
+    key.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(key,note,oct);});
+    key.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(key,note,oct);});
+    key.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(key,note,oct);});
+    kb.appendChild(key);
+
+    if(BLACK_MAP[note]){
+      const bn=BLACK_MAP[note];
+      const bkey=document.createElement('div');
+      bkey.className='bkey';
+      bkey.dataset.note=bn; bkey.dataset.oct=oct;
+      const bl=document.createElement('div');
+      bl.className='klabel'; bl.textContent=bn.replace('#','♯');
+      bkey.appendChild(bl);
+      bkey.style.left=(wIdx*42+42-13)+'px';
+      bkey.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(bkey,bn,oct);});
+      bkey.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(bkey,bn,oct);});
+      bkey.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(bkey,bn,oct);});
+      kb.appendChild(bkey);
+    }
+    wIdx++;
+  });
+
+  const oct2=oct+1;
+  WHITE.forEach((note,wi)=>{
+    const key=document.createElement('div');
+    key.className='wkey';
+    key.dataset.note=note; key.dataset.oct=oct2;
+    const lbl=document.createElement('div');
+    lbl.className='klabel'; lbl.textContent=note+(oct2);
+    key.appendChild(lbl);
+    key.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(key,note,oct2);});
+    key.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(key,note,oct2);});
+    key.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(key,note,oct2);});
+    kb.appendChild(key);
+
+    if(BLACK_MAP[note]){
+      const bn=BLACK_MAP[note];
+      const bkey=document.createElement('div');
+      bkey.className='bkey';
+      bkey.dataset.note=bn; bkey.dataset.oct=oct2;
+      const bl=document.createElement('div');
+      bl.className='klabel'; bl.textContent=bn.replace('#','♯');
+      bkey.appendChild(bl);
+      bkey.style.left=((7+wi)*42+42-13)+'px';
+      bkey.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(bkey,bn,oct2);});
+      bkey.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(bkey,bn,oct2);});
+      bkey.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(bkey,bn,oct2);});
+      kb.appendChild(bkey);
+    }
+  });
+
+  const lastW=document.createElement('div');
+  lastW.className='wkey';
+  lastW.dataset.note='C'; lastW.dataset.oct=oct2+1;
+  const ll=document.createElement('div');ll.className='klabel';ll.textContent='C'+(oct2+1);
+  lastW.appendChild(ll);
+  lastW.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(lastW,'C',oct2+1);});
+  lastW.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(lastW,'C',oct2+1);});
+  kb.appendChild(lastW);
+}
+
+function pressKey(el,note,oct){
+  el.classList.add('pressed');
+  playNote(note,parseInt(oct));
+  document.getElementById('noteName').textContent=note+oct;
+  addTrail(note+oct);
+  addRipple(el);
+}
+
+function releaseKey(el,note,oct){
+  el.classList.remove('pressed');
+  stopNote(note,parseInt(oct));
+}
+
+function addRipple(el){
+  const r=document.createElement('div');
+  r.className='ripple';
+  const s=Math.min(el.offsetWidth,el.offsetHeight);
+  r.style.width=r.style.height=s+'px';
+  r.style.left=r.style.top='0px';
+  el.appendChild(r);
+  setTimeout(()=>r.remove(),450);
+}
+
+function addTrail(name){
+  const trail=document.getElementById('playedNotes');
+  const chip=document.createElement('div');
+  chip.className='pnote'; chip.textContent=name;
+  trail.appendChild(chip);
+  const chips=trail.querySelectorAll('.pnote');
+  if(chips.length>MAX_TRAIL) chips[0].remove();
+}
+
+document.getElementById('octDn').addEventListener('click',()=>{
+  if(baseOctave>1){baseOctave--;document.getElementById('octVal').textContent=baseOctave;buildKeyboard();}
+});
+document.getElementById('octUp').addEventListener('click',()=>{
+  if(baseOctave<6){baseOctave++;document.getElementById('octVal').textContent=baseOctave;buildKeyboard();}
+});
+document.getElementById('sustainBtn').addEventListener('click',function(){
+  sustain=!sustain;this.classList.toggle('on',sustain);
+});
+document.getElementById('reverbBtn').addEventListener('click',function(){
+  reverb=!reverb;this.classList.toggle('on',reverb);
+});
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  document.getElementById('playedNotes').innerHTML='';
+  document.getElementById('noteName').textContent='—';
+});
+document.getElementById('volSlider').addEventListener('input',function(){
+  vol=this.value/100;
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.repeat) return;
+  const note=KB_MAP[e.key];
+  if(!note) return;
+  const oct=(e.key===e.key.toUpperCase()&&e.key!==e.key.toLowerCase())||'kjl'.includes(e.key)?baseOctave+1:baseOctave;
+  const els=document.querySelectorAll('.wkey,.bkey');
+  els.forEach(el=>{if(el.dataset.note===note&&parseInt(el.dataset.oct)===oct){pressKey(el,note,oct);}});
+});
+document.addEventListener('keyup',e=>{
+  const note=KB_MAP[e.key];
+  if(!note) return;
+  const oct='kjl'.includes(e.key)?baseOctave+1:baseOctave;
+  const els=document.querySelectorAll('.wkey,.bkey');
+  els.forEach(el=>{if(el.dataset.note===note&&parseInt(el.dataset.oct)===oct){releaseKey(el,note,oct);}});
+});
+
+buildKeyboard();
+setTimeout(()=>{
+  const kw=document.getElementById('kwrap');
+  kw.scrollLeft=(kw.scrollWidth-kw.clientWidth)/2;
+},50);
+</script>

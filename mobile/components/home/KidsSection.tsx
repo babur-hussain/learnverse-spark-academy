@@ -46,6 +46,7 @@ const KidsSection: React.FC = () => {
                 if (item.id === '1') router.push('/kids/fun-math' as any);
                 else if (item.id === 'games') router.push('/kids/games-hub' as any);
                 else if (item.id === 'nursery') router.push('/kids/nursery-hub' as any);
+                else if (item.id === '5') router.push({ pathname: '/kids/game-player' as any, params: { gameId: 'piano', title: 'Grand Piano' } });
                 else router.push('/kids' as any);
               }}
             >
