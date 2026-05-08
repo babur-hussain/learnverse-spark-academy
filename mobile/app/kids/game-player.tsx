@@ -54,15 +54,16 @@ export default function GamePlayerScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
+      <View style={styles.webviewContainer}>
+        {/* Floating Back Button */}
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          style={styles.floatingBackBtn}
+          activeOpacity={0.8}
+        >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.title}>{title}</Text>
-        <View style={{ width: 40 }} />
-      </View>
 
-      <View style={styles.webviewContainer}>
         {Platform.OS === 'ios' ? (
           <WebView
             source={GAME_ASSETS[gameId]}
@@ -102,22 +103,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1e293b',
   },
-  header: {
-    paddingTop: 56,
-    paddingBottom: 16,
-    paddingHorizontal: Spacing.xl,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#1e293b',
-    ...Shadow.md,
-    zIndex: 10,
-  },
-  backBtn: {
+  floatingBackBtn: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 100,
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
