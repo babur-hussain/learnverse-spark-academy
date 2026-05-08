@@ -1,0 +1,11 @@
+{
+  "name": "learning-games-for-kids",
+  "scripts": {
+		"serve": "http-server -c-1 -a 0.0.0.0 ./"
+  },
+  "author": "b4rtaz",
+  "license": "MIT",
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}

@@ -5,6 +5,6 @@ const { getDefaultConfig } = require('expo/metro-config');
 const config = getDefaultConfig(__dirname);
 
 // Add .lottie as a recognized asset extension for dotLottie files
-config.resolver.assetExts.push('lottie');
+config.resolver.assetExts.push('lottie', 'html');
 
 module.exports = config;

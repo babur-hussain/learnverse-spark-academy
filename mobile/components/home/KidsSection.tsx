@@ -9,6 +9,8 @@ import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const KIDS_ITEMS = [
+  { id: 'games', title: 'Mini Games', description: 'Fun interactive games!', icon: 'game-controller' as const, colors: ['#4ade80', '#0ea5e9'] },
+  { id: 'nursery', title: 'Nursery & KG', description: 'Early learning games!', icon: 'happy' as const, colors: ['#f43f5e', '#fb923c'] },
   { id: '1', title: 'Fun Math', description: 'Learn numbers with games!', icon: 'calculator' as const, colors: ['#f472b6', '#a855f7'] },
   { id: '2', title: 'Story Time', description: 'Exciting tales & adventures', icon: 'book' as const, colors: ['#60a5fa', '#34d399'] },
   { id: '3', title: 'Art & Craft', description: 'Create beautiful art', icon: 'color-palette' as const, colors: ['#fbbf24', '#f97316'] },
@@ -37,7 +39,16 @@ const KidsSection: React.FC = () => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.list}
           renderItem={({ item }) => (
-            <TouchableOpacity style={[styles.card, Shadow.sm]} activeOpacity={0.85} onPress={() => router.push('/kids' as any)}>
+            <TouchableOpacity 
+              style={[styles.card, Shadow.sm]} 
+              activeOpacity={0.85} 
+              onPress={() => {
+                if (item.id === '1') router.push('/kids/fun-math' as any);
+                else if (item.id === 'games') router.push('/kids/games-hub' as any);
+                else if (item.id === 'nursery') router.push('/kids/nursery-hub' as any);
+                else router.push('/kids' as any);
+              }}
+            >
               <LinearGradient
                 colors={item.colors as any}
                 start={{ x: 0, y: 0 }}
