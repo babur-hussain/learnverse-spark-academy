@@ -26,7 +26,7 @@ export default function GamePlayerScreen() {
   React.useEffect(() => {
     async function handleOrientation() {
       if (gameId === 'piano') {
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
       }
     }
     handleOrientation();
