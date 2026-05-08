@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { Palette, Spacing, Shadow, Typography } from '@/constants/theme';
 
 export default function GamePlayerScreen() {
@@ -21,6 +22,20 @@ export default function GamePlayerScreen() {
   };
 
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    async function handleOrientation() {
+      if (gameId === 'piano') {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      }
+    }
+    handleOrientation();
+
+    return () => {
+      // Reset to default (portrait as per app.json) when leaving
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    };
+  }, [gameId]);
 
   React.useEffect(() => {
     if (Platform.OS === 'ios') {
