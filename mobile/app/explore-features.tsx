@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const EXPLORE_SECTIONS = [
   {
@@ -67,13 +68,14 @@ const ROUTE_MAP: Record<string, string> = {
 
 export default function ExploreScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
         colors={['#1e293b', '#0f172a'] as any}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -148,7 +150,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 20,
     paddingHorizontal: Spacing.xl,
   },

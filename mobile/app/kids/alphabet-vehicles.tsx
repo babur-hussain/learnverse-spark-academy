@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ function shuffle<T>(array: T[]): T[] {
 
 export default function AlphabetVehiclesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [order, setOrder] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -167,7 +169,7 @@ export default function AlphabetVehiclesScreen() {
   if (gameOver) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
             <Ionicons name="arrow-back" size={24} color="#FFF" />
           </TouchableOpacity>
@@ -190,7 +192,7 @@ export default function AlphabetVehiclesScreen() {
     <View style={styles.container}>
       {/* Fake scanlines using absolute views or borders if needed, skipping for native simplicity */}
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
@@ -305,7 +307,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 10,
     zIndex: 10,
   },

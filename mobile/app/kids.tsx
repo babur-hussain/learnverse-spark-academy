@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '@/lib/api';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -35,6 +36,7 @@ const CONTENT_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
 
 export default function KidsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [ageGroup, setAgeGroup] = useState<'infants' | 'preschool'>('infants');
   const [categories, setCategories] = useState<KidsCategory[]>([]);
   const [contentItems, setContentItems] = useState<KidsContentItem[]>([]);
@@ -63,8 +65,8 @@ export default function KidsScreen() {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Hero */}
-        <LinearGradient colors={['#f472b6', '#a855f7', '#6366f1'] as any} style={styles.hero}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <LinearGradient colors={['#f472b6', '#a855f7', '#6366f1'] as any} style={[styles.hero, { paddingTop: insets.top + 12 }]}>
+          <TouchableOpacity onPress={() => router.back()} style={[styles.backBtn, { top: insets.top + 8 }]}>
             <Ionicons name="arrow-back" size={22} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.heroEmoji}>🧒</Text>
@@ -201,8 +203,8 @@ export default function KidsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Palette.bg },
-  hero: { paddingTop: 56, paddingBottom: 30, paddingHorizontal: Spacing.xl, alignItems: 'center' },
-  backBtn: { position: 'absolute', top: 52, left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
+  hero: { paddingBottom: 30, paddingHorizontal: Spacing.xl, alignItems: 'center' },
+  backBtn: { position: 'absolute', left: 20, width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.2)', justifyContent: 'center', alignItems: 'center', zIndex: 10 },
   heroEmoji: { fontSize: 48, marginBottom: 8 },
   heroTitle: { ...Typography.hero, color: '#fff', fontSize: 28, textAlign: 'center' },
   heroSubtitle: { ...Typography.body, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginTop: 8 },

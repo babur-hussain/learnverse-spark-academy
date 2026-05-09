@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -51,6 +52,7 @@ function shuffle<T>(array: T[]): T[] {
 
 export default function AlphabetAnimalsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [order, setOrder] = useState<number[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -158,7 +160,7 @@ export default function AlphabetAnimalsScreen() {
   if (gameOver) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
             <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
@@ -183,7 +185,7 @@ export default function AlphabetAnimalsScreen() {
       <View style={[styles.bgBlob, { top: -50, left: -50, backgroundColor: '#FFE0E033' }]} />
       <View style={[styles.bgBlob, { bottom: -50, right: -50, backgroundColor: '#D0F0FF33' }]} />
 
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
@@ -295,7 +297,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 10,
     zIndex: 10,
   },

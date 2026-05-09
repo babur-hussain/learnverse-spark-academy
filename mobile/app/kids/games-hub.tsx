@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, Spacing, Typography, Shadow, BorderRadius } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -36,10 +37,11 @@ const GAMES = [
 
 export default function GamesHubScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={24} color="#334155" />
         </TouchableOpacity>
@@ -99,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8fafc',
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 16,
     paddingHorizontal: Spacing.xl,
     flexDirection: 'row',

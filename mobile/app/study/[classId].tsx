@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '@/lib/api';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -29,6 +30,7 @@ interface SubjectItem {
 export default function StudyClassScreen() {
   const { classId } = useLocalSearchParams();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const [classData, setClassData] = useState<ClassData | null>(null);
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
@@ -99,7 +101,7 @@ export default function StudyClassScreen() {
         {/* Header */}
         <LinearGradient
           colors={['#1e293b', '#0f172a'] as any}
-          style={styles.header}
+          style={[styles.header, { paddingTop: insets.top + 12 }]}
         >
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={Palette.textPrimary} />
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: Spacing.xl,
     paddingHorizontal: Spacing.xl,
   },

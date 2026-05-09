@@ -1,67 +1,77 @@
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: #0a0a0e;
+}
 .piano-shell{
   width:100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background:#0a0a0e;
-  border-radius:20px;
-  overflow:hidden;
   font-family:'Orbitron',monospace;
   user-select:none;
 }
 .top-bar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:8px 14px 6px;
+  padding:12px 20px;
   background:#111116;
   border-bottom:1px solid #222230;
 }
-.brand{font-size:11px;color:#a78bfa;letter-spacing:3px;font-weight:700}
+.brand{font-size:14px;color:#a78bfa;letter-spacing:3px;font-weight:700}
 .display{
   background:#0d0d12;border:1px solid #2a2a40;border-radius:8px;
-  padding:4px 12px;min-width:120px;text-align:center;
+  padding:6px 16px;min-width:120px;text-align:center;
 }
-.note-name{font-size:18px;color:#e2c97e;letter-spacing:2px;min-height:22px}
-.controls{display:flex;align-items:center;gap:8px}
+.note-name{font-size:20px;color:#e2c97e;letter-spacing:2px;min-height:22px}
+.controls{display:flex;align-items:center;gap:12px}
 .ctrl-btn{
   background:#1a1a26;border:1px solid #333350;border-radius:8px;
-  color:#888;font-size:9px;padding:4px 8px;cursor:pointer;
+  color:#888;font-size:11px;padding:6px 12px;cursor:pointer;
   font-family:'Orbitron',monospace;letter-spacing:1px;
 }
 .ctrl-btn.active{background:#2a1a4a;border-color:#a78bfa;color:#a78bfa}
-.octave-ctrl{display:flex;align-items:center;gap:4px}
+.octave-ctrl{display:flex;align-items:center;gap:6px}
 .oct-btn{
   background:#1a1a26;border:1px solid #333350;border-radius:6px;
-  color:#a78bfa;font-size:14px;width:26px;height:26px;
+  color:#a78bfa;font-size:16px;width:32px;height:32px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
 }
-.oct-val{font-size:11px;color:#666;min-width:16px;text-align:center}
+.oct-val{font-size:14px;color:#666;min-width:20px;text-align:center}
 
 .keyboard-wrap{
   position:relative;
-  padding:10px 8px 12px;
+  padding:0;
   background:linear-gradient(180deg,#0f0f18 0%,#0a0a0e 100%);
   overflow-x:auto;
   overflow-y:hidden;
+  flex: 1;
+  display: flex;
+  align-items: stretch;
 }
 .keyboard{
   position:relative;
-  height:160px;
+  height:100%;
   display:flex;
   width:max-content;
   margin:0 auto;
 }
 .wkey{
   position:relative;
-  width:42px;height:160px;
+  width:55px;
+  height:100%;
   background:linear-gradient(180deg,#f5f0e8 0%,#e8e0cc 85%,#d4c89a 100%);
   border:1px solid #2a2020;
   border-top:2px solid #e0d8c0;
-  border-bottom-left-radius:6px;
-  border-bottom-right-radius:6px;
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
   cursor:pointer;
   display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:10px;
+  padding-bottom:15px;
   transition:background .06s,transform .06s;
   z-index:1;
   flex-shrink:0;
@@ -69,59 +79,60 @@
 }
 .wkey:active,.wkey.pressed{
   background:linear-gradient(180deg,#c8d8ff 0%,#a0b8ff 85%,#7090dd 100%);
-  transform:scaleY(0.97) translateY(2px);
+  transform:scaleY(0.98) translateY(5px);
   box-shadow:inset 0 -2px 0 rgba(0,0,0,0.2);
 }
-.wkey .klabel{font-size:9px;color:#888;font-family:'Orbitron',monospace;letter-spacing:.5px;pointer-events:none}
+.wkey .klabel{font-size:12px;color:#888;font-family:'Orbitron',monospace;letter-spacing:.5px;pointer-events:none}
 .wkey.pressed .klabel,.wkey:active .klabel{color:#4466cc}
 
 .bkey{
   position:absolute;
-  width:26px;height:96px;
+  width:34px;
+  height:60%;
   background:linear-gradient(180deg,#1a1a22 0%,#0d0d14 60%,#1a1025 100%);
   border:1px solid #000;
   border-top:2px solid #2a2a38;
-  border-bottom-left-radius:5px;
-  border-bottom-right-radius:5px;
+  border-bottom-left-radius:6px;
+  border-bottom-right-radius:6px;
   cursor:pointer;
   z-index:2;
   display:flex;align-items:flex-end;justify-content:center;
-  padding-bottom:7px;
+  padding-bottom:10px;
   transition:background .06s,transform .06s;
   box-shadow:0 4px 8px rgba(0,0,0,0.6),inset 0 -3px 0 rgba(0,0,0,0.4);
 }
 .bkey:active,.bkey.pressed{
   background:linear-gradient(180deg,#3a1a5a 0%,#5a2a8a 60%,#4a1a7a 100%);
-  transform:scaleY(0.96) translateY(2px);
+  transform:scaleY(0.96) translateY(3px);
   box-shadow:0 2px 4px rgba(0,0,0,0.6);
 }
-.bkey .klabel{font-size:8px;color:#444;font-family:'Orbitron',monospace;pointer-events:none}
+.bkey .klabel{font-size:10px;color:#444;font-family:'Orbitron',monospace;pointer-events:none}
 .bkey.pressed .klabel,.bkey:active .klabel{color:#cc88ff}
 
 .sustain-bar{
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  padding:7px 14px 8px;
+  display:flex;align-items:center;justify-content:center;gap:15px;
+  padding:10px 20px;
   background:#111116;
   border-top:1px solid #1e1e2e;
 }
 .sustain-pad{
   background:#1a1a26;border:1px solid #333350;border-radius:10px;
-  color:#666;font-size:9px;padding:7px 20px;cursor:pointer;
+  color:#666;font-size:11px;padding:10px 25px;cursor:pointer;
   font-family:'Orbitron',monospace;letter-spacing:1px;
   transition:all .1s;
 }
 .sustain-pad.on{background:#1a0a2e;border-color:#a78bfa;color:#a78bfa;box-shadow:0 0 12px #a78bfa33}
-.vol-row{display:flex;align-items:center;gap:8px}
-.vol-row label{font-size:9px;color:#555;letter-spacing:1px}
-.vol-row input[type=range]{width:80px;accent-color:#a78bfa;height:3px}
+.vol-row{display:flex;align-items:center;gap:10px}
+.vol-row label{font-size:11px;color:#555;letter-spacing:1px}
+.vol-row input[type=range]{width:100px;accent-color:#a78bfa;height:4px}
 .played-notes{
-  display:flex;gap:4px;flex-wrap:wrap;padding:0 14px 8px;
-  min-height:26px;background:#111116;
+  display:flex;gap:6px;flex-wrap:wrap;padding:5px 20px 10px;
+  min-height:30px;background:#111116;
   border-top:1px solid #1a1a26;
 }
 .pnote{
   background:#1e1e30;border:1px solid #333350;border-radius:5px;
-  font-size:9px;color:#a78bfa;padding:2px 7px;
+  font-size:11px;color:#a78bfa;padding:3px 10px;
   font-family:'Orbitron',monospace;letter-spacing:1px;
   animation:noteIn .15s ease;
 }
@@ -295,7 +306,7 @@ function buildKeyboard(){
       const bl=document.createElement('div');
       bl.className='klabel'; bl.textContent=bn.replace('#','♯');
       bkey.appendChild(bl);
-      bkey.style.left=(wIdx*42+42-13)+'px';
+      bkey.style.left=(wIdx*55+55-17)+'px';
       bkey.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(bkey,bn,oct);});
       bkey.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(bkey,bn,oct);});
       bkey.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(bkey,bn,oct);});
@@ -325,7 +336,7 @@ function buildKeyboard(){
       const bl=document.createElement('div');
       bl.className='klabel'; bl.textContent=bn.replace('#','♯');
       bkey.appendChild(bl);
-      bkey.style.left=((7+wi)*42+42-13)+'px';
+      bkey.style.left=((7+wi)*55+55-17)+'px';
       bkey.addEventListener('pointerdown',e=>{e.preventDefault();pressKey(bkey,bn,oct2);});
       bkey.addEventListener('pointerup',e=>{e.preventDefault();releaseKey(bkey,bn,oct2);});
       bkey.addEventListener('pointerleave',e=>{if(e.buttons) releaseKey(bkey,bn,oct2);});

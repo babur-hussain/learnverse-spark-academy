@@ -6,9 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { auth } from '@/lib/firebase';
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ChangePasswordScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -84,7 +86,7 @@ export default function ChangePasswordScreen() {
     <View style={styles.container}>
       <LinearGradient
         colors={['#1e293b', '#0f172a'] as any}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -97,7 +99,7 @@ export default function ChangePasswordScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.content}>
           {/* Security info */}
@@ -160,7 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 16,
     paddingHorizontal: Spacing.xl,
   },

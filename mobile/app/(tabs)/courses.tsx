@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import CourseCard from '@/components/ui/CourseCard';
 import { ShimmerCard } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -26,6 +27,7 @@ export default function CoursesScreen() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'free' | 'paid'>('all');
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -61,7 +63,7 @@ export default function CoursesScreen() {
       {/* Header */}
       <LinearGradient
         colors={['#FFF8F0', '#FFF5EB']}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
       >
         <Text style={styles.title}>Courses</Text>
         <Text style={styles.subtitle}>{courses.length} courses available</Text>
@@ -150,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 20,
     paddingHorizontal: Spacing.xl,
     borderBottomLeftRadius: BorderRadius['2xl'],

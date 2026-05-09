@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-nati
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const NOTE_CATEGORIES = [
   { id: '1', title: 'Mathematics', count: 24, icon: 'calculator' as const, color: '#3b82f6' },
@@ -20,12 +21,13 @@ const RECENT_NOTES = [
 ];
 
 export default function NotesScreen() {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
         colors={['#FFF8F0', '#FFF5EB']}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
       >
         <View style={styles.headerTop}>
           <View>
@@ -101,7 +103,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 20,
     paddingHorizontal: Spacing.xl,
     borderBottomLeftRadius: BorderRadius['2xl'],

@@ -8,9 +8,11 @@ import { updateProfile } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/lib/api';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const user = auth.currentUser;
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
@@ -110,7 +112,7 @@ export default function EditProfileScreen() {
         colors={['#3b82f6', '#8b5cf6', '#ec4899'] as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -142,7 +144,7 @@ export default function EditProfileScreen() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: Spacing['2xl'],
     paddingHorizontal: Spacing.xl,
   },

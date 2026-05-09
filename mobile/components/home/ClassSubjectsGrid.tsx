@@ -141,18 +141,10 @@ const ClassSubjectsGrid: React.FC = () => {
               onPress={() => router.push(`/subject/${subject._id || subject.id}` as any)}
             >
               <Image
-                source={{ uri: subject.icon_url || subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=120&fit=crop' }}
-
+                source={{ uri: subject.icon_url || subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=512&h=512&fit=crop' }}
                 style={styles.subjectImage}
                 resizeMode="cover"
               />
-              <LinearGradient
-                colors={['transparent', 'rgba(15, 23, 42, 0.9)']}
-                style={styles.subjectOverlay}
-              />
-              <View style={styles.subjectContent}>
-                <Text style={styles.subjectTitle} numberOfLines={2}>{subject.title}</Text>
-              </View>
             </TouchableOpacity>
           ))}
         </View>
@@ -210,7 +202,7 @@ const styles = StyleSheet.create({
   },
   subjectCard: {
     width: CARD_WIDTH,
-    height: 120,
+    aspectRatio: 1,
     borderRadius: BorderRadius.lg,
     overflow: 'hidden',
     backgroundColor: Palette.bgCard,
@@ -220,25 +212,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: Palette.bgCardElevated,
-  },
-  subjectOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '70%',
-  },
-  subjectContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.md,
-  },
-  subjectTitle: {
-    ...Typography.bodyBold,
-    color: Palette.textPrimary,
-    fontSize: 14,
   },
   emptyContainer: {
     alignItems: 'center',

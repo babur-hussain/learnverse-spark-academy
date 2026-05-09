@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 56) / 2;
@@ -21,6 +22,7 @@ const PRODUCTS = [
 
 export default function StationeryScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
 
@@ -32,7 +34,7 @@ export default function StationeryScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={styles.header}>
+      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={Palette.textPrimary} />
@@ -111,7 +113,7 @@ export default function StationeryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Palette.bg },
-  header: { paddingTop: 56, paddingBottom: 16, paddingHorizontal: Spacing.xl },
+  header: { paddingBottom: 16, paddingHorizontal: Spacing.xl },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: Spacing.lg },
   backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: Palette.bgCardElevated, justifyContent: 'center', alignItems: 'center' },
   title: { ...Typography.h2, color: Palette.textPrimary },

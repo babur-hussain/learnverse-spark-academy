@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import api from '@/lib/api';
 import { Shimmer, ShimmerCard } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 56) / 2;
@@ -35,6 +36,7 @@ export default function CatalogScreen() {
   const params = useLocalSearchParams();
   const [search, setSearch] = useState((params.q as string) || '');
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +68,7 @@ export default function CatalogScreen() {
       {/* Header */}
       <LinearGradient
         colors={['#1e293b', '#0f172a'] as any}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={22} color={Palette.textPrimary} />
@@ -167,16 +169,6 @@ export default function CatalogScreen() {
                   style={styles.subjectImage}
                   resizeMode="cover"
                 />
-                <LinearGradient
-                  colors={['transparent', 'rgba(15, 23, 42, 0.95)'] as any}
-                  style={styles.subjectOverlay}
-                />
-                <View style={styles.subjectContent}>
-                  <Text style={styles.subjectTitle} numberOfLines={2}>{subject.title}</Text>
-                  {subject.description && (
-                    <Text style={styles.subjectDesc} numberOfLines={1}>{subject.description}</Text>
-                  )}
-                </View>
                 {subject.is_featured && (
                   <View style={styles.featuredBadge}>
                     <Text style={styles.featuredText}>⭐ Featured</Text>
@@ -197,7 +189,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 56,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 20,
     paddingHorizontal: Spacing.xl,
   },
@@ -280,30 +272,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: Palette.bgCardElevated,
-  },
-  subjectOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: '75%',
-  },
-  subjectContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: Spacing.md,
-  },
-  subjectTitle: {
-    ...Typography.bodyBold,
-    color: Palette.textPrimary,
-    fontSize: 14,
-  },
-  subjectDesc: {
-    ...Typography.small,
-    color: Palette.textSecondary,
-    marginTop: 2,
   },
   featuredBadge: {
     position: 'absolute',

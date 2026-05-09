@@ -7,9 +7,11 @@ import * as WebBrowser from 'expo-web-browser';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Palette, Spacing, Typography, BorderRadius } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ResourceViewerScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { url, title, type } = useLocalSearchParams<{ url: string; title: string; type: string }>();
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export default function ResourceViewerScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={styles.header}>
+      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="close" size={24} color={Palette.textPrimary} />
@@ -106,7 +108,7 @@ export default function ResourceViewerScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
   header: {
-    paddingTop: 56, paddingBottom: 16, paddingHorizontal: Spacing.lg,
+    paddingBottom: 16, paddingHorizontal: Spacing.lg,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

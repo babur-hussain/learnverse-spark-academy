@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -57,6 +58,7 @@ const FloatingBubble = ({ delay, size, left }: { delay: number, size: number, le
 
 export default function FunMathScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<MathMode>('add');
   const [num1, setNum1] = useState(0);
   const [num2, setNum2] = useState(0);
@@ -190,7 +192,7 @@ export default function FunMathScreen() {
       <FloatingBubble delay={5500} size={70} left="70%" />
 
       {/* Header & Score */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn} activeOpacity={0.8}>
           <Ionicons name="arrow-back" size={26} color="#fff" />
         </TouchableOpacity>
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
     bottom: -100,
   },
   header: {
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingHorizontal: Spacing.xl,
     flexDirection: 'row',
     alignItems: 'center',

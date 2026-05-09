@@ -7,6 +7,7 @@ import { auth } from '@/lib/firebase';
 import { signOut } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MENU_ITEMS = [
   { id: 'favourites', icon: 'heart' as const, label: 'Favourites', color: '#ef4444', route: '/favourites' },
@@ -26,6 +27,7 @@ const SUPPORT_ITEMS = [
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const user = auth.currentUser;
 
   const handleLogout = async () => {
@@ -45,10 +47,10 @@ export default function ProfileScreen() {
         colors={['#3b82f6', '#8b5cf6', '#ec4899'] as any}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        style={styles.header}
+        style={[styles.header, { paddingTop: insets.top + 16 }]}
       >
         {/* Settings icon */}
-        <TouchableOpacity style={styles.settingsIcon} onPress={() => router.push('/settings' as any)}>
+        <TouchableOpacity style={[styles.settingsIcon, { top: insets.top + 12 }]} onPress={() => router.push('/settings' as any)}>
           <Ionicons name="settings-outline" size={22} color="rgba(255,255,255,0.8)" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -131,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: Palette.bg,
   },
   header: {
-    paddingTop: 60,
+    // paddingTop handled via inline style with insets.top
     paddingBottom: 30,
     borderBottomLeftRadius: BorderRadius['2xl'],
     borderBottomRightRadius: BorderRadius['2xl'],
@@ -139,7 +141,7 @@ const styles = StyleSheet.create({
   },
   settingsIcon: {
     position: 'absolute',
-    top: 56,
+    // top handled via inline style with insets.top
     right: 20,
     width: 40,
     height: 40,
