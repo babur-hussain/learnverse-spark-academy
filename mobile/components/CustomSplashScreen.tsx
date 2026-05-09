@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Animated, View } from 'react-native';
-import LottieView from 'lottie-react-native';
+import { DotLottie } from '@lottiefiles/dotlottie-react-native';
 import * as SplashScreen from 'expo-splash-screen';
 import { Palette } from '@/constants/theme';
 
@@ -50,11 +50,11 @@ export default function CustomSplashScreen({ onFinish, isAppReady }: CustomSplas
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <View style={styles.animationWrapper}>
-        <LottieView
+        <DotLottie
           source={require('@/assets/Lottie/Welcome.lottie')}
-          autoPlay
+          autoplay={true}
           loop={false}
-          onAnimationFinish={() => setIsAnimationFinished(true)}
+          onComplete={() => setIsAnimationFinished(true)}
           style={styles.animation}
         />
       </View>

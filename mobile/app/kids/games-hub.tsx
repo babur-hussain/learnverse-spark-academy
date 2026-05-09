@@ -61,10 +61,7 @@ export default function GamesHubScreen() {
               key={game.id}
               activeOpacity={0.9}
               style={[styles.cardWrapper, Shadow.md]}
-              onPress={() => router.push({
-                pathname: '/kids/game-player' as any,
-                params: { gameId: game.id, title: game.title }
-              })}
+              onPress={() => router.push(`/kids/${game.id}` as any)}
             >
               <LinearGradient
                 colors={game.colors as [string, string]}
