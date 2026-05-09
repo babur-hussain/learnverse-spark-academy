@@ -40,8 +40,7 @@ export default function LoginScreen() {
         await signInWithEmailAndPassword(auth, email, password);
       }
 
-      await AsyncStorage.removeItem('guestMode');
-      router.replace('/(tabs)');
+      // Navigation is handled automatically by _layout.tsx auth state listener
     } catch (error: any) {
       let message = error.message || 'An error occurred';
       if (error.code === 'auth/user-not-found') message = 'No account found with this email';
@@ -68,15 +67,11 @@ export default function LoginScreen() {
     }
   };
 
-  const handleSkip = async () => {
-    setLoading(true);
-    try {
-      await AsyncStorage.setItem('guestMode', 'true');
+  const handleSkip = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
       router.replace('/(tabs)');
-    } catch (error: any) {
-      Alert.alert('Skip Failed', 'Failed to store guest session mode');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -204,15 +199,15 @@ export default function LoginScreen() {
               <View style={styles.divider} />
             </View>
 
-            {/* Guest mode */}
+            {/* Skip for now */}
             <TouchableOpacity
               style={styles.skipButton}
               onPress={handleSkip}
               disabled={loading}
               activeOpacity={0.8}
             >
-              <Ionicons name="compass-outline" size={20} color={Palette.textSecondary} />
-              <Text style={styles.skipText}>Continue as Guest</Text>
+              <Ionicons name="arrow-forward-outline" size={20} color={Palette.textSecondary} />
+              <Text style={styles.skipText}>Skip for now</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

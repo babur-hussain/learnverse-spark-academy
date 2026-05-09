@@ -7,6 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '@/lib/api';
+import { auth } from '@/lib/firebase';
 
 const STORAGE_KEY = 'enrolled_course_ids';
 
@@ -53,12 +54,14 @@ export function useEnrollment(courseId: string) {
   const enroll = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
     setEnrolling(true);
     try {
-      // Try server first
-      await api.post('/enrollments', { course_id: courseId });
+      // Try server first, but only if user is logged in
+      if (auth.currentUser) {
+        await api.post('/enrollments', { course_id: courseId });
+      }
     } catch (e: any) {
-      // If 404/501 (endpoint doesn't exist yet), proceed with local-only
+      // If 404/501 (endpoint doesn't exist yet) or 401 (unauthorized due to guest fallback), proceed with local-only
       const status = e?.response?.status;
-      if (status && status !== 404 && status !== 501 && status !== 405) {
+      if (status && status !== 404 && status !== 501 && status !== 405 && status !== 401) {
         setEnrolling(false);
         return { success: false, error: e?.response?.data?.message || 'Enrollment failed. Try again.' };
       }

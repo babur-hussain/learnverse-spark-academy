@@ -39,4 +39,23 @@ router.put('/:id/read', async (req, res) => {
   }
 });
 
+const { sendPushNotification } = require('../utils/pushNotifications');
+
+// POST /api/notifications/send (Admin only)
+router.post('/send', async (req, res) => {
+  try {
+    // In a real app, verify req.user.role === 'admin'
+    const { userIds, title, body, data } = req.body;
+    
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ error: 'userIds array is required' });
+    }
+
+    const result = await sendPushNotification(userIds, { title, body, data });
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 module.exports = router;

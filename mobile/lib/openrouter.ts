@@ -40,7 +40,7 @@ const openrouterClient = axios.create({
     'HTTP-Referer': 'https://padhaaiwala.app',
     'X-Title': 'Padhaai Wala',
   },
-  timeout: 30000,
+  timeout: 60000, // Increased to 60s as free models sometimes take longer to respond
 });
 
 export async function sendChatMessage(

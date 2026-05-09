@@ -33,12 +33,35 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      await AsyncStorage.removeItem('guestMode');
       router.replace('/login');
     } catch (e) {
       console.error(e);
     }
   };
+
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#3b82f6', '#8b5cf6', '#ec4899'] as any}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.header, { paddingTop: insets.top + 16 }]}
+        >
+          <View style={styles.headerContent}>
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>?</Text>
+            </View>
+            <Text style={styles.userName}>Not Signed In</Text>
+            <Text style={styles.userEmail}>Sign in to access your profile</Text>
+            <TouchableOpacity style={styles.editBtn} activeOpacity={0.8} onPress={() => router.push('/login')}>
+              <Text style={styles.editBtnText}>Sign In</Text>
+            </TouchableOpacity>
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -60,7 +83,7 @@ export default function ProfileScreen() {
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Text style={styles.avatarText}>
-                  {(user?.displayName || user?.email || 'G')[0].toUpperCase()}
+                  {(user?.displayName || user?.email || 'L')[0].toUpperCase()}
                 </Text>
               </View>
             )}
@@ -69,7 +92,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.userName}>{user?.displayName || 'Learner'}</Text>
-          <Text style={styles.userEmail}>{user?.email || 'Guest User'}</Text>
+          <Text style={styles.userEmail}>{user?.email || ''}</Text>
           <TouchableOpacity style={styles.editBtn} activeOpacity={0.8} onPress={() => router.push('/edit-profile' as any)}>
             <Text style={styles.editBtnText}>Edit Profile</Text>
           </TouchableOpacity>

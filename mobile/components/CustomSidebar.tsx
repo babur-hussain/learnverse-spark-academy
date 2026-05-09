@@ -60,7 +60,6 @@ export default function CustomSidebar() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      await AsyncStorage.removeItem('guestMode');
       closeSidebar();
       router.replace('/login');
     } catch (error) {
@@ -89,8 +88,8 @@ export default function CustomSidebar() {
           <View style={styles.profileIcon}>
             <Ionicons name="person" size={40} color="#FFFFFF" />
           </View>
-          <Text style={styles.profileName}>{user?.displayName || 'Student'}</Text>
-          <Text style={styles.profileEmail}>{user?.email || 'Guest User'}</Text>
+          <Text style={styles.profileName}>{user?.displayName || 'Not Signed In'}</Text>
+          <Text style={styles.profileEmail}>{user?.email || 'Tap to sign in'}</Text>
         </View>
 
         <View style={styles.menuContainer}>
@@ -122,10 +121,17 @@ export default function CustomSidebar() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
+        {user ? (
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color="#FF3B30" />
+            <Text style={styles.logoutText}>Log Out</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.logoutBtn} onPress={() => { closeSidebar(); router.push('/login' as any); }}>
+            <Ionicons name="log-in-outline" size={24} color={Palette.primary} />
+            <Text style={[styles.logoutText, { color: Palette.primary }]}>Sign In</Text>
+          </TouchableOpacity>
+        )}
       </Animated.View>
     </View>
   );

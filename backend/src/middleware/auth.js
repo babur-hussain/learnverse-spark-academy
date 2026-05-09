@@ -29,9 +29,9 @@ const verifyFirebaseToken = async (req, res, next) => {
     const collection = req.originalUrl.split('/')[3]?.split('?')[0]; // e.g. /api/admin/courses?foo=1 -> courses
     const publicCollections = [
       'courses', 'colleges', 'classes', 'subjects',
-      'course_categories', 'categories', 'chapters', 'resources',
+      'course_categories', 'categories', 'chapters',
       'featured_courses', 'featured_categories', 'goals',
-      'class_subjects', 'college_subjects', 'subject_resources', 'course_resources'
+      'class_subjects', 'college_subjects'
     ];
     if (collection && publicCollections.includes(collection)) {
       return next();

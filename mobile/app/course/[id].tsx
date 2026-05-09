@@ -10,6 +10,7 @@ import api from '../../lib/api';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 import { useEnrollment } from '@/hooks/useEnrollment';
+import { auth } from '@/lib/firebase';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -67,11 +68,11 @@ function EnrollModal({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
-  if (!course) return null;
-  const isPaid = course.price && course.price > 0;
+  if (!visible || !course) return null;
+  const isPaid = course.price !== undefined && course.price > 0;
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
+    <Modal visible={true} transparent animationType="slide" onRequestClose={onCancel}>
       <View style={modal.overlay}>
         <View style={modal.sheet}>
           {/* Handle */}
@@ -90,7 +91,7 @@ function EnrollModal({
           {isPaid ? (
             <View style={modal.priceBanner}>
               <Text style={modal.priceLabel}>Course Price</Text>
-              <Text style={modal.priceValue}>₹{course.price}</Text>
+              <Text style={modal.priceValue}>{'₹' + course.price}</Text>
             </View>
           ) : (
             <View style={[modal.priceBanner, { backgroundColor: '#10B98115' }]}>
@@ -99,18 +100,22 @@ function EnrollModal({
             </View>
           )}
 
-          {isPaid && (
+          {isPaid ? (
             <Text style={modal.payNote}>
               {'Payment will be processed securely.\nYou get lifetime access after payment.'}
             </Text>
-          )}
+          ) : null}
 
           <View style={modal.btnRow}>
             <TouchableOpacity style={modal.cancelBtn} onPress={onCancel}>
               <Text style={modal.cancelText}>Cancel</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[modal.confirmBtn, enrolling && { opacity: 0.7 }]} onPress={onConfirm} disabled={enrolling}>
+            <TouchableOpacity
+              style={[modal.confirmBtn, enrolling ? { opacity: 0.7 } : undefined]}
+              onPress={onConfirm}
+              disabled={enrolling}
+            >
               <LinearGradient
                 colors={isPaid ? ['#FF6B35', '#FFB84D'] : ['#10B981', '#34D399']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -121,7 +126,7 @@ function EnrollModal({
                 ) : (
                   <>
                     <Ionicons name={isPaid ? 'card-outline' : 'checkmark-circle'} size={18} color="#fff" />
-                    <Text style={modal.confirmText}>{isPaid ? `Pay ₹${course.price}` : 'Enroll Now'}</Text>
+                    <Text style={modal.confirmText}>{isPaid ? 'Pay ₹' + course.price : 'Enroll Now'}</Text>
                   </>
                 )}
               </LinearGradient>
@@ -167,20 +172,31 @@ export default function CourseDetailScreen() {
     if (id) fetchData();
   }, [id]);
 
-  const handleEnrollPress = () => setShowEnrollModal(true);
+  const handleEnrollPress = () => {
+    if (!auth.currentUser) {
+      router.push('/login');
+      return;
+    }
+    setShowEnrollModal(true);
+  };
 
   const handleConfirmEnroll = async () => {
     const result = await enroll();
     setShowEnrollModal(false);
-    if (result.success) {
-      Alert.alert(
-        '🎉 Enrolled!',
-        `You have successfully enrolled in "${course?.title}". All course materials are now unlocked.`,
-        [{ text: 'Great!', style: 'default' }]
-      );
-    } else {
-      Alert.alert('Enrollment Failed', result.error || 'Please try again.', [{ text: 'OK' }]);
-    }
+    
+    // Delay the alert slightly to allow the Modal to fully unmount.
+    // This prevents the Android native crash: "Tried to show an alert while not attached to an Activity"
+    setTimeout(() => {
+      if (result.success) {
+        Alert.alert(
+          '🎉 Enrolled!',
+          `You have successfully enrolled in "${course?.title}". All course materials are now unlocked.`,
+          [{ text: 'Great!', style: 'default' }]
+        );
+      } else {
+        Alert.alert('Enrollment Failed', result.error || 'Please try again.', [{ text: 'OK' }]);
+      }
+    }, 400);
   };
 
   if (loading) {
@@ -231,7 +247,7 @@ export default function CourseDetailScreen() {
               </View>
             )}
             <Text style={styles.heroTitle}>{course.title}</Text>
-            {course.instructor_name && (
+            {!!course.instructor_name && (
               <Text style={styles.instructorText}>by {course.instructor_name}</Text>
             )}
           </View>
@@ -342,7 +358,7 @@ export default function CourseDetailScreen() {
                       <Ionicons name={icon} size={32} color={color} />
                     </View>
                     <Text style={styles.resourceName} numberOfLines={2}>{title}</Text>
-                    {item.url && (
+                    {!!item.url && (
                       <View style={styles.viewOnlineTag}>
                         <Text style={styles.viewOnlineText}>Open File</Text>
                       </View>

@@ -94,7 +94,6 @@ export default function TabLayout() {
       
       {/* Hidden tabs that we moved out or don't want in the bar */}
       <Tabs.Screen name="explore" options={{ href: null }} />
-      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

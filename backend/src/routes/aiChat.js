@@ -61,6 +61,24 @@ router.delete('/sessions/:id', async (req, res) => {
   }
 });
 
+// PUT /api/ai-chat/sessions/:id
+router.put('/sessions/:id', async (req, res) => {
+  try {
+    const { title } = req.body;
+    const session = await AIChatSession.findOneAndUpdate(
+      { _id: req.params.id, user_id: req.user.uid },
+      { $set: { title } },
+      { new: true }
+    );
+    if (!session) {
+      return res.status(404).json({ error: 'Session not found' });
+    }
+    res.json(session);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // POST /api/ai-chat/ask — send question to AI
 router.post('/ask', async (req, res) => {
   try {

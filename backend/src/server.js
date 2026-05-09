@@ -53,14 +53,22 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
 });
 app.use(limiter);
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, please try again later.' }
+});
+
 // ─── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', verifyFirebaseToken, userRoutes);
 app.use('/api/courses', verifyFirebaseToken, courseRoutes);
 app.use('/api/tests', verifyFirebaseToken, testRoutes);

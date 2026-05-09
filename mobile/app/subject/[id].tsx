@@ -20,15 +20,6 @@ interface Subject {
   is_featured?: boolean;
 }
 
-interface Chapter {
-  _id?: string;
-  id?: string;
-  title: string;
-  description?: string;
-  order_index: number;
-  subject_id?: string;
-}
-
 interface Resource {
   _id?: string;
   id?: string;
@@ -40,7 +31,6 @@ interface Resource {
   file_url?: string;
   external_url?: string;
   url?: string;
-  chapter_id?: string;
   subject_id?: string;
 }
 
@@ -49,21 +39,17 @@ export default function SubjectDetailScreen() {
   const router = useRouter();
 
   const [subject, setSubject] = useState<Subject | null>(null);
-  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'resources' | 'chapters'>('resources');
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [subjectRes, chapterRes, resourceRes] = await Promise.all([
+        const [subjectRes, resourceRes] = await Promise.all([
           api.get(`/admin/subjects/${id}`),
-          api.get('/admin/chapters', { params: { subject_id: id } }),
           api.get('/admin/subject_resources', { params: { subject_id: id } }),
         ]);
         setSubject(subjectRes.data?.data || subjectRes.data);
-        setChapters(chapterRes.data?.data || chapterRes.data || []);
         setResources(resourceRes.data?.data || resourceRes.data || []);
       } catch (e) {
         console.error('Error fetching subject:', e);
@@ -73,10 +59,6 @@ export default function SubjectDetailScreen() {
     };
     if (id) fetchData();
   }, [id]);
-
-  const getResourcesByChapter = (chapterId: string) => {
-    return resources.filter(r => r.chapter_id === chapterId);
-  };
 
   const getResourceIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     switch (type) {
@@ -97,7 +79,7 @@ export default function SubjectDetailScreen() {
   };
 
   const handleOpenResource = (resource: Resource) => {
-    const url = resource.external_url || resource.file_url;
+    const url = resource.url || resource.external_url || resource.file_url;
     if (url) {
       router.push({
         pathname: '/resource-viewer' as any,
@@ -166,13 +148,13 @@ export default function SubjectDetailScreen() {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <View style={[styles.statCard, { backgroundColor: `${Palette.primary}15` }]}>
-            <Text style={[styles.statValue, { color: Palette.primary }]}>{chapters.length}</Text>
-            <Text style={styles.statLabel}>Chapters</Text>
-          </View>
           <View style={[styles.statCard, { backgroundColor: `${Palette.purple}15` }]}>
             <Text style={[styles.statValue, { color: Palette.purple }]}>{resources.length}</Text>
-            <Text style={styles.statLabel}>Resources</Text>
+            <Text style={styles.statLabel}>Total Files</Text>
+          </View>
+          <View style={[styles.statCard, { backgroundColor: `${Palette.primary}15` }]}>
+            <Text style={[styles.statValue, { color: Palette.primary }]}>{resources.filter(r => r.resource_type !== 'video').length}</Text>
+            <Text style={styles.statLabel}>Documents</Text>
           </View>
           <View style={[styles.statCard, { backgroundColor: `${Palette.success}15` }]}>
             <Text style={[styles.statValue, { color: Palette.success }]}>{resources.filter(r => r.resource_type === 'video').length}</Text>
@@ -188,94 +170,37 @@ export default function SubjectDetailScreen() {
           </View>
         )}
 
-        {/* Tab Switcher */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'resources' && styles.tabActive]}
-            onPress={() => setActiveTab('resources')}
-          >
-            <Ionicons name="document-text" size={16} color={activeTab === 'resources' ? '#fff' : Palette.textMuted} />
-            <Text style={[styles.tabText, activeTab === 'resources' && styles.tabTextActive]}>Resources</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'chapters' && styles.tabActive]}
-            onPress={() => setActiveTab('chapters')}
-          >
-            <Ionicons name="list" size={16} color={activeTab === 'chapters' ? '#fff' : Palette.textMuted} />
-            <Text style={[styles.tabText, activeTab === 'chapters' && styles.tabTextActive]}>Chapters</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Resources Tab */}
-        {activeTab === 'resources' && (
-          <View style={styles.section}>
-            {resources.length === 0 ? (
-              <View style={styles.emptySection}>
-                <Ionicons name="document-text-outline" size={48} color={Palette.textMuted} />
-                <Text style={styles.emptyText}>No resources available yet</Text>
-              </View>
-            ) : (
-              resources.map(resource => (
+        {/* Resources Grid */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Resources</Text>
+          {resources.length === 0 ? (
+            <View style={styles.emptySection}>
+              <Ionicons name="document-text-outline" size={48} color={Palette.textMuted} />
+              <Text style={styles.emptyText}>No resources available yet</Text>
+            </View>
+          ) : (
+            <View style={styles.resourceGrid}>
+              {resources.map((resource, index) => (
                 <TouchableOpacity
-                  key={resource._id || resource.id}
-                  style={[styles.resourceCard, Shadow.sm]}
+                  key={resource._id || resource.id || index}
+                  style={[styles.gridCard, Shadow.sm]}
                   activeOpacity={0.85}
                   onPress={() => handleOpenResource(resource)}
                 >
-                  <View style={[styles.resourceIcon, { backgroundColor: `${getResourceColor(resource.resource_type)}15` }]}>
-                    <Ionicons name={getResourceIcon(resource.resource_type)} size={22} color={getResourceColor(resource.resource_type)} />
+                  <View style={[styles.gridIconHeader, { backgroundColor: `${getResourceColor(resource.resource_type)}15` }]}>
+                    <Ionicons name={getResourceIcon(resource.resource_type)} size={32} color={getResourceColor(resource.resource_type)} />
                   </View>
-                  <View style={styles.resourceContent}>
-                    <Text style={styles.resourceTitle}>{resource.title}</Text>
-                    {resource.description && (
-                      <Text style={styles.resourceDesc} numberOfLines={1}>{resource.description}</Text>
-                    )}
-                    <View style={styles.resourceMeta}>
-                      <View style={styles.resourceBadge}>
-                        <Text style={styles.resourceBadgeText}>{resource.resource_type}</Text>
-                      </View>
+                  <View style={styles.gridCardBody}>
+                    <Text style={styles.gridCardName} numberOfLines={2}>{resource.title || resource.name || 'Resource'}</Text>
+                    <View style={styles.gridCardMeta}>
+                      <Text style={styles.gridCardExt}>{resource.resource_type}</Text>
                     </View>
                   </View>
-                  <Ionicons name="open-outline" size={18} color={Palette.textMuted} />
                 </TouchableOpacity>
-              ))
-            )}
-          </View>
-        )}
-
-        {/* Chapters Tab */}
-        {activeTab === 'chapters' && (
-          <View style={styles.section}>
-            {chapters.length === 0 ? (
-              <View style={styles.emptySection}>
-                <Ionicons name="list-outline" size={48} color={Palette.textMuted} />
-                <Text style={styles.emptyText}>No chapters available yet</Text>
-              </View>
-            ) : (
-              chapters.sort((a, b) => a.order_index - b.order_index).map((chapter, index) => {
-                const chapterResources = getResourcesByChapter(chapter._id || chapter.id || '');
-                return (
-                  <View key={chapter._id || chapter.id} style={[styles.chapterCard, Shadow.sm]}>
-                    <LinearGradient
-                      colors={Palette.gradientPrimary as any}
-                      style={styles.chapterNumber}
-                    >
-                      <Text style={styles.chapterNumberText}>{index + 1}</Text>
-                    </LinearGradient>
-                    <View style={styles.chapterContent}>
-                      <Text style={styles.chapterTitle}>{chapter.title}</Text>
-                      {chapter.description && (
-                        <Text style={styles.chapterDesc} numberOfLines={2}>{chapter.description}</Text>
-                      )}
-                      <Text style={styles.chapterMeta}>{chapterResources.length} resources</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={Palette.textMuted} />
-                  </View>
-                );
-              })
-            )}
-          </View>
-        )}
+              ))}
+            </View>
+          )}
+        </View>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -389,118 +314,49 @@ const styles = StyleSheet.create({
     color: Palette.textSecondary,
     lineHeight: 24,
   },
-  tabContainer: {
+  resourceGrid: {
     flexDirection: 'row',
-    marginHorizontal: Spacing.xl,
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridCard: {
+    width: (SCREEN_WIDTH - 56) / 2,
     backgroundColor: Palette.bgCard,
-    borderRadius: BorderRadius.lg,
-    padding: 4,
-    marginBottom: Spacing.xl,
+    borderRadius: BorderRadius.xl,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: BorderRadius.md,
-    gap: 6,
-  },
-  tabActive: {
-    backgroundColor: Palette.primary,
-  },
-  tabText: {
-    ...Typography.caption,
-    color: Palette.textMuted,
-    fontWeight: '600',
-  },
-  tabTextActive: {
-    color: '#fff',
-  },
-  resourceCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.bgCard,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  resourceIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: BorderRadius.md,
+  gridIconHeader: {
+    height: 90,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: Spacing.lg,
   },
-  resourceContent: {
-    flex: 1,
+  gridCardBody: {
+    padding: Spacing.md,
   },
-  resourceTitle: {
+  gridCardName: {
     ...Typography.bodyBold,
     color: Palette.textPrimary,
-    fontSize: 14,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 8,
+    height: 36,
   },
-  resourceDesc: {
+  gridCardMeta: {
+    flexDirection: 'row',
+  },
+  gridCardExt: {
     ...Typography.caption,
     color: Palette.textSecondary,
-    marginTop: 2,
-  },
-  resourceMeta: {
-    flexDirection: 'row',
-    marginTop: 6,
-    gap: 8,
-  },
-  resourceBadge: {
-    backgroundColor: Palette.bgCardElevated,
-    paddingHorizontal: 8,
+    fontWeight: '800',
+    backgroundColor: Palette.bg,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  resourceBadgeText: {
-    ...Typography.small,
-    color: Palette.textMuted,
-    fontSize: 10,
+    borderRadius: 4,
+    overflow: 'hidden',
     textTransform: 'uppercase',
-  },
-  chapterCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.bgCard,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  chapterNumber: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.lg,
-  },
-  chapterNumberText: {
-    ...Typography.bodyBold,
-    color: '#fff',
-    fontSize: 16,
-  },
-  chapterContent: {
-    flex: 1,
-  },
-  chapterTitle: {
-    ...Typography.bodyBold,
-    color: Palette.textPrimary,
-    fontSize: 15,
-  },
-  chapterDesc: {
-    ...Typography.caption,
-    color: Palette.textSecondary,
-    marginTop: 2,
-  },
-  chapterMeta: {
-    ...Typography.small,
-    color: Palette.textMuted,
-    marginTop: 4,
   },
   emptySection: {
     alignItems: 'center',

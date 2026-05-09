@@ -16,6 +16,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
+import { usePushNotifications } from '@/hooks/usePushNotifications';
+
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync().catch(() => {
   /* reloading the app might trigger some error */
@@ -33,6 +35,9 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const navigationState = useRootNavigationState();
+
+  // Initialize push notifications
+  usePushNotifications();
 
   useEffect(() => {
     // Safety timeout: if Firebase never responds (e.g. wrong config, network issue on Android),
@@ -62,23 +67,17 @@ export default function RootLayout() {
   }, []); // Empty deps to prevent multiple subscriptions
 
   useEffect(() => {
-    const checkNavigationState = async () => {
+    const checkNavigationState = () => {
       // Don't route until navigation state is fully mounted and auth initialized
       if (initializing || !navigationState?.key) return;
 
       const inAuthGroup = segments[0] === 'login';
-      const isGuest = await AsyncStorage.getItem('guestMode') === 'true';
 
-      // Enforce authentication routing securely using either standard auth or our custom bypass flag
-      if (!user && !isGuest) {
-        // Not signed in and not guest - go to login
-        if (!inAuthGroup) {
-          router.replace('/login');
-        }
-      } else if (user || isGuest) {
-        // Signed in or guest - redirect to tabs ONLY if on login screen
-        // This prevents the infinite redirect loop when navigating to other screens
-        if (inAuthGroup) {
+      // If user is signed in and on login screen, navigate away
+      if (user && inAuthGroup) {
+        if (router.canGoBack()) {
+          router.back();
+        } else {
           router.replace('/(tabs)');
         }
       }
@@ -106,11 +105,15 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="login" />
+            <Stack.Screen name="profile" />
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             <Stack.Screen name="edit-profile" />
             <Stack.Screen name="change-password" />
             <Stack.Screen name="catalog/index" />
             <Stack.Screen name="course/[id]" />
+            <Stack.Screen name="category/[id]" />
+            <Stack.Screen name="course-notes/[id]" />
+            <Stack.Screen name="resource-viewer" />
             <Stack.Screen name="subject/[id]" />
             <Stack.Screen name="study/[classId]" />
             <Stack.Screen name="kids" />

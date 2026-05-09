@@ -13,6 +13,7 @@ import {
   Dimensions,
   Modal,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -43,9 +44,7 @@ interface DisplayMessage {
 function LoginRequiredScreen() {
   const router = useRouter();
 
-  const handleLoginPress = async () => {
-    // Clear guest mode so layout doesn't auto-redirect back to tabs
-    await AsyncStorage.removeItem('guestMode');
+  const handleLoginPress = () => {
     router.push('/login' as any);
   };
 
@@ -91,9 +90,25 @@ export default function AIChatScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [androidKeyboardHeight, setAndroidKeyboardHeight] = useState(0);
 
   const flatListRef = useRef<FlatList>(null);
   const typingDots = useRef(new Animated.Value(0)).current;
+
+  // ── Keyboard Listener for Android ─────────────────────────────────────────
+  useEffect(() => {
+    if (Platform.OS === 'ios') return;
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setAndroidKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setAndroidKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // ── 1. Track Firebase auth state ──────────────────────────────────────────
   useEffect(() => {
@@ -338,6 +353,26 @@ export default function AIChatScreen() {
     [sessionId]
   );
 
+  const generateChatTitle = useCallback(async (firstMessageText: string, sid: string) => {
+    try {
+      const titlePrompt: ChatMessage[] = [
+        { 
+          role: 'user', 
+          content: `Generate a short, relevant title (maximum 4 words) for a chat that starts with this message: "${firstMessageText}". Return ONLY the title text, nothing else, no quotes, no formatting.` 
+        }
+      ];
+      const newTitle = await sendChatMessage(titlePrompt);
+      if (newTitle) {
+        // Clean up the title just in case the AI added quotes
+        const cleanTitle = newTitle.replace(/^["']|["']$/g, '').trim();
+        setSessions(prev => prev.map(s => s.id === sid ? { ...s, title: cleanTitle } : s));
+        await api.put(`/ai-chat/sessions/${sid}`, { title: cleanTitle });
+      }
+    } catch (error) {
+      console.warn('Failed to generate chat title:', error);
+    }
+  }, []);
+
   // ── 5. Send message ────────────────────────────────────────────────────────
   const sendMessage = useCallback(async () => {
     const text = inputText.trim();
@@ -359,6 +394,12 @@ export default function AIChatScreen() {
     scrollToBottom();
 
     saveMessage('user', text + (imageToSend ? ' [Image Attached]' : ''));
+
+    // If this is the very first message in the session, generate a title
+    const isFirstMessage = messages.length === 0;
+    if (isFirstMessage && sessionId) {
+      generateChatTitle(text, sessionId);
+    }
 
     try {
       const chatHistory: ChatMessage[] = messages
@@ -414,7 +455,7 @@ export default function AIChatScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [inputText, selectedImage, isLoading, messages, scrollToBottom, saveMessage]);
+  }, [inputText, selectedImage, isLoading, messages, scrollToBottom, saveMessage, sessionId, generateChatTitle]);
 
   // ── 6. Render message ──────────────────────────────────────────────────────
   const preprocessMarkdown = (text: string) => {
@@ -616,96 +657,185 @@ export default function AIChatScreen() {
       {renderHistoryModal()}
 
       {/* Messages */}
-      <KeyboardAvoidingView
-        style={styles.chatArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
-      >
-        {historyLoading ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <ActivityIndicator size="large" color={Palette.primary} />
-            <Text style={{ color: Palette.textSecondary, marginTop: 12, ...Typography.small }}>
-              Loading your chat history…
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            renderItem={renderMessage}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={[
-              styles.messagesList,
-              messages.length === 0 && styles.emptyList,
-            ]}
-            ListEmptyComponent={renderEmptyState}
-            ListFooterComponent={renderTypingIndicator}
-            onContentSizeChange={scrollToBottom}
-            showsVerticalScrollIndicator={false}
-          />
-        )}
-
-        {/* Input bar */}
-        <View
-          style={[
-            styles.inputBarContainer,
-            Shadow.md,
-            { paddingBottom: Math.max(insets.bottom, Spacing.md) },
-          ]}
+      {Platform.OS === 'ios' ? (
+        <KeyboardAvoidingView
+          style={styles.chatArea}
+          behavior="padding"
+          keyboardVerticalOffset={90}
         >
-          {selectedImage && (
-            <View style={styles.imagePreviewContainer}>
-              <Image source={{ uri: selectedImage }} style={styles.imagePreview} contentFit="cover" />
-              <TouchableOpacity style={styles.imagePreviewRemove} onPress={() => setSelectedImage(null)}>
-                <Ionicons name="close-circle" size={24} color={Palette.textPrimary} />
-              </TouchableOpacity>
+          {historyLoading ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={Palette.primary} />
+              <Text style={{ color: Palette.textSecondary, marginTop: 12, ...Typography.small }}>
+                Loading your chat history…
+              </Text>
             </View>
-          )}
-          <View style={styles.inputBar}>
-            <TouchableOpacity style={styles.attachBtn} onPress={pickImage}>
-              <Ionicons name="image-outline" size={24} color={Palette.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.attachBtn} onPress={takePhoto}>
-              <Ionicons name="camera-outline" size={24} color={Palette.textSecondary} />
-            </TouchableOpacity>
-            <TextInput
-              style={styles.textInput}
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Ask Padhaai Wala anything..."
-              placeholderTextColor={Palette.textMuted}
-              multiline
-              maxLength={2000}
-              onSubmitEditing={sendMessage}
-              returnKeyType="send"
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={[
+                styles.messagesList,
+                messages.length === 0 && styles.emptyList,
+              ]}
+              ListEmptyComponent={renderEmptyState}
+              ListFooterComponent={renderTypingIndicator}
+              onContentSizeChange={scrollToBottom}
+              showsVerticalScrollIndicator={false}
             />
-            {inputText.trim() || selectedImage ? (
-              <TouchableOpacity
-                style={[
-                  styles.sendBtn,
-                  isLoading && styles.sendBtnDisabled,
-                ]}
-                onPress={sendMessage}
-                disabled={isLoading}
-              >
-                {isLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Ionicons name="send" size={18} color="#FFFFFF" />
-                )}
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={[styles.micBtn, isRecording && styles.micBtnRecording]}
-                onPressIn={startRecording}
-                onPressOut={stopRecording}
-              >
-                <Ionicons name="mic" size={20} color={isRecording ? "#FFFFFF" : Palette.textSecondary} />
-              </TouchableOpacity>
+          )}
+
+          {/* Input bar */}
+          <View
+            style={[
+              styles.inputBarContainer,
+              Shadow.md,
+              { paddingBottom: Math.max(insets.bottom, Spacing.md) },
+            ]}
+          >
+            {selectedImage && (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: selectedImage }} style={styles.imagePreview} contentFit="cover" />
+                <TouchableOpacity style={styles.imagePreviewRemove} onPress={() => setSelectedImage(null)}>
+                  <Ionicons name="close-circle" size={24} color={Palette.textPrimary} />
+                </TouchableOpacity>
+              </View>
             )}
+            <View style={styles.inputBar}>
+              <TouchableOpacity style={styles.attachBtn} onPress={pickImage}>
+                <Ionicons name="image-outline" size={24} color={Palette.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.attachBtn} onPress={takePhoto}>
+                <Ionicons name="camera-outline" size={24} color={Palette.textSecondary} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask Padhaai Wala anything..."
+                placeholderTextColor={Palette.textMuted}
+                multiline
+                maxLength={2000}
+                onSubmitEditing={sendMessage}
+                returnKeyType="send"
+              />
+              {inputText.trim() || selectedImage ? (
+                <TouchableOpacity
+                  style={[
+                    styles.sendBtn,
+                    isLoading && styles.sendBtnDisabled,
+                  ]}
+                  onPress={sendMessage}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="send" size={18} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.micBtn, isRecording && styles.micBtnRecording]}
+                  onPressIn={startRecording}
+                  onPressOut={stopRecording}
+                >
+                  <Ionicons name="mic" size={20} color={isRecording ? "#FFFFFF" : Palette.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      ) : (
+        <View style={[styles.chatArea, { paddingBottom: androidKeyboardHeight }]}>
+          {historyLoading ? (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={Palette.primary} />
+              <Text style={{ color: Palette.textSecondary, marginTop: 12, ...Typography.small }}>
+                Loading your chat history…
+              </Text>
+            </View>
+          ) : (
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={[
+                styles.messagesList,
+                messages.length === 0 && styles.emptyList,
+              ]}
+              ListEmptyComponent={renderEmptyState}
+              ListFooterComponent={renderTypingIndicator}
+              onContentSizeChange={scrollToBottom}
+              showsVerticalScrollIndicator={false}
+            />
+          )}
+
+          {/* Input bar */}
+          <View
+            style={[
+              styles.inputBarContainer,
+              Shadow.md,
+              { paddingBottom: Math.max(insets.bottom, Spacing.md) },
+            ]}
+          >
+            {selectedImage && (
+              <View style={styles.imagePreviewContainer}>
+                <Image source={{ uri: selectedImage }} style={styles.imagePreview} contentFit="cover" />
+                <TouchableOpacity style={styles.imagePreviewRemove} onPress={() => setSelectedImage(null)}>
+                  <Ionicons name="close-circle" size={24} color={Palette.textPrimary} />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.inputBar}>
+              <TouchableOpacity style={styles.attachBtn} onPress={pickImage}>
+                <Ionicons name="image-outline" size={24} color={Palette.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.attachBtn} onPress={takePhoto}>
+                <Ionicons name="camera-outline" size={24} color={Palette.textSecondary} />
+              </TouchableOpacity>
+              <TextInput
+                style={styles.textInput}
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Ask Padhaai Wala anything..."
+                placeholderTextColor={Palette.textMuted}
+                multiline
+                maxLength={2000}
+                onSubmitEditing={sendMessage}
+                returnKeyType="send"
+              />
+              {inputText.trim() || selectedImage ? (
+                <TouchableOpacity
+                  style={[
+                    styles.sendBtn,
+                    isLoading && styles.sendBtnDisabled,
+                  ]}
+                  onPress={sendMessage}
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="send" size={18} color="#FFFFFF" />
+                  )}
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={[styles.micBtn, isRecording && styles.micBtnRecording]}
+                  onPressIn={startRecording}
+                  onPressOut={stopRecording}
+                >
+                  <Ionicons name="mic" size={20} color={isRecording ? "#FFFFFF" : Palette.textSecondary} />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
@@ -773,6 +903,8 @@ const markdownStyles: any = {
     borderRadius: 8,
     padding: Spacing.md,
     marginVertical: 8,
+    color: '#D4D4D4',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },
   code_block: {
     backgroundColor: '#1E1E1E',
