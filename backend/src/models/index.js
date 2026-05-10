@@ -40,6 +40,7 @@ const courseSchema = new mongoose.Schema({
   description: String,
   short_description: String,
   thumbnail_url: String,
+  banner_url: String,
   category_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   instructor_id: { type: String, ref: 'User' },
   price: { type: Number, default: 0 },

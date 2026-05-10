@@ -24,6 +24,7 @@ export interface Course {
   title: string;
   subject?: string;
   thumbnail_url?: string;
+  banner_url?: string;
   resource_count?: number;
 }
 

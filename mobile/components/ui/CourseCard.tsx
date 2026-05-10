@@ -1,7 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import CachedImage from './CachedImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -10,6 +11,7 @@ interface CourseCardProps {
   title: string;
   description?: string;
   thumbnailUrl?: string;
+  bannerUrl?: string;
   price?: number;
   instructor?: string;
   onPress?: () => void;
@@ -21,6 +23,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
   title,
   description,
   thumbnailUrl,
+  bannerUrl,
   price,
   instructor,
   onPress,
@@ -28,6 +31,10 @@ const CourseCard: React.FC<CourseCardProps> = ({
   width,
 }) => {
   const cardWidth = width || (compact ? SCREEN_WIDTH * 0.7 : SCREEN_WIDTH - 40);
+  // Use banner (16:9) if available, fallback to thumbnail
+  const imageUrl = bannerUrl || thumbnailUrl;
+  // Calculate 16:9 height from card width
+  const bannerHeight = cardWidth * (9 / 16);
 
   return (
     <TouchableOpacity
@@ -35,9 +42,9 @@ const CourseCard: React.FC<CourseCardProps> = ({
       onPress={onPress}
       activeOpacity={0.85}
     >
-      <View style={[styles.imageContainer, compact && styles.imageCompact]}>
-        <Image
-          source={{ uri: thumbnailUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop' }}
+      <View style={[styles.imageContainer, { height: bannerHeight }]}>
+        <CachedImage
+          source={{ uri: imageUrl ? imageUrl.replace(/\+/g, '%2B') : 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=338&fit=crop' }}
           style={styles.image}
           resizeMode="cover"
         />
@@ -91,11 +98,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    height: 160,
+    // height is now set dynamically via inline style for 16:9 ratio
     position: 'relative',
-  },
-  imageCompact: {
-    height: 120,
   },
   image: {
     width: '100%',

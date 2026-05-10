@@ -13,7 +13,9 @@ const BUCKET_NAME = process.env.S3_BUCKET || 'learnverse-uploads';
  * Generate a pre-signed URL for uploading a file to S3
  */
 const getPresignedUploadUrl = async (fileName, fileType, folder = 'uploads') => {
-  const key = `${folder}/${uuidv4()}-${fileName}`;
+  // Sanitize fileName to prevent S3 URL parsing issues (e.g. '+' being treated as space)
+  const sanitizedFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '-').replace(/-+/g, '-');
+  const key = `${folder}/${uuidv4()}-${sanitizedFileName}`;
 
   const params = {
     Bucket: BUCKET_NAME,

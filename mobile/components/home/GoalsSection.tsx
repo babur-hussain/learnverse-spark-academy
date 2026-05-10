@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 interface Goal {
   _id?: string;
@@ -37,28 +38,18 @@ const GoalsSection: React.FC = () => {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetch = async () => {
-      try {
-        setError(null);
-        const res = await api.get('/admin/goals', { 
-          params: { active: true },
-          signal: controller.signal
-        });
-        setGoals(res.data?.data || res.data || []);
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching goals:', e);
-          setError('Failed to load goals.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-    return () => controller.abort();
+    execute(async () => {
+      setError(null);
+      const res = await api.get('/admin/goals', { params: { active: true } });
+      setGoals(res.data?.data || res.data || []);
+      setLoading(false);
+    }, () => {
+      setError('Failed to load goals.');
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {

@@ -7,6 +7,7 @@ import SectionHeader from './SectionHeader';
 import CourseCard from '@/components/ui/CourseCard';
 import { ShimmerCard } from '@/components/ui/LoadingShimmer';
 import { Palette, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -16,6 +17,7 @@ interface Course {
   title: string;
   short_description?: string;
   thumbnail_url?: string;
+  banner_url?: string;
   price?: number;
 }
 
@@ -24,29 +26,21 @@ const FeaturedCourses: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetch = async () => {
-      try {
-        setError(null);
-        const res = await api.get('/admin/featured_courses', { 
-          params: { is_active: true, order_by: 'order_index', sort: 'asc' },
-          signal: controller.signal
-        });
-        const data = res.data?.data || res.data || [];
-        setCourses(data.slice(0, 6));
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching featured courses:', e);
-          setError('Failed to load featured courses.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-    return () => controller.abort();
+    execute(async () => {
+      setError(null);
+      const res = await api.get('/admin/featured_courses', {
+        params: { is_active: true, order_by: 'order_index', sort: 'asc' },
+      });
+      const data = res.data?.data || res.data || [];
+      setCourses(data.slice(0, 6));
+      setLoading(false);
+    }, () => {
+      setError('Failed to load featured courses.');
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {
@@ -82,6 +76,7 @@ const FeaturedCourses: React.FC = () => {
             title={item.title}
             description={item.short_description}
             thumbnailUrl={item.thumbnail_url}
+            bannerUrl={item.banner_url}
             price={item.price}
             width={SCREEN_WIDTH - 40}
             onPress={() => router.push(`/course/${item._id || item.id}` as any)}

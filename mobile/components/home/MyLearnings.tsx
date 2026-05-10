@@ -88,6 +88,7 @@ const MyLearnings: React.FC = () => {
             title={item.title}
             description={item.subject || 'Enrolled Course'}
             thumbnailUrl={item.thumbnail_url}
+            bannerUrl={item.banner_url}
             compact
             width={CARD_WIDTH}
             onPress={() => router.push(`/course/${item._id || item.id}` as any)}

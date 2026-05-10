@@ -11,6 +11,7 @@ import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 import { useEnrollment } from '@/hooks/useEnrollment';
 import { auth } from '@/lib/firebase';
+import CachedImage from '@/components/ui/CachedImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -231,7 +232,7 @@ export default function CourseDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
         {/* Hero */}
         <View style={styles.heroContainer}>
-          <Image
+          <CachedImage
             source={{ uri: course.banner_url || course.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=300&fit=crop' }}
             style={styles.heroImage}
             resizeMode="cover"
@@ -389,7 +390,7 @@ export default function CourseDetailScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Palette.bg },
   centered: { flex: 1, backgroundColor: Palette.bg, justifyContent: 'center', alignItems: 'center' },
-  heroContainer: { width: '100%', height: 280, position: 'relative' },
+  heroContainer: { width: '100%', height: Math.round(SCREEN_WIDTH * 9 / 16), position: 'relative' },
   heroImage: { width: '100%', height: '100%', backgroundColor: Palette.bgCardElevated },
   heroOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   backBtn: {

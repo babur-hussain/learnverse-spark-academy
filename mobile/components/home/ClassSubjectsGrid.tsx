@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = (SCREEN_WIDTH - 56) / 2;
@@ -43,6 +44,7 @@ const ClassSubjectsGrid: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [subjectsLoading, setSubjectsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
     const fetchClassId = async () => {
@@ -60,25 +62,16 @@ const ClassSubjectsGrid: React.FC = () => {
 
   useEffect(() => {
     if (!selectedClass) return;
-    const controller = new AbortController();
-    const fetchSubjects = async () => {
-      setSubjectsLoading(true);
-      try {
-        const res = await api.get('/admin/subjects', { 
-          params: { class_id: selectedClass },
-          signal: controller.signal
-        });
-        setSubjects(res.data?.data || res.data || []);
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching subjects:', e);
-        }
-      } finally {
-        setSubjectsLoading(false);
-      }
-    };
-    fetchSubjects();
-    return () => controller.abort();
+    setSubjectsLoading(true);
+    execute(async () => {
+      const res = await api.get('/admin/subjects', {
+        params: { class_id: selectedClass },
+      });
+      setSubjects(res.data?.data || res.data || []);
+      setSubjectsLoading(false);
+    }, () => {
+      setSubjectsLoading(false);
+    });
   }, [selectedClass]);
 
   if (loading) {

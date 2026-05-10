@@ -7,6 +7,7 @@ import SectionHeader from './SectionHeader';
 import CourseCard from '@/components/ui/CourseCard';
 import { ShimmerCard } from '@/components/ui/LoadingShimmer';
 import { Palette, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.72;
@@ -17,6 +18,7 @@ interface Course {
   title: string;
   short_description?: string;
   thumbnail_url?: string;
+  banner_url?: string;
   price?: number;
 }
 
@@ -25,26 +27,19 @@ const TrendingCourses: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetch = async () => {
-      try {
-        setError(null);
-        const res = await api.get('/admin/courses', { signal: controller.signal });
-        const data = res.data?.data || res.data || [];
-        setCourses(data.slice(0, 8));
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching trending courses:', e);
-          setError('Failed to load courses.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-    return () => controller.abort();
+    execute(async () => {
+      setError(null);
+      const res = await api.get('/admin/courses');
+      const data = res.data?.data || res.data || [];
+      setCourses(data.slice(0, 8));
+      setLoading(false);
+    }, () => {
+      setError('Failed to load courses.');
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {
@@ -99,6 +94,7 @@ const TrendingCourses: React.FC = () => {
             title={item.title}
             description={item.short_description}
             thumbnailUrl={item.thumbnail_url}
+            bannerUrl={item.banner_url}
             price={item.price}
             compact
             width={CARD_WIDTH}

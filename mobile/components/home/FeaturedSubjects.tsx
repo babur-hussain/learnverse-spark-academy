@@ -8,6 +8,7 @@ import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.42;
@@ -30,36 +31,26 @@ const FeaturedSubjects: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetch = async () => {
-      try {
-        setError(null);
-        const classId = await AsyncStorage.getItem('user_class_id');
-        
-        if (!classId) {
-          setSubjects([]);
-          setLoading(false);
-          return;
-        }
-
-        const res = await api.get('/admin/subjects', { 
-          params: { is_featured: true, class_id: classId, sort: 'title', order: 'asc' },
-          signal: controller.signal
-        });
-        setSubjects(res.data?.data || res.data || []);
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching featured subjects:', e);
-          setError('Failed to load featured subjects.');
-        }
-      } finally {
+    execute(async () => {
+      setError(null);
+      const classId = await AsyncStorage.getItem('user_class_id');
+      if (!classId) {
+        setSubjects([]);
         setLoading(false);
+        return;
       }
-    };
-    fetch();
-    return () => controller.abort();
+      const res = await api.get('/admin/subjects', {
+        params: { is_featured: true, class_id: classId, sort: 'title', order: 'asc' },
+      });
+      setSubjects(res.data?.data || res.data || []);
+      setLoading(false);
+    }, () => {
+      setError('Failed to load featured subjects.');
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {

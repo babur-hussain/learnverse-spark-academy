@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import SectionHeader from './SectionHeader';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
+import { useSafeRequest } from '@/hooks/useSafeRequest';
 
 interface Category {
   id: string;
@@ -46,31 +47,23 @@ const FeaturedCategories: React.FC = () => {
   const [categories, setCategories] = useState<FeaturedCategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { execute } = useSafeRequest();
 
   useEffect(() => {
-    const controller = new AbortController();
-    const fetch = async () => {
-      try {
-        setError(null);
-        const res = await api.get('/admin/featured_categories', { 
-          params: { order_by: 'created_at', sort: 'asc' },
-          signal: controller.signal
-        });
-        const data = (res.data?.data || res.data || []).filter(
-          (item: any) => item?.category?.name
-        );
-        setCategories(data);
-      } catch (e: any) {
-        if (e.name !== 'CanceledError') {
-          console.error('Error fetching featured categories:', e);
-          setError('Failed to load categories.');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-    return () => controller.abort();
+    execute(async () => {
+      setError(null);
+      const res = await api.get('/admin/featured_categories', {
+        params: { order_by: 'created_at', sort: 'asc' },
+      });
+      const data = (res.data?.data || res.data || []).filter(
+        (item: any) => item?.category?.name
+      );
+      setCategories(data);
+      setLoading(false);
+    }, () => {
+      setError('Failed to load categories.');
+      setLoading(false);
+    });
   }, []);
 
   if (loading) {

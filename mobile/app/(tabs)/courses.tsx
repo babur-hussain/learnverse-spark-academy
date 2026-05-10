@@ -17,6 +17,7 @@ interface Course {
   title: string;
   short_description?: string;
   thumbnail_url?: string;
+  banner_url?: string;
   price?: number;
 }
 
@@ -135,6 +136,7 @@ export default function CoursesScreen() {
               title={item.title}
               description={item.short_description}
               thumbnailUrl={item.thumbnail_url}
+              bannerUrl={item.banner_url}
               price={item.price}
               width={SCREEN_WIDTH - 32}
               onPress={() => router.push(`/course/${item._id || item.id}` as any)}
