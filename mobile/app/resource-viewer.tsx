@@ -23,7 +23,7 @@ function getExtension(url: string): string {
 export default function ResourceViewerScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { url, title, type } = useLocalSearchParams<{ url: string; title: string; type: string }>();
+  const { url, title, type, remoteUrl, isLocal } = useLocalSearchParams<{ url: string; title: string; type: string; remoteUrl?: string; isLocal?: string }>();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -42,7 +42,10 @@ export default function ResourceViewerScreen() {
   const isOfficeDoc = OFFICE_EXTENSIONS.includes(ext);
 
   // Google Docs viewer URL for PDFs and Office docs
-  const docsViewerUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(safeUrl)}`;
+  const isLocalFile = isLocal === 'true';
+  const safeRemoteUrl = decodeURIComponent(remoteUrl || '');
+  const viewerTargetUrl = (isLocalFile && safeRemoteUrl) ? safeRemoteUrl : safeUrl;
+  const docsViewerUrl = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(viewerTargetUrl)}`;
 
   // Fetch text-based files and display natively
   useEffect(() => {

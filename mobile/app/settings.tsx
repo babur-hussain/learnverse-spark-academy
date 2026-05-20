@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Switch, Alert, Linking } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { resourceManager } from '@/lib/resourceManager';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { auth, db } from '@/lib/firebase';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 interface SettingToggle {
   id: string;
@@ -29,7 +33,6 @@ const PRIVACY_SETTINGS: SettingToggle[] = [
 ];
 
 const APPEARANCE_SETTINGS: SettingToggle[] = [
-  { id: 'dark_mode', label: 'Dark Mode', description: 'Use dark theme throughout the app', icon: 'moon', color: Palette.purple, defaultValue: true },
   { id: 'reduce_motion', label: 'Reduce Motion', description: 'Minimize animations', icon: 'flash-off', color: Palette.warning, defaultValue: false },
 ];
 
@@ -44,8 +47,77 @@ export default function SettingsScreen() {
     return initial;
   });
 
-  const handleToggle = (id: string) => {
-    setToggles(prev => ({ ...prev, [id]: !prev[id] }));
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const stored = await AsyncStorage.getItem('@user_settings');
+        if (stored) {
+          setToggles(prev => ({ ...prev, ...JSON.parse(stored) }));
+        }
+      } catch (e) {
+        console.error('Failed to load settings', e);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleToggle = async (id: string) => {
+    const nextState = { ...toggles, [id]: !toggles[id] };
+    setToggles(nextState);
+    try {
+      await AsyncStorage.setItem('@user_settings', JSON.stringify(nextState));
+    } catch (e) {
+      console.error('Failed to save settings', e);
+    }
+  };
+
+  const handleClearCache = () => {
+    Alert.alert(
+      'Clear Cache',
+      'Are you sure you want to delete all downloaded files and clear the cache?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Clear', 
+          style: 'destructive',
+          onPress: async () => {
+            await resourceManager.clearAllCache();
+            Alert.alert('Cache Cleared', 'All cached data has been removed.');
+          }
+        }
+      ]
+    );
+  };
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This action is irreversible. All your data and progress will be permanently deleted. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete Permanently', 
+          style: 'destructive',
+          onPress: async () => {
+            const user = auth.currentUser;
+            if (user) {
+              try {
+                await deleteDoc(doc(db, 'users', user.uid));
+                await user.delete();
+                await AsyncStorage.clear();
+                router.replace('/login' as any);
+              } catch (error: any) {
+                if (error.code === 'auth/requires-recent-login') {
+                  Alert.alert('Security Check', 'Please log out and log back in before deleting your account.');
+                } else {
+                  Alert.alert('Error', 'Failed to delete account. Please try again later.');
+                }
+              }
+            }
+          }
+        }
+      ]
+    );
   };
 
   const renderToggleSection = (title: string, items: SettingToggle[]) => (
@@ -83,7 +155,7 @@ export default function SettingsScreen() {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1e293b', '#0f172a'] as any}
+        colors={['#FFF5EB', '#FFF8F0']}
         style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
@@ -140,7 +212,7 @@ export default function SettingsScreen() {
         <View style={styles.settingsSection}>
           <Text style={styles.sectionLabel}>Storage & Data</Text>
           <View style={[styles.settingsCard, Shadow.sm]}>
-            <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('Cache Cleared', 'All cached data has been removed.')}>
+            <TouchableOpacity style={styles.settingRow} onPress={handleClearCache}>
               <View style={[styles.settingIcon, { backgroundColor: `${Palette.danger}15` }]}>
                 <Ionicons name="trash" size={20} color={Palette.danger} />
               </View>
@@ -153,7 +225,7 @@ export default function SettingsScreen() {
 
             <View style={styles.divider} />
 
-            <TouchableOpacity style={styles.settingRow}>
+            <TouchableOpacity style={styles.settingRow} onPress={() => router.push('/downloads' as any)}>
               <View style={[styles.settingIcon, { backgroundColor: `${Palette.info}15` }]}>
                 <Ionicons name="download" size={20} color={Palette.info} />
               </View>
@@ -171,12 +243,12 @@ export default function SettingsScreen() {
           <Text style={styles.sectionLabel}>Legal</Text>
           <View style={[styles.settingsCard, Shadow.sm]}>
             {[
-              { label: 'Terms of Service', icon: 'document-text' as const },
-              { label: 'Privacy Policy', icon: 'shield-checkmark' as const },
-              { label: 'Licenses', icon: 'code-slash' as const },
+              { label: 'Terms of Service', icon: 'document-text' as const, url: 'https://learnverse.lfvs.in/legal/terms' },
+              { label: 'Privacy Policy', icon: 'shield-checkmark' as const, url: 'https://learnverse.lfvs.in/legal/privacy' },
+              { label: 'Licenses', icon: 'code-slash' as const, url: 'https://learnverse.lfvs.in/legal/licenses' },
             ].map((item, index) => (
               <React.Fragment key={item.label}>
-                <TouchableOpacity style={styles.settingRow}>
+                <TouchableOpacity style={styles.settingRow} onPress={() => Linking.openURL(item.url).catch(() => Alert.alert('Error', 'Could not open link.'))}>
                   <View style={[styles.settingIcon, { backgroundColor: `${Palette.textMuted}15` }]}>
                     <Ionicons name={item.icon} size={20} color={Palette.textMuted} />
                   </View>
@@ -191,7 +263,21 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <Text style={styles.versionText}>LearnVerse v2.3 • Build 2026.04</Text>
+        {/* Danger Zone */}
+        <View style={[styles.settingsSection, { marginTop: Spacing.lg }]}>
+          <TouchableOpacity style={[styles.settingsCard, styles.dangerCard, Shadow.sm]} onPress={handleDeleteAccount}>
+            <View style={[styles.settingIcon, { backgroundColor: `${Palette.danger}15` }]}>
+              <Ionicons name="warning" size={20} color={Palette.danger} />
+            </View>
+            <View style={styles.settingContent}>
+              <Text style={[styles.settingLabel, { color: Palette.danger, fontWeight: '700' }]}>Delete Account</Text>
+              <Text style={styles.settingDesc}>Permanently remove your data</Text>
+            </View>
+            <Ionicons name="trash-outline" size={18} color={Palette.danger} />
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.versionText}>Padhaai Wala • Build 2026.04</Text>
         <View style={{ height: 40 }} />
       </ScrollView>
     </View>
@@ -283,5 +369,13 @@ const styles = StyleSheet.create({
     color: Palette.textMuted,
     textAlign: 'center',
     marginTop: Spacing.xl,
+  },
+  dangerCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: `${Palette.danger}30`,
   },
 });

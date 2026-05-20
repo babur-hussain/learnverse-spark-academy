@@ -704,12 +704,7 @@ export default function AIChatScreen() {
               </View>
             )}
             <View style={styles.inputBar}>
-              <TouchableOpacity style={styles.attachBtn} onPress={pickImage}>
-                <Ionicons name="image-outline" size={24} color={Palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.attachBtn} onPress={takePhoto}>
-                <Ionicons name="camera-outline" size={24} color={Palette.textSecondary} />
-              </TouchableOpacity>
+
               <TextInput
                 style={styles.textInput}
                 value={inputText}
@@ -721,7 +716,7 @@ export default function AIChatScreen() {
                 onSubmitEditing={sendMessage}
                 returnKeyType="send"
               />
-              {inputText.trim() || selectedImage ? (
+              { (inputText.trim() || selectedImage) && (
                 <TouchableOpacity
                   style={[
                     styles.sendBtn,
@@ -735,14 +730,6 @@ export default function AIChatScreen() {
                   ) : (
                     <Ionicons name="send" size={18} color="#FFFFFF" />
                   )}
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.micBtn, isRecording && styles.micBtnRecording]}
-                  onPressIn={startRecording}
-                  onPressOut={stopRecording}
-                >
-                  <Ionicons name="mic" size={20} color={isRecording ? "#FFFFFF" : Palette.textSecondary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -791,12 +778,7 @@ export default function AIChatScreen() {
               </View>
             )}
             <View style={styles.inputBar}>
-              <TouchableOpacity style={styles.attachBtn} onPress={pickImage}>
-                <Ionicons name="image-outline" size={24} color={Palette.textSecondary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.attachBtn} onPress={takePhoto}>
-                <Ionicons name="camera-outline" size={24} color={Palette.textSecondary} />
-              </TouchableOpacity>
+
               <TextInput
                 style={styles.textInput}
                 value={inputText}
@@ -808,7 +790,7 @@ export default function AIChatScreen() {
                 onSubmitEditing={sendMessage}
                 returnKeyType="send"
               />
-              {inputText.trim() || selectedImage ? (
+              { (inputText.trim() || selectedImage) && (
                 <TouchableOpacity
                   style={[
                     styles.sendBtn,
@@ -822,14 +804,6 @@ export default function AIChatScreen() {
                   ) : (
                     <Ionicons name="send" size={18} color="#FFFFFF" />
                   )}
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.micBtn, isRecording && styles.micBtnRecording]}
-                  onPressIn={startRecording}
-                  onPressOut={stopRecording}
-                >
-                  <Ionicons name="mic" size={20} color={isRecording ? "#FFFFFF" : Palette.textSecondary} />
                 </TouchableOpacity>
               )}
             </View>

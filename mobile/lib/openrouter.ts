@@ -85,3 +85,53 @@ export async function sendChatMessage(
     throw new Error(`Unexpected error: ${error.message}`);
   }
 }
+
+export async function generateCareerGuidance(answers: Record<string, string>): Promise<any> {
+  const CAREER_SYSTEM_PROMPT = `You are a professional career guidance counselor AI.
+Analyze the user's answers to an aptitude test and return a JSON object with this exact structure:
+{
+  "matches": [
+    { "id": "1", "title": "Data Scientist", "match": 95, "icon": "analytics", "color": "#3b82f6", "skills": ["Python", "Math"] }
+  ],
+  "roadmap": [
+    { "step": 1, "title": "Learn Python", "desc": "Start with basics", "done": false }
+  ]
+}
+
+The 'icon' must be a valid Ionicons name (e.g. 'code-slash', 'analytics', 'color-palette', 'medkit', 'trending-up', 'construct', 'business', 'people', 'earth'). Provide exactly 5 matches and a 5-step roadmap.
+Return ONLY valid JSON without any markdown formatting, backticks, or extra text.`;
+
+  const userPrompt = `Here are the user's answers to the aptitude test:\n${Object.entries(answers).map(([q, a]) => `Q: ${q}\nA: ${a}`).join('\n\n')}\n\nGenerate the career matches and roadmap based on these answers.`;
+
+  try {
+    const response = await openrouterClient.post('/chat/completions', {
+      model: FREE_MODELS[0],
+      models: FREE_MODELS,
+      messages: [
+        { role: 'system', content: CAREER_SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt }
+      ],
+      max_tokens: 2000,
+      temperature: 0.7,
+      route: 'fallback'
+    });
+
+    const content = response.data?.choices?.[0]?.message?.content;
+    if (!content) {
+      throw new Error('No response content from AI');
+    }
+    
+    // Clean up any markdown code blocks if the AI ignored instructions
+    let cleanContent = content.trim();
+    if (cleanContent.startsWith('```json')) {
+      cleanContent = cleanContent.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (cleanContent.startsWith('```')) {
+      cleanContent = cleanContent.replace(/^```\n/, '').replace(/\n```$/, '');
+    }
+    
+    return JSON.parse(cleanContent);
+  } catch (error: any) {
+    console.error('Career generation error:', error);
+    throw error;
+  }
+}

@@ -74,7 +74,7 @@ export default function ExploreScreen() {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1e293b', '#0f172a'] as any}
+        colors={['#FFF5EB', '#FFF8F0']}
         style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <View style={styles.headerRow}>
@@ -120,13 +120,13 @@ export default function ExploreScreen() {
         <Text style={styles.sectionLabel}>Quick Links</Text>
         <View style={[styles.quickLinksCard, Shadow.sm]}>
           {[
-            { icon: 'newspaper' as const, label: 'Latest News', color: Palette.primary },
-            { icon: 'trophy' as const, label: 'Achievements', color: Palette.warning },
-            { icon: 'stats-chart' as const, label: 'Learning Analytics', color: Palette.success },
-            { icon: 'gift' as const, label: 'Refer & Earn', color: Palette.purple },
+            { icon: 'newspaper' as const, label: 'Latest News', color: Palette.primary, route: '/news' },
+            { icon: 'trophy' as const, label: 'Achievements', color: Palette.warning, route: '/achievements' },
+            { icon: 'stats-chart' as const, label: 'Learning Analytics', color: Palette.success, route: '/analytics' },
+            { icon: 'gift' as const, label: 'Refer & Earn', color: Palette.purple, route: '/refer' },
           ].map((item, index) => (
             <React.Fragment key={item.label}>
-              <TouchableOpacity style={styles.quickLinkRow}>
+              <TouchableOpacity style={styles.quickLinkRow} onPress={() => router.push(item.route as any)}>
                 <View style={[styles.quickLinkIcon, { backgroundColor: `${item.color}15` }]}>
                   <Ionicons name={item.icon} size={20} color={item.color} />
                 </View>

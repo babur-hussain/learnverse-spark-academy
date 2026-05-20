@@ -14,9 +14,12 @@ const CARD_WIDTH = (SCREEN_WIDTH - 56) / 2;
 interface Subject {
   _id?: string;
   id?: string;
-  title: string;
+  title?: string;
+  name?: string;
   description?: string;
   thumbnail_url?: string;
+  icon_url?: string;
+  class_id?: string;
   is_featured?: boolean;
 }
 
@@ -57,17 +60,27 @@ export default function CatalogScreen() {
   }, []);
 
   const filtered = subjects.filter(s => {
-    if (search) {
-      return s.title.toLowerCase().includes(search.toLowerCase());
+    let match = true;
+    
+    // Class filter
+    if (selectedClass !== 'all') {
+      match = s.class_id === selectedClass;
     }
-    return true;
+    
+    // Search filter
+    if (match && search) {
+      const subjectName = s.title || s.name || '';
+      match = subjectName.toLowerCase().includes(search.toLowerCase());
+    }
+    
+    return match;
   });
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#1e293b', '#0f172a'] as any}
+        colors={['#FFF5EB', '#FFF8F0']}
         style={[styles.header, { paddingTop: insets.top + 12 }]}
       >
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -165,10 +178,20 @@ export default function CatalogScreen() {
                 onPress={() => router.push(`/subject/${subject._id || subject.id}` as any)}
               >
                 <Image
-                  source={{ uri: subject.thumbnail_url || 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=200&h=140&fit=crop' }}
+                  source={{ uri: subject.icon_url || subject.thumbnail_url || 'https://images.unsplash.com/photo-1546410531-bd4cb01bd15d?w=200&h=140&fit=crop' }}
                   style={styles.subjectImage}
                   resizeMode="cover"
                 />
+                
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.8)']}
+                  style={styles.subjectTitleOverlay}
+                >
+                  <Text style={styles.subjectTitleText} numberOfLines={2}>
+                    {subject.title || subject.name}
+                  </Text>
+                </LinearGradient>
+
                 {subject.is_featured && (
                   <View style={styles.featuredBadge}>
                     <Text style={styles.featuredText}>⭐ Featured</Text>
@@ -272,6 +295,19 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     backgroundColor: Palette.bgCardElevated,
+  },
+  subjectTitleOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: Spacing.md,
+    paddingTop: 30,
+  },
+  subjectTitleText: {
+    ...Typography.bodyBold,
+    color: '#fff',
+    fontSize: 14,
   },
   featuredBadge: {
     position: 'absolute',

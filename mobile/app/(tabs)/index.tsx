@@ -3,10 +3,11 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } 
 import { Ionicons } from '@expo/vector-icons';
 import { auth } from '@/lib/firebase';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-// Home sections
 import AIBuddyCard from '@/components/home/AIBuddyCard';
 import LibraryCard from '@/components/home/LibraryCard';
+import FeatureShortcuts from '@/components/home/FeatureShortcuts';
 import ClassSubjectsGrid from '@/components/home/ClassSubjectsGrid';
 import FeaturedCategories from '@/components/home/FeaturedCategories';
 import { useSidebar } from '@/components/SidebarContext';
@@ -32,6 +33,7 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = React.useState(false);
   const [key, setKey] = React.useState(0);
   const { openSidebar } = useSidebar();
+  const router = useRouter();
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -50,7 +52,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <View style={styles.topBarRight}>
-          <TouchableOpacity style={[styles.subscribeBadge, Shadow.sm]}>
+          <TouchableOpacity style={[styles.subscribeBadge, Shadow.sm]} onPress={() => router.push('/subscription')}>
             <Ionicons name="sparkles" size={16} color="#FF6B35" />
             <Text style={styles.subscribeText}>Subscribe</Text>
           </TouchableOpacity>
@@ -76,16 +78,10 @@ export default function HomeScreen() {
         {/* Library Card */}
         <MemoLibraryCard />
 
-        {/* Made just for you — Trending Courses */}
-        <View style={styles.madeForYou}>
-          <View style={styles.madeForYouHeader}>
-            <Text style={styles.sectionTitle}>Made just for you</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAll}>See All</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-        <TrendingCourses key={`tc-${key}`} />
+        {/* Feature Shortcuts */}
+        <FeatureShortcuts />
+
+
 
         {/* Existing sections with new styling */}
         <ClassSubjectsGrid key={`csg-${key}`} />

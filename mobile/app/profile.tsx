@@ -4,38 +4,79 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { auth } from '@/lib/firebase';
-import { signOut } from 'firebase/auth';
+import { signOut, updateProfile } from 'firebase/auth';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker';
+import * as Linking from 'expo-linking';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MENU_ITEMS = [
   { id: 'favourites', icon: 'heart' as const, label: 'Favourites', color: '#ef4444', route: '/favourites' },
-  { id: 'downloads', icon: 'download' as const, label: 'Downloads', color: '#3b82f6', route: null },
+  { id: 'downloads', icon: 'download' as const, label: 'Downloads', color: '#3b82f6', route: '/downloads' },
   { id: 'explore', icon: 'compass' as const, label: 'Explore Features', color: '#10b981', route: '/explore-features' },
-  { id: 'subscription', icon: 'card' as const, label: 'Subscription', color: '#f97316', route: null },
+  { id: 'subscription', icon: 'card' as const, label: 'Subscription', color: '#f97316', route: '/subscription' },
   { id: 'notifications', icon: 'notifications' as const, label: 'Notifications', color: '#8b5cf6', route: '/settings' },
   { id: 'kids', icon: 'happy' as const, label: 'Kids Zone', color: '#ec4899', route: '/kids' },
 ];
 
 const SUPPORT_ITEMS = [
-  { id: 'help', icon: 'help-circle' as const, label: 'Help & Support', color: Palette.textMuted },
-  { id: 'about', icon: 'information-circle' as const, label: 'About', color: Palette.textMuted },
-  { id: 'terms', icon: 'document-text' as const, label: 'Terms of Service', color: Palette.textMuted },
-  { id: 'privacy-policy', icon: 'lock-closed' as const, label: 'Privacy Policy', color: Palette.textMuted },
+  { id: 'help', icon: 'help-circle' as const, label: 'Help & Support', color: Palette.textMuted, action: () => Linking.openURL('mailto:support@padhaaiwala.com') },
+  { id: 'about', icon: 'information-circle' as const, label: 'About', color: Palette.textMuted, route: '/about' },
+  { id: 'terms', icon: 'document-text' as const, label: 'Terms of Service', color: Palette.textMuted, action: () => Linking.openURL('https://learnverse.lfvs.in/legal/terms') },
+  { id: 'privacy-policy', icon: 'lock-closed' as const, label: 'Privacy Policy', color: Palette.textMuted, action: () => Linking.openURL('https://learnverse.lfvs.in/legal/privacy') },
 ];
 
 export default function ProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const user = auth.currentUser;
+  const [uploading, setUploading] = React.useState(false);
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      router.replace('/login');
+      router.replace('/');
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const handlePickImage = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (!result.canceled && user) {
+        setUploading(true);
+        const imageUri = result.assets[0].uri;
+        
+        // Fetch image bytes
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+
+        // Upload to Firebase Storage
+        const storage = getStorage();
+        const storageRef = ref(storage, `users/${user.uid}/avatar.jpg`);
+        await uploadBytes(storageRef, blob);
+
+        // Get download URL and update profile
+        const downloadURL = await getDownloadURL(storageRef);
+        await updateProfile(user, { photoURL: downloadURL });
+        
+        // Force re-render (since auth.currentUser mutation might not trigger it)
+        router.replace('/profile');
+      }
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      alert('Failed to upload profile picture. Make sure Firebase Storage is configured.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -87,8 +128,8 @@ export default function ProfileScreen() {
                 </Text>
               </View>
             )}
-            <TouchableOpacity style={styles.cameraBtn}>
-              <Ionicons name="camera" size={14} color="#fff" />
+            <TouchableOpacity style={styles.cameraBtn} onPress={handlePickImage} disabled={uploading}>
+              <Ionicons name={uploading ? "hourglass-outline" : "camera"} size={14} color="#fff" />
             </TouchableOpacity>
           </View>
           <Text style={styles.userName}>{user?.displayName || 'Learner'}</Text>
@@ -125,7 +166,11 @@ export default function ProfileScreen() {
         <View style={[styles.menuCard, Shadow.sm]}>
           {SUPPORT_ITEMS.map((item, index) => (
             <React.Fragment key={item.id}>
-              <TouchableOpacity style={styles.menuRow} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.menuRow} activeOpacity={0.7}
+                onPress={() => {
+                  if (item.action) item.action();
+                  else if (item.route) router.push(item.route as any);
+                }}>
                 <View style={[styles.menuIcon, { backgroundColor: `${item.color}15` }]}>
                   <Ionicons name={item.icon} size={20} color={item.color} />
                 </View>
@@ -144,7 +189,7 @@ export default function ProfileScreen() {
         </TouchableOpacity>
 
         {/* Version */}
-        <Text style={styles.version}>LearnVerse v2.3 • Made with ❤️</Text>
+        <Text style={styles.version}>Padhaai Wala • Made with ❤️</Text>
       </ScrollView>
     </View>
   );

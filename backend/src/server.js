@@ -31,6 +31,8 @@ const doubtRoutes = require('./routes/doubts');
 const gradingRoutes = require('./routes/grading');
 const schoolRoutes = require('./routes/schools');
 const adminRoutes = require('./routes/admin');
+const legalRoutes = require('./routes/legal');
+const configRoutes = require('./routes/config');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -90,6 +92,8 @@ app.use('/api/doubts', verifyFirebaseToken, doubtRoutes);
 app.use('/api/grading', verifyFirebaseToken, gradingRoutes);
 app.use('/api/schools', schoolRoutes); // Schools can be public
 app.use('/api/admin', verifyFirebaseToken, adminRoutes); // Generic admin CRUD
+app.use('/api/config', configRoutes); // Public config (API keys)
+app.use('/legal', legalRoutes); // Public legal pages (Privacy, Terms, Licenses)
 
 // Health check
 app.get('/api/health', (req, res) => {

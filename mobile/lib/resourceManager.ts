@@ -120,6 +120,31 @@ class ResourceManager {
       await this.saveCache();
     }
   }
+
+  /**
+   * Clear all cached resources.
+   */
+  async clearAllCache(): Promise<void> {
+    await this.ensureReady();
+    for (const key of Object.keys(this.cache)) {
+      const item = this.cache[key];
+      try {
+        await FileSystem.deleteAsync(item.localUri, { idempotent: true });
+      } catch (e) {
+        console.error('Failed to delete local file during clear', e);
+      }
+    }
+    this.cache = {};
+    await this.saveCache();
+  }
+
+  /**
+   * Get all downloaded resources.
+   */
+  async getAllDownloads(): Promise<CachedResource[]> {
+    await this.ensureReady();
+    return Object.values(this.cache).sort((a, b) => b.downloadedAt - a.downloadedAt);
+  }
 }
 
 export const resourceManager = new ResourceManager();

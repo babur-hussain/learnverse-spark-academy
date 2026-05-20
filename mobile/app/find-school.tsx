@@ -32,7 +32,7 @@ export default function FindSchoolScreen() {
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <LinearGradient colors={['#FFF5EB', '#FFF8F0']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={Palette.textPrimary} />

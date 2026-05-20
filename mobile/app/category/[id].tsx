@@ -127,6 +127,7 @@ export default function CategoryScreen() {
       pathname: '/resource-viewer' as any,
       params: {
         url: urlToOpen,
+        remoteUrl: r.url || '',
         title: r.title || r.name || 'File',
         type: r.mime_type || r.type || getExt(r),
         isLocal: localUri ? 'true' : 'false',

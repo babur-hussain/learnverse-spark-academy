@@ -96,8 +96,8 @@ export default function LoginScreen() {
                 <Ionicons name="school" size={36} color="#fff" />
               </LinearGradient>
             </View>
-            <Text style={styles.brandName}>LearnVerse</Text>
-            <Text style={styles.tagline}>Spark Academy</Text>
+            <Text style={styles.brandName}>Padhaai Wala</Text>
+            <Text style={styles.tagline}>Learn Better, Together</Text>
           </View>
 
           {/* Card */}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, FlatList, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,7 @@ import api from '@/lib/api';
 import { Shimmer } from '@/components/ui/LoadingShimmer';
 import { Palette, BorderRadius, Typography, Shadow, Spacing } from '@/constants/theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { getEnrolledCourseIds } from '@/hooks/useEnrollment';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -17,27 +18,56 @@ interface Video {
   duration?: string; course_id?: string;
 }
 
+interface CourseVideoGroup {
+  courseId: string;
+  courseTitle: string;
+  videos: Video[];
+}
+
 export default function VideoLibraryScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [groupedVideos, setGroupedVideos] = useState<CourseVideoGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'videos' | 'live'>('videos');
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const res = await api.get('/admin/videos');
-        setVideos(res.data?.data || res.data || []);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+        const enrolledIds = await getEnrolledCourseIds();
+        
+        const [coursesRes, videosRes] = await Promise.all([
+          api.get('/admin/courses').catch(() => ({ data: [] })),
+          api.get('/admin/videos').catch(() => ({ data: [] }))
+        ]);
+        
+        const allCourses = coursesRes.data?.data || coursesRes.data || [];
+        const allVideos = videosRes.data?.data || videosRes.data || [];
+
+        const enrolledCourses = allCourses.filter((c: any) => enrolledIds.includes(String(c._id || c.id)));
+
+        const groups = enrolledCourses.map((course: any) => {
+          const cId = String(course._id || course.id);
+          return {
+            courseId: cId,
+            courseTitle: course.title,
+            videos: allVideos.filter((v: any) => String(v.course_id) === cId)
+          };
+        }).filter((group: any) => group.videos.length > 0);
+
+        setGroupedVideos(groups);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
     };
     fetch();
   }, []);
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#1e293b', '#0f172a'] as any} style={[styles.header, { paddingTop: insets.top + 12 }]}>
+      <LinearGradient colors={['#FFF5EB', '#FFF8F0']} style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
             <Ionicons name="arrow-back" size={22} color={Palette.textPrimary} />
@@ -62,46 +92,60 @@ export default function VideoLibraryScreen() {
           <>
             {loading ? (
               [1, 2, 3].map(i => <Shimmer key={i} width="100%" height={200} borderRadius={16} style={{ marginBottom: 16 }} />)
-            ) : videos.length === 0 ? (
+            ) : groupedVideos.length === 0 ? (
               <View style={styles.emptySection}>
                 <Ionicons name="videocam-outline" size={48} color={Palette.textMuted} />
                 <Text style={styles.emptyTitle}>No Videos Yet</Text>
-                <Text style={styles.emptyDesc}>Course videos will appear here once they're published.</Text>
+                <Text style={styles.emptyDesc}>Enroll in a course to see its videos here.</Text>
+                <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push('/(tabs)/courses')}>
+                  <Text style={styles.emptyBtnText}>Explore Courses</Text>
+                </TouchableOpacity>
               </View>
             ) : (
-              videos.map(video => (
-                <TouchableOpacity key={video._id || video.id} style={[styles.videoCard, Shadow.md]}
-                  activeOpacity={0.85} onPress={() => {
-                    if (video.video_url) {
-                      router.push({
-                        pathname: '/resource-viewer' as any,
-                        params: { url: video.video_url, title: video.title, type: 'video/mp4' }
-                      });
-                    }
-                  }}>
-                  <View style={styles.videoThumbContainer}>
-                    <Image
-                      source={{ uri: video.thumbnail_url || 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=225&fit=crop' }}
-                      style={styles.videoThumb} resizeMode="cover"
-                    />
-                    <View style={styles.playOverlay}>
-                      <View style={styles.playBtn}>
-                        <Ionicons name="play" size={24} color="#fff" />
-                      </View>
-                    </View>
-                    {video.duration && (
-                      <View style={styles.durationBadge}>
-                        <Text style={styles.durationText}>{video.duration}</Text>
-                      </View>
-                    )}
+              groupedVideos.map(group => (
+                <View key={group.courseId} style={styles.courseGroup}>
+                  <View style={styles.courseHeader}>
+                    <Ionicons name="book" size={18} color={Palette.primary} />
+                    <Text style={styles.courseTitle}>{group.courseTitle}</Text>
                   </View>
-                  <View style={styles.videoInfo}>
-                    <Text style={styles.videoTitle} numberOfLines={2}>{video.title}</Text>
-                    {video.description && (
-                      <Text style={styles.videoDesc} numberOfLines={2}>{video.description}</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
+                  
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
+                    {group.videos.map(video => (
+                      <TouchableOpacity key={video._id || video.id} style={[styles.videoCard, Shadow.md]}
+                        activeOpacity={0.85} onPress={() => {
+                          if (video.video_url) {
+                            router.push({
+                              pathname: '/resource-viewer' as any,
+                              params: { url: video.video_url, title: video.title, type: 'video/mp4' }
+                            });
+                          }
+                        }}>
+                        <View style={styles.videoThumbContainer}>
+                          <Image
+                            source={{ uri: video.thumbnail_url || 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=225&fit=crop' }}
+                            style={styles.videoThumb} resizeMode="cover"
+                          />
+                          <View style={styles.playOverlay}>
+                            <View style={styles.playBtn}>
+                              <Ionicons name="play" size={24} color="#fff" />
+                            </View>
+                          </View>
+                          {video.duration && (
+                            <View style={styles.durationBadge}>
+                              <Text style={styles.durationText}>{video.duration}</Text>
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.videoInfo}>
+                          <Text style={styles.videoTitle} numberOfLines={2}>{video.title}</Text>
+                          {video.description && (
+                            <Text style={styles.videoDesc} numberOfLines={2}>{video.description}</Text>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
               ))
             )}
           </>
@@ -137,19 +181,25 @@ const styles = StyleSheet.create({
   tabLabel: { ...Typography.caption, color: Palette.textMuted, fontWeight: '600' },
   tabLabelActive: { color: '#fff' },
   scrollContent: { padding: Spacing.xl },
-  videoCard: { backgroundColor: Palette.bgCard, borderRadius: BorderRadius.lg, overflow: 'hidden', marginBottom: Spacing.lg },
-  videoThumbContainer: { position: 'relative', width: '100%', height: 200 },
+  courseGroup: { marginBottom: Spacing['2xl'] },
+  courseHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: Spacing.md, gap: 8 },
+  courseTitle: { ...Typography.h3, color: Palette.textPrimary },
+  horizontalScroll: { gap: Spacing.lg, paddingRight: Spacing.xl },
+  videoCard: { width: SCREEN_WIDTH * 0.7, backgroundColor: Palette.bgCard, borderRadius: BorderRadius.lg, overflow: 'hidden' },
+  videoThumbContainer: { position: 'relative', width: '100%', height: 160 },
   videoThumb: { width: '100%', height: '100%', backgroundColor: Palette.bgCardElevated },
   playOverlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, justifyContent: 'center', alignItems: 'center' },
-  playBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
+  playBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
   durationBadge: { position: 'absolute', bottom: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: BorderRadius.sm },
   durationText: { ...Typography.small, color: '#fff', fontWeight: '600', fontSize: 11 },
-  videoInfo: { padding: Spacing.lg },
-  videoTitle: { ...Typography.bodyBold, color: Palette.textPrimary, fontSize: 15 },
-  videoDesc: { ...Typography.caption, color: Palette.textSecondary, marginTop: 6 },
+  videoInfo: { padding: Spacing.md },
+  videoTitle: { ...Typography.bodyBold, color: Palette.textPrimary, fontSize: 14 },
+  videoDesc: { ...Typography.caption, color: Palette.textSecondary, marginTop: 4 },
   emptySection: { alignItems: 'center', paddingVertical: Spacing['4xl'] },
   emptyTitle: { ...Typography.h3, color: Palette.textPrimary, marginTop: Spacing.lg },
   emptyDesc: { ...Typography.body, color: Palette.textSecondary, textAlign: 'center', marginTop: 8 },
+  emptyBtn: { marginTop: Spacing.xl, backgroundColor: Palette.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: BorderRadius.md },
+  emptyBtnText: { ...Typography.button, color: '#fff' },
   liveIndicator: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(239,68,68,0.1)', paddingHorizontal: 14, paddingVertical: 6, borderRadius: BorderRadius.full, gap: 6 },
   liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444' },
   liveLabel: { ...Typography.small, color: '#ef4444', fontWeight: '800', letterSpacing: 1 },

@@ -12,9 +12,6 @@ const KIDS_ITEMS = [
   { id: 'games', title: 'Mini Games', description: 'Fun interactive games!', icon: 'game-controller' as const, colors: ['#4ade80', '#0ea5e9'] },
   { id: 'nursery', title: 'Nursery & KG', description: 'Early learning games!', icon: 'happy' as const, colors: ['#f43f5e', '#fb923c'] },
   { id: '1', title: 'Fun Math', description: 'Learn numbers with games!', icon: 'calculator' as const, colors: ['#f472b6', '#a855f7'] },
-  { id: '2', title: 'Story Time', description: 'Exciting tales & adventures', icon: 'book' as const, colors: ['#60a5fa', '#34d399'] },
-  { id: '3', title: 'Art & Craft', description: 'Create beautiful art', icon: 'color-palette' as const, colors: ['#fbbf24', '#f97316'] },
-  { id: '4', title: 'Science Fun', description: 'Cool experiments!', icon: 'flask' as const, colors: ['#818cf8', '#c084fc'] },
   { id: '5', title: 'Music', description: 'Learn rhythm & songs', icon: 'musical-notes' as const, colors: ['#fb923c', '#f43f5e'] },
 ];
 

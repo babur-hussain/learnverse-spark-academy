@@ -73,13 +73,9 @@ export default function RootLayout() {
 
       const inAuthGroup = segments[0] === 'login';
 
-      // If user is signed in and on login screen, navigate away
+      // If user is signed in and on login screen, navigate to home page
       if (user && inAuthGroup) {
-        if (router.canGoBack()) {
-          router.back();
-        } else {
-          router.replace('/(tabs)');
-        }
+        router.replace('/(tabs)');
       }
     };
     

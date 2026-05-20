@@ -51,7 +51,7 @@ router.get('/:collection', async (req, res) => {
     }
 
     // Build filter from query params (exclude internal params)
-    const { sort_by, sort_order, order_by, sort, limit, offset, ...filterParams } = req.query;
+    const { sort_by, sort_order, order_by, sort, order, limit, offset, ...filterParams } = req.query;
     const filter = {};
 
     for (const [key, value] of Object.entries(filterParams)) {

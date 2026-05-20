@@ -100,7 +100,7 @@ export default function StudyClassScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <LinearGradient
-          colors={['#1e293b', '#0f172a'] as any}
+          colors={['#FFF5EB', '#FFF8F0']}
           style={[styles.header, { paddingTop: insets.top + 12 }]}
         >
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>

@@ -128,6 +128,12 @@ export default function NotesScreen() {
   const { courses, resourcesMap, loading, loadingMore } = useNotesStore();
   const [refreshing, setRefreshing] = useState(false);
   const headerAnim = useRef(new Animated.Value(0)).current;
+  const [greeting, setGreeting] = useState(getGreeting());
+
+  useEffect(() => {
+    const interval = setInterval(() => setGreeting(getGreeting()), 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     notesActions.fetchProfileAndCourses();
@@ -178,7 +184,7 @@ export default function NotesScreen() {
         >
           <View style={styles.headerRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.greeting}>{getGreeting()}, {firstName}! 👋</Text>
+              <Text style={styles.greeting}>{greeting}, {firstName}! 👋</Text>
               <Text style={styles.headerTitle}>Your Notes</Text>
               <Text style={styles.headerSub}>Access your study materials</Text>
             </View>

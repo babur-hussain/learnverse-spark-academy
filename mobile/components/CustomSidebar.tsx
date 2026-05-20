@@ -61,7 +61,7 @@ export default function CustomSidebar() {
     try {
       await signOut(auth);
       closeSidebar();
-      router.replace('/login');
+      router.replace('/');
     } catch (error) {
       console.error('Error signing out: ', error);
     }

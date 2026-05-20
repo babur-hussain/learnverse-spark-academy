@@ -62,12 +62,7 @@ const AIBuddyCard: React.FC = () => {
 
         {/* Action row */}
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="camera-outline" size={20} color={Palette.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionIcon}>
-            <Ionicons name="mic-outline" size={20} color={Palette.textSecondary} />
-          </TouchableOpacity>
+
           <TouchableOpacity
             style={styles.askInput}
             onPress={navigateToChat}
